@@ -5,7 +5,7 @@ import def.Time;
 import def.Speed;
 
 import def.Cost;
-import def.Fare;
+import def.Toll;
 import def.UserCost;
 
 import def.VehicleClass;
@@ -33,7 +33,7 @@ class CompileDefs {
 		v.set( LargeTruck, 10 );
 		trace( v );
 
-		var fval:Fare = 5;
+		var fval:Toll = 5;
 		var u = new UserCost( 10, 20 );
 		trace( u.a*dval + u.b*tval );
 		// trace( u.b*dval + u.a*tval ); // EXPECTED compile error

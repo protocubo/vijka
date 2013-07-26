@@ -1,4 +1,9 @@
 -main blah.CompileDefs
 -cp src
 -neko bin/blah/compile_defs.n
-# --no-output
+
+--next
+
+-main blah.CompileSim
+-cp src
+-neko bin/blah/compile_sim.n

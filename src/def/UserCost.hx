@@ -11,13 +11,9 @@ class UserCost {
 }
 
 abstract DistCostMultiplier( Float ) from Float to Float {
-	@:op( A*B ) public static function multi( a:DistCostMultiplier, b:Dist ):Cost {
-		return cast( a, Float )*cast( b, Float );
-	}
+	@:op( A*B ) public static function multi( a:DistCostMultiplier, b:Dist ):Cost;
 }
 
 abstract TimeCostMultiplier( Float ) from Float to Float {
-	@:op( A*B ) public static function multi( a:TimeCostMultiplier, b:Time ):Cost {
-		return cast( a, Float )*cast( b, Float );
-	}
+	@:op( A*B ) public static function multi( a:TimeCostMultiplier, b:Time ):Cost;
 }

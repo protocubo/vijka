@@ -12,13 +12,22 @@ class Link {
 	// parameter
 	public var dist:Dist;
 	public var speed:Speed;
-	public var fare:Fare;
+	public var toll:Null<Toll>;
 	
 	// complementary parameter
 	public var capacity:Volume; // not used so far
 	
 	// result
-	public var volume:LinkVolume;
+	public var volume:Null<LinkVolume>;
+
+	public function new( _id, _start, _finish, _dist, _speed, _toll, _capacity ) {
+		id = _id;
+		start = _start;
+		finish = _finish;
+		dist = _dist;
+		speed = _speed;
+		toll = _toll;
+	}
 
 }
 
