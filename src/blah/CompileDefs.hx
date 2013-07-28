@@ -1,23 +1,18 @@
 package blah;
 
-import def.Dist;
-import def.Time;
-import def.Speed;
-
 import def.Cost;
+import def.Dist;
+import def.Link;
+import def.LinkVolume;
+import def.Node;
+import def.ODSurvey;
+import def.Section;
+import def.Speed;
+import def.Time;
 import def.Toll;
 import def.UserCost;
-
 import def.VehicleClass;
-
-import def.Section;
-import def.ODSurvey;
-
-import def.Node;
-import def.Link;
-
 import def.Volume;
-import def.LinkVolume;
 
 class CompileDefs {
 	function new() {

@@ -7,3 +7,9 @@
 -main blah.CompileSim
 -cp src
 -neko bin/blah/compile_sim.n
+
+--next
+
+-main blah.CompileSPOD
+-cp src
+-neko bin/blah/compile_spod.n

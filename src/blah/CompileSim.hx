@@ -1,15 +1,14 @@
 package blah;
 
+import def.Link;
+import def.Node;
 import def.Speed;
 import def.UserCost;
 import def.VehicleClass;
-import graph.linkList.Vertex;
+
 import graph.linkList.Arc;
 import graph.linkList.Digraph;
-
-import def.Node;
-import def.Link;
-
+import graph.linkList.Vertex;
 import sim.Simulator;
 
 class CompileSim {
