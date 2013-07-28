@@ -52,7 +52,7 @@ class Digraph {
 		return arcIndex.get( link.id );
 	}
 
-	public function spt( origin:Node, vclass:VehicleClass, ucost:UserCost, ?selectedToll:Link ) {
+	public function spt( origin:Node, tollMulti:Float, vclass:VehicleClass, ucost:UserCost, ?selectedToll:Link ) {
 		clearState();
 		
 		var from = getVertex( origin );
@@ -64,10 +64,10 @@ class Digraph {
 
 		for ( v in vertices )
 			for ( a in arcs )
-				relax( a, vclass, ucost, selectedToll );
+				relax( a, tollMulti, vclass, ucost, selectedToll );
 	}
 
-	inline function relax( a:Arc, vclass:VehicleClass, ucost:UserCost, selectedToll:Link ) {
+	inline function relax( a:Arc, tollMulti:Float, vclass:VehicleClass, ucost:UserCost, selectedToll:Link ) {
 		if ( a.from.parent == null ) {
 			// nothing to do, link not reached yet
 		}
@@ -76,7 +76,7 @@ class Digraph {
 			var ttime = a.from.time + a.link.dist/a.link.speed.get( vclass );
 			var ttoll = a.from.toll + ( a.link.toll != null ? a.link.toll : 0. );
 			var tcost = a.from.cost + userCost( ucost, tdist, ttime )
-			+ ( a.link.toll != null ? a.link.toll : 0. );
+			+ ( a.link.toll != null ? a.link.toll*tollMulti : 0. );
 
 			if ( a.to.parent == null || a.to.cost > tcost ) {
 				a.to.parent = a.from;
