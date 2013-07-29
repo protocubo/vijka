@@ -1,2 +1,5 @@
-*.n
 *.sublime-workspace
+
+*.n
+*.cpp/
+*.cpp.64/

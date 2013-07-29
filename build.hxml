@@ -1,3 +1,7 @@
+################################################################################
+# compilation "tests"
+################################################################################
+
 -main blah.CompileDefs
 -cp src
 -neko bin/blah/compile_defs.n
@@ -10,6 +14,30 @@
 
 --next
 
+-main blah.CompileSim
+-cp src
+-cpp bin/blah/compile_sim.cpp.64/
+-D HXCPP_M64
+
+--next
+
 -main blah.CompileSPOD
 -cp src
 -neko bin/blah/compile_spod.n
+
+--next
+
+################################################################################
+# unit tests
+################################################################################
+
+-main test.Main
+-cp src
+-neko bin/test/unit_tests.n
+
+--next
+
+-main test.Main
+-cp src
+-cpp bin/test/unit_tests.cpp.64/
+-D HXCPP_M64

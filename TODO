@@ -1,0 +1,41 @@
+TODO list
+
+General:
+  ☐ Rename from RodoFareSim to RodoTollSim
+
+Implementation:
+  ✔ Definitions: @done (13-07-26)
+    ✔ Network @done (13-07-26)
+    ✔ O/D survey @done (13-07-26)
+  ☐ Shortest paths:
+    ✔ Basic Bellman-Ford @done (13-07-26)
+    ☐ Improved/faster (Dijkstra, A*, ...)?
+  ☐ Network formats:
+    ☐ Pedro1
+    ☐ Cássio1
+    ✔ RodoTollSim SPOD @done (13-07-28)
+  ☐ O/D survey format
+  ☐ Simulator application:
+    ☐ Settings
+    ☐ Input
+    ☐ Run
+    ☐ Output
+  ☐ Volume output mode assignment
+
+Unit testing:
+  ✔ Digraph construction @done (13-07-29)
+  ☐ Shortest paths
+  ☐ Volume output assignment
+
+Performance testing:
+  ☐ Bellman-Ford performance with full network and all O/D surveys
+
+Production testing:
+  ☐ Full O/D assignment:
+    ☐ Dist costs only
+    ☐ Time costs only
+    ☐ Dist+time costs
+
+ Optimization:
+  ☐ Bellman-Ford early exit
+  ☐ Bellman-Ford full optimization

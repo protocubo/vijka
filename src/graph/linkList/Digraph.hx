@@ -1,73 +1,189 @@
 package graph.linkList;
 
+import def.Dist;
+import def.Link;
+import def.Node;
+import def.Time;
 import def.UserCost;
 import def.VehicleClass;
-import def.Dist;
-import def.Time;
 
-import def.Node;
-import def.Link;
-
+/* 
+ * An arc-list directed graph implementation.
+ * This should be especially efficient for the Bellamn-Ford shortest path
+ * algorithm.
+ */
 class Digraph {
 
-	var arcs:Array<Arc>;
-
-	var vertices:Map<Int,Vertex>;
-	var arcIndex:Map<Int,Arc>;
+	var as:ArcCol;
+	var vs:Map<Int,Vertex>;
 	
+	/* 
+	 * Directed graph constructor.
+	 */
 	public function new() {
-		arcs = [];
-		vertices = new Map();
-		arcIndex = new Map();
+		as = new ArcCol();
+		vs = new Map();
 	}
 
+	/* 
+	 * Vertex API
+	 */
+
+	/* 
+	 * Adds a vertex for [node].
+	 * Returns the added vertex on success.
+	 * Raises an expection when:
+	 * . [node] is {null}.
+	 * . [node.id] is already known.
+	 */
 	public function addVertex( node:Node ):Vertex {
-		if ( vertices.exists( node.id ) )
-			return vertices.get( node.id );
+		if ( node == null )
+			throw "Null node";
+		else if ( vs.exists( node.id ) )
+			throw 'There already exists a vertex for node.id=${node.id}';
 		else {
 			var v = new Vertex( node );
-			vertices.set( node.id, v );
+			vs.set( node.id, v );
 			return v;
 		}
 	}
 
-	public function getVertex( node:Node ) {
-		return vertices.get( node.id );
+	/* 
+	 * Gets the registred vertex for [node].
+	 * Returns a vertex on success,
+	 * or {null} when:
+	 * . [node] is {null}.
+	 * . [node] does not have a corresponding vertex.
+	 */
+	public function getVertex( node:Node ):Null<Vertex> {
+		if ( node != null ) {
+			var ret = vs.get( node.id );
+			return ret != null && ret.node == node ? ret : null;
+		}
+		else
+			return null;
 	}
 
+	/* 
+	 * Vertices iterator.
+	 */
+	public function vertices():Iterator<Vertex> {
+		return vs.iterator();
+	}
+
+	/* 
+	 * Arc API
+	 */
+
+	/* 
+	 * Adds an arc for [link].
+	 * Returns the added arc on success.
+	 * Raises an expection when:
+	 * . [link] is {null}.
+	 * . [link.id] is already known.
+	 * . [link.start] has no known vertex.
+	 * . [link.finish] has no known vertex.
+	 */
 	public function addArc( link:Link ):Arc {
-		if ( arcIndex.exists( link.id ) )
-			return arcIndex.get( link.id );
+		if ( link == null )
+			throw "Null link";
+		else if ( as.exists( link.id ) )
+			throw 'There already exists an arc for link.id=${link.id}';
 		else {
 			var v = getVertex( link.start );
+			if ( v == null )
+				throw 'Cannot add arc, unknown start node ${link.start.id}';
 			var w = getVertex( link.finish );
+			if ( w == null )
+				throw 'Cannot add arc, unknown finish node ${link.finish.id}';
 			var a = new Arc( v, w, link );
-			arcIndex.set( link.id, a );
-			arcs.push( a );
+			as.set( a );
 			return a;
 		}
 	}
 
-	public function getArc( link:Link ) {
-		return arcIndex.get( link.id );
+	/* 
+	 * Gets the registred arc for [link].
+	 * Returns an arc on success,
+	 * or {null} when:
+	 * . [link] is {null}.
+	 * . [link] does not have a corresponding arc.
+	 */
+	public function getArc( link:Link ):Null<Arc> {
+		if ( link != null ) {
+			var ret = as.get( link.id );
+			return ret != null && ret.link == link ? ret : null;
+		}
+		else
+			return null;
 	}
 
-	public function spt( origin:Node, tollMulti:Float, vclass:VehicleClass, ucost:UserCost, ?selectedToll:Link ) {
-		clearState();
-		
-		var from = getVertex( origin );
-		from.dist = 0.;
-		from.time = 0.;
-		from.cost = 0.;
-		from.toll = 0.;
-		from.parent = from;
+	/* 
+	 * Arcs iterator.
+	 */
+	public function arcs():Iterator<Arc> {
+		return as.iterator();
+	}
 
-		for ( v in vertices )
-			for ( a in arcs )
+	/* 
+	 * Shortest paths API - low level
+	 */
+
+	/* 
+	 * Clears all state from all vertices.
+	 */
+	public function clearState() {
+		for ( v in vs )
+			v.clearState();
+	}
+
+	/* 
+	 * Sets a vertex initial state for a shortest path tree.
+	 */
+	public function setVertexInitialState( node:Node, dist:Float, time:Float, cost:Float, toll:Float ) {
+		var vertex = getVertex( node );
+		vertex.dist = dist;
+		vertex.time = time;
+		vertex.cost = cost;
+		vertex.toll = toll;
+		vertex.parent = vertex;
+	}
+
+	/* 
+	 * Performs the Bellman-Ford relaxation for computing a shortest path tree.
+	 * Relaxes all arcs, updating finish node state when it would decrease its
+	 * generalized cost.
+	 */
+	public function bellmanFordRelaxation( tollMulti:Float, vclass:VehicleClass
+	, ucost:UserCost, selectedToll:Link ) {
+		for ( v in vs )
+			for ( a in as )
 				relax( a, tollMulti, vclass, ucost, selectedToll );
 	}
 
-	inline function relax( a:Arc, tollMulti:Float, vclass:VehicleClass, ucost:UserCost, selectedToll:Link ) {
+	/* 
+	 * Shortest paths API - high level
+	 */
+
+	/* 
+	 * Simple Single Source Shortest Path Tree - simple SSSPT.
+	 */
+	public function simpleSSSPT( origin:Node, tollMulti:Float, vclass:VehicleClass
+	, ucost:UserCost, ?selectedToll:Link ) {
+		clearState();
+		setVertexInitialState( origin, 0., 0., 0., 0. );		
+		bellmanFordRelaxation( tollMulti, vclass, ucost, selectedToll );
+	}
+
+	/* 
+	 * Helper functions
+	 */
+
+	/* 
+	 * Arc relaxation.
+	 */
+	inline function relax( a:Arc, tollMulti:Float, vclass:VehicleClass
+	, ucost:UserCost, selectedToll:Link ) {
 		if ( a.from.parent == null ) {
 			// nothing to do, link not reached yet
 		}
@@ -90,13 +206,48 @@ class Digraph {
 		}
 	}
 
+	/* 
+	 * Generalized cost.
+	 */
 	inline function userCost( ucost:UserCost, dist:Dist, time:Time ) {
 		return ucost.a*dist + ucost.b*time;
 	}
 
-	function clearState() {
-		for ( v in vertices )
-			v.clearState();
+}
+
+/* 
+ * Arc collection:
+ * . unsorted map keyed by arc [link.id]
+ * . fast iterator
+ */
+private class ArcCol {
+
+	var array:Array<Arc>;
+	var linkMap:Map<Int,Arc>;
+
+	public function new() {
+		array = [];
+		linkMap = new Map();
 	}
+
+	public function exists( linkId:LinkId ):Bool {
+		return linkMap.exists( linkId );
+	}
+
+	public function get( linkId:LinkId ):Null<Arc> {
+		return linkMap.get( linkId );
+	}
+
+	/* 
+	 * UNSAFE set operation for this collection.
+	 * The arc MUST NOT already be registred.
+	 */
+	public function set( arc:Arc ):Arc {
+		linkMap.set( arc.link.id, arc );
+		array.push( arc );
+		return arc;
+	}
+
+	public function iterator() return array.iterator();
 
 }
