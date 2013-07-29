@@ -25,8 +25,8 @@ class Vertex {
 
 		dist = Math.POSITIVE_INFINITY;
 		time = Math.POSITIVE_INFINITY;
-		cost = Math.POSITIVE_INFINITY;
 		toll = Math.POSITIVE_INFINITY;
+		cost = Math.POSITIVE_INFINITY;
 	}
 
 }

@@ -2,4 +2,6 @@
 
 *.n
 *.cpp/
-*.cpp.64/
+bin/*/*.cpp.64/
+bin/*/*.java/
+dump/
