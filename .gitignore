@@ -5,3 +5,5 @@
 *.cpp.64/
 *.java/
 /dump/
+
+/gitstats/
