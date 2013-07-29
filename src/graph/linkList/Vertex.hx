@@ -2,24 +2,25 @@ package graph.linkList;
 
 import def.*;
 
+@:allow( graph.linkList.Digraph )
 class Vertex {
 
-	public var node:Node;
+	public var node( default, null ):Node;
 
-	public var parent:Vertex;
+	public var parent( default, null ):Arc;
 
-	public var dist:Dist;
-	public var time:Time;
-	public var toll:Toll;
-	public var cost:Cost;
+	public var dist( default, null ):Dist;
+	public var time( default, null ):Time;
+	public var toll( default, null ):Toll;
+	public var cost( default, null ):Cost;
 
-	public var selectedToll:Bool;
+	public var selectedToll( default, null ):Bool;
 
-	public function new( _node ) {
+	function new( _node ) {
 		node = _node;
 	}
 
-	public function clearState() {
+	function clearState() {
 		parent = null;
 		selectedToll = false;
 

@@ -29,8 +29,8 @@ class CompileSim {
 		trace( [a1,a2] );
 
 		d.simpleSSSPT( v1.node, 1.5, Auto, new UserCost( 1.2, 1.3 ), null );
-		trace( [ v1.dist, v1.time, v1.toll, v1.cost, v1.parent != null ? v1.parent.node.id : null ] );
-		trace( [ v2.dist, v2.time, v2.toll, v2.cost, v2.parent != null ? v2.parent.node.id : null ] );
+		trace( [ v1.dist, v1.time, v1.toll, v1.cost, v1.parent != null ? v1.parent.from.node.id : null ] );
+		trace( [ v2.dist, v2.time, v2.toll, v2.cost, v2.parent != null ? v2.parent.from.node.id : null ] );
 	}
 
 	static function main() {

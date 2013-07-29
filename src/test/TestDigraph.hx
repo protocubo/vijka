@@ -1,12 +1,7 @@
 package test;
 
-import def.Link;
-import def.Node;
-import def.Speed;
-import def.VehicleClass;
-
-import graph.linkList.Digraph;
-import graph.linkList.Vertex;
+import def.*;
+import graph.linkList.*;
 
 class TestDigraph extends TestCase {
 
@@ -79,6 +74,8 @@ class TestDigraph extends TestCase {
 		assertEqualArrays( [ link1.id, link2.id ], das );
 	}
 
+	@:access( graph.linkList.Vertex )
+	@:access( graph.linkList.PseudoArc )
 	public function testClearState() {
 		var d = minorGraph();
 		var vs = [ for ( v in d.vertices() ) v ];
@@ -90,7 +87,7 @@ class TestDigraph extends TestCase {
 			v.toll = 10.;
 			v.cost = 100.;
 			v.selectedToll = true;
-			v.parent = vs[0];
+			v.parent = new PseudoArc( vs[0] );
 		};
 
 		var checkVertex = function ( v:Vertex ):Bool {
@@ -116,6 +113,8 @@ class TestDigraph extends TestCase {
 			assertTrue( checkVertex( v ) );
 	}
 
+	@:access( graph.linkList.Vertex )
+	@:access( graph.linkList.PseudoArc )
 	public function testRevPathFold() {
 		var d = minorGraph();
 		var vs = [ for ( v in d.vertices() ) v ];
@@ -127,16 +126,16 @@ class TestDigraph extends TestCase {
 
 		d.clearState();
 
-		vs[0].parent = vs[0];
+		vs[0].parent = new PseudoArc( vs[0] );
 		vs[0].cost = 1.;
 
-		vs[1].parent = vs[0];
+		vs[1].parent = [ for ( a in d.arcs() ) if ( a.from == vs[0] && a.to == vs[1] ) a ].pop();
 		vs[1].cost = 10.;
 		
 		vs[2].parent = null;
 		vs[2].cost = 100.;
 
-		var countFold = function ( current:Vertex, pre:Int ):Int {
+		var countFold = function ( current:Arc, pre:Int ):Int {
 			return pre + 1;
 		};
 
@@ -148,8 +147,8 @@ class TestDigraph extends TestCase {
 		assertEquals( 2, count( 1 ) );
 		assertEquals( null, count( 2 ) );
 
-		var pathFold = function ( current:Vertex, pre:List<Vertex> ):List<Vertex> {
-			pre.push( current );
+		var pathFold = function ( current:Arc, pre:List<Vertex> ):List<Vertex> {
+			pre.push( current.to );
 			return pre;
 		};
 

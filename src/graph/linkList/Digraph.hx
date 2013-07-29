@@ -1,11 +1,6 @@
 package graph.linkList;
 
-import def.Dist;
-import def.Link;
-import def.Node;
-import def.Time;
-import def.UserCost;
-import def.VehicleClass;
+import def.*;
 
 /* 
  * An arc-list directed graph implementation.
@@ -146,7 +141,7 @@ class Digraph {
 		vertex.time = time;
 		vertex.cost = cost;
 		vertex.toll = toll;
-		vertex.parent = vertex;
+		vertex.parent = new PseudoArc( vertex );
 	}
 
 	/* 
@@ -167,14 +162,14 @@ class Digraph {
 	 * method returns {null}.
 	 */
 	@:generic
-	public function revPathFold<T>( destination:Node, f:Vertex->T->T, first:T ):Null<T> {
-		var t = getVertex( destination );
+	public function revPathFold<T>( destination:Node, f:Arc->T->T, first:T ):Null<T> {
+		var t = getVertex( destination ).parent;
 		while ( t != null ) {
 			first = f( t, first );
-			if ( t.parent == t )
+			if ( t.isPseudo() )
 				return first;
 			else
-				t = t.parent;
+				t = t.from.parent;
 		}
 		return null;
 	}
@@ -213,7 +208,7 @@ class Digraph {
 			+ ( a.link.toll != null ? a.link.toll*tollMulti : 0. );
 
 			if ( a.to.parent == null || a.to.cost > tcost ) {
-				a.to.parent = a.from;
+				a.to.parent = a;
 				a.to.dist = tdist;
 				a.to.time = ttime;
 				a.to.cost = tcost;
@@ -248,11 +243,11 @@ private class ArcCol {
 		linkMap = new Map();
 	}
 
-	public function exists( linkId:LinkId ):Bool {
+	public function exists( linkId:Link.LinkId ):Bool {
 		return linkMap.exists( linkId );
 	}
 
-	public function get( linkId:LinkId ):Null<Arc> {
+	public function get( linkId:Link.LinkId ):Null<Arc> {
 		return linkMap.get( linkId );
 	}
 
