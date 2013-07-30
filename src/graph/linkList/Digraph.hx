@@ -135,7 +135,8 @@ class Digraph {
 	/* 
 	 * Sets a vertex initial state for a shortest path tree.
 	 */
-	public function setVertexInitialState( node:Node, dist:Float, time:Float, cost:Float, toll:Float ) {
+	public function setVertexInitialState( node:Node, dist:Float, time:Float
+	, cost:Float, toll:Float ) {
 		var vertex = getVertex( node );
 		vertex.dist = dist;
 		vertex.time = time;
@@ -201,20 +202,21 @@ class Digraph {
 			// nothing to do, link not reached yet
 		}
 		else {
+			// tentative costs
 			var tdist = a.from.dist + a.link.dist;
-			var ttime = a.from.time + a.link.dist/a.link.speed.get( vclass );
-			var ttoll = a.from.toll + ( a.link.toll != null ? a.link.toll : 0. );
-			var tcost = a.from.cost + userCost( ucost, tdist, ttime )
-			+ ( a.link.toll != null ? a.link.toll*tollMulti : 0. );
+			var ttime = a.from.time + a.time( vclass );
+			var ttoll = a.from.toll + a.toll( tollMulti );
+			var tcost = userCost( ucost, tdist, ttime, ttoll );
 
-			if ( a.to.parent == null || a.to.cost > tcost ) {
+			// relaxation
+			if ( tcost < a.to.cost ) {
 				a.to.parent = a;
 				a.to.dist = tdist;
 				a.to.time = ttime;
 				a.to.cost = tcost;
 				a.to.toll = ttoll;
-				if ( selectedToll != null && a.link == selectedToll )
-					a.to.selectedToll = true;
+				a.to.selectedToll = a.from.selectedToll
+				|| ( selectedToll != null && a.link == selectedToll );
 			}
 		}
 	}
@@ -222,8 +224,9 @@ class Digraph {
 	/* 
 	 * Generalized cost.
 	 */
-	inline function userCost( ucost:UserCost, dist:Dist, time:Time ) {
-		return ucost.a*dist + ucost.b*time;
+	inline function userCost( ucost:UserCost, dist:Dist, time:Time, toll:Toll ):Cost {
+		var ucost = ucost.a*dist + ucost.b*time + toll;
+		return Math.isNaN( ucost ) ? Math.POSITIVE_INFINITY : ucost;
 	}
 
 }

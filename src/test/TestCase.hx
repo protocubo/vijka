@@ -5,6 +5,7 @@ import haxe.PosInfos;
 class TestCase extends haxe.unit.TestCase {
 
 	function assertException( expected:Dynamic, func:Void->Void, ?c:PosInfos ) {
+		currentTest.done = true;
 		try {
 			func();
 			throw "no_exception";
@@ -20,6 +21,7 @@ class TestCase extends haxe.unit.TestCase {
 	}
 
 	function assertAnyException( func:Void->Void, ?c:PosInfos ) {
+		currentTest.done = true;
 		try {
 			func();
 			throw "no_exception";
@@ -36,6 +38,36 @@ class TestCase extends haxe.unit.TestCase {
 
 	function assertEqualArrays<T>( expected:Array<T>, value:Array<T> ) {
 		assertEquals( expected.toString(), value.toString() );
+	}
+
+	function assertPosInfinite( value:Float, ?c:PosInfos ) {
+		currentTest.done = true;
+		if ( Math.isNaN( value ) || Math.isFinite( value ) || value < 0. ) {
+			currentTest.success = false;
+			currentTest.error   = "expected 'Math.POSITIVE_INFINITY' but was '" + value + "'";
+			currentTest.posInfos = c;
+			throw currentTest;
+		}
+	}
+
+	function assertNegInfinite( value:Float, ?c:PosInfos ) {
+		currentTest.done = true;
+		if ( Math.isNaN( value ) || Math.isFinite( value ) || value > 0. ) {
+			currentTest.success = false;
+			currentTest.error   = "expected 'Math.NEGATIVE_INFINITY' but was '" + value + "'";
+			currentTest.posInfos = c;
+			throw currentTest;
+		}
+	}
+
+	function assertNaN( value:Float, ?c:PosInfos ) {
+		currentTest.done = true;
+		if ( !Math.isNaN( value ) ) {
+			currentTest.success = false;
+			currentTest.error   = "expected 'Math.NaN' but was '" + value + "'";
+			currentTest.posInfos = c;
+			throw currentTest;
+		}
 	}
 
 }

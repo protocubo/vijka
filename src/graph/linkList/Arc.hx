@@ -18,7 +18,16 @@ class Arc {
 		to = _to;
 	}
 
-	public function isPseudo() {
+	public inline function time( vclass:VehicleClass ):Time {
+		var speed = link.speed.get( vclass );
+		return speed != null ? link.dist/speed : Math.POSITIVE_INFINITY;
+	}
+
+	public inline function toll( tollMulti:Float ):Toll {
+		return link.toll != null ? link.toll*tollMulti : 0.;
+	}
+
+	public inline function isPseudo():Bool {
 		return from == to && link == null;
 	}
 

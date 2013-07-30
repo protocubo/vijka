@@ -20,7 +20,7 @@ class Vertex {
 		node = _node;
 	}
 
-	function clearState() {
+	inline function clearState() {
 		parent = null;
 		selectedToll = false;
 

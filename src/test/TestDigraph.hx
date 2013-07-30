@@ -74,8 +74,8 @@ class TestDigraph extends TestCase {
 		assertEqualArrays( [ link1.id, link2.id ], das );
 	}
 
-	@:access( graph.linkList.Vertex )
 	@:access( graph.linkList.PseudoArc )
+	@:access( graph.linkList.Vertex )
 	public function testClearState() {
 		var d = minorGraph();
 		var vs = [ for ( v in d.vertices() ) v ];
@@ -90,31 +90,34 @@ class TestDigraph extends TestCase {
 			v.parent = new PseudoArc( vs[0] );
 		};
 
-		var checkVertex = function ( v:Vertex ):Bool {
-			return !Math.isFinite( v.dist ) && !Math.isFinite( v.time )
-			&& !Math.isFinite( v.toll ) && !Math.isFinite( v.cost )
-			&& !v.selectedToll && v.parent == null;
+		var checkVertex = function ( v:Vertex ) {
+			assertPosInfinite( v.dist );
+			assertPosInfinite( v.time );
+			assertPosInfinite( v.toll );
+			assertPosInfinite( v.cost );
+			assertFalse( v.selectedToll );
+			assertEquals( null, v.parent );
+
+			// also, to avoid known NaN comparisson issues, no cost should be NaN ever
+			assertFalse( Math.isNaN( v.dist ) );
+			assertFalse( Math.isNaN( v.time ) );
+			assertFalse( Math.isNaN( v.toll ) );
+			assertFalse( Math.isNaN( v.cost ) );
 		};
 
 		dirtyVertex( vs[1] );
-		assertFalse( checkVertex( vs[1] ) );
 		vs[1].clearState();
-		assertTrue( checkVertex( vs[1] ) );
+		checkVertex( vs[1] );
 
 		for ( v in d.vertices() )
 			dirtyVertex( v );
-
-		for ( v in d.vertices() )
-			assertFalse( checkVertex( v ) );
-
 		d.clearState();
-
 		for ( v in d.vertices() )
-			assertTrue( checkVertex( v ) );
+			checkVertex( v );
 	}
 
-	@:access( graph.linkList.Vertex )
 	@:access( graph.linkList.PseudoArc )
+	@:access( graph.linkList.Vertex )
 	public function testRevPathFold() {
 		var d = minorGraph();
 		var vs = [ for ( v in d.vertices() ) v ];
@@ -162,7 +165,107 @@ class TestDigraph extends TestCase {
 		assertEqualArrays( [], path( 2 ) );
 	}
 
-	function minorGraph() {
+	@:access( graph.linkList.Digraph )
+	public function testUserCost() {
+		var check = function ( u:UserCost, dist:Dist, time:Time, toll:Toll ):Void {
+			var ucost:Float = new Digraph().userCost( u, dist, time, toll );
+			assertPosInfinite( ucost ); // we don't want NaN results
+			assertFalse( ucost < Math.POSITIVE_INFINITY ); // redundant with TestHaxe
+			assertFalse( Math.POSITIVE_INFINITY > ucost ); // redundant with TestHaxe
+		}
+
+		var u = new UserCost( 1., 1. );
+		check( u, Math.POSITIVE_INFINITY, 0., 0. );
+		check( u, 0., Math.POSITIVE_INFINITY, 0. );
+		check( u, 0., 0., Math.POSITIVE_INFINITY );
+		
+		var u = new UserCost( 0., 1. );
+		check( u, Math.POSITIVE_INFINITY, 0., 0. );
+		check( u, 0., Math.POSITIVE_INFINITY, 0. );
+		check( u, 0., 0., Math.POSITIVE_INFINITY );
+
+		var u = new UserCost( 1., 0. );
+		check( u, Math.POSITIVE_INFINITY, 0., 0. );
+		check( u, 0., Math.POSITIVE_INFINITY, 0. );
+		check( u, 0., 0., Math.POSITIVE_INFINITY );
+
+		var u = new UserCost( 0., 0. );
+		check( u, Math.POSITIVE_INFINITY, 0., 0. );
+		check( u, 0., Math.POSITIVE_INFINITY, 0. );
+		check( u, 0., 0., Math.POSITIVE_INFINITY );
+	}
+
+	@:access( graph.linkList.Digraph )
+	@:access( graph.linkList.Vertex )
+	public function testSingleRelaxation() {
+		// some nodes
+		var node1 = new Node( 0, .5, -.5 );
+		var node2 = new Node( 1, 1.5, -1.5 );
+
+		// some links
+		var speed = function ( sval:Float ) {
+			var s = new Speed();
+			s.set( Auto, sval );
+			return s;
+		};
+		var link12 = new Link( 0, node1, node2, 1., speed( .1 ), .5, 10. );
+		var link21 = new Link( 1, node2, node1, 1., speed( .1 ), .5, 10. );
+
+		var d = new Digraph();
+		d.addVertex( node1 );
+		d.addVertex( node2 );
+		d.addArc( link12 );
+		d.addArc( link21 );
+
+		var checkRelax = function ( d:Digraph, link:Link, tollMulti:Float
+		, vclass:def.VehicleClass, ucost:UserCost, selectedToll:Link ):Void {
+			var a = d.getArc( link );
+			d.relax( a, tollMulti, vclass, ucost, selectedToll );
+			// trace( [ a.to.dist, a.to.time, a.to.toll, a.to.cost, a.to.selectedToll, a.to.parent != null ] );
+			if ( a.to.parent == a ) { // arc relaxed
+				assertEquals( a.from.selectedToll || a.link == selectedToll
+				, a.to.selectedToll );
+				assertEquals( a.from.dist+a.link.dist, a.to.dist );
+				assertEquals( a.from.time+a.time( vclass ), a.to.time );
+				assertEquals( a.from.toll+a.toll( tollMulti ), a.to.toll );
+				assertEquals( d.userCost( ucost, a.to.dist, a.to.time, a.to.toll )
+				, a.to.cost );
+			}
+			else if ( a.from.parent == null ) { // arc not yet reached
+				assertEquals( null, a.to.parent );
+			}
+			else { // arc not relaxed
+				assertTrue( d.userCost( ucost, a.from.dist+a.link.dist
+				            , a.from.time+a.time( vclass ), a.from.toll+a.toll( tollMulti ) )
+				>= a.to.cost );
+			}
+			// also, to avoid known NaN comparisson issues, no cost should be NaN ever
+			assertFalse( Math.isNaN( a.to.dist ) );
+			assertFalse( Math.isNaN( a.to.time ) );
+			assertFalse( Math.isNaN( a.to.toll ) );
+			assertFalse( Math.isNaN( a.to.cost ) );
+		};
+
+		// valid input
+		d.clearState();
+		d.setVertexInitialState( node1, 0., 0., 0., 0. );
+		d.getVertex( node1 ).selectedToll = true;
+		checkRelax( d, link12, 3.14, Auto, new UserCost( 2.72, 1.62 ), null );
+		checkRelax( d, link21, 3.14, Auto, new UserCost( 2.72, 1.62 ), null );
+		d.clearState();
+		d.setVertexInitialState( node1, 0., 0., 0., 0. );
+		checkRelax( d, link12, 3.14, Auto, new UserCost( 2.72, 1.62 ), link12 );
+		checkRelax( d, link21, 3.14, Auto, new UserCost( 2.72, 1.62 ), link21 );
+
+		// invalid input
+		d.clearState();
+		d.setVertexInitialState( node1, 0., 0., 0., 0. );
+		assertEquals( null, d.getVertex( node2 ).parent );
+		checkRelax( d, link12, 3.14, LargeTruck, new UserCost( 2.72, 1.62 ), null );
+		assertEquals( null, d.getVertex( node2 ).parent );
+	}
+
+	function minorGraph():Digraph {
 		// some nodes
 		var node1 = new Node( 0, .5, -.5 );
 		var node2 = new Node( 1, 1.5, -1.5 );
