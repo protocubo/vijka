@@ -1,4 +1,4 @@
-package test;
+package test.unit;
 
 import def.*;
 import graph.linkList.*;

@@ -35,14 +35,14 @@
 # unit tests
 ################################################################################
 
--main test.Main
+-main test.unit.Main
 -cp src
 -neko bin/test/unit_tests.n
 # -D dump
 
 --next
 
--main test.Main
+-main test.unit.Main
 -cp src
 -cpp bin/test/unit_tests.cpp.64/
 -D HXCPP_M64

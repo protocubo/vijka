@@ -13,7 +13,7 @@
 # unit tests
 ################################################################################
 
--main test.Main
+-main test.unit.Main
 -cp src
 -java bin/test/unit_tests.java/
 # -D dump

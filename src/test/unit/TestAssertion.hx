@@ -1,4 +1,4 @@
-package test;
+package test.unit;
 
 class TestAssertion extends TestCase {
 	

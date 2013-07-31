@@ -1,4 +1,4 @@
-package test;
+package test.unit;
 
 class TestHaxe extends TestCase {
 	public function testMathPosInf() {
