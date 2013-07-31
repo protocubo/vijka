@@ -2,19 +2,29 @@ TODO list
 
 General:
   ☐ Rename from RodoFareSim to RodoTollSim
+  ✔ Organize unit tests and binaries @done (13-07-31)
 
-Implementation:
+Main implementation:
   ✔ Definitions: @done (13-07-26)
     ✔ Network @done (13-07-26)
     ✔ O/D survey @done (13-07-26)
   ☐ Shortest paths:
-    ✔ Basic Bellman-Ford @done (13-07-26)
-    ☐ Improved/faster (Dijkstra, A*, ...)?
+    ✔ Basic: Bellman-Ford @done (13-07-26)
+    ☐ Bellman-Ford optimization:
+      ☐ Early exit
+      ☐ Full optimization @comment (implement an actual queue of arcs yet to be relaxed)
+    ☐ Improved/faster: Dijkstra @comment (really only depends on a good D-ary heap)
+    ☐ Are there any heuristics that can be used? @comment (it's hard to find a valid estimate function for A*)
+  ☐ General structures, algorithms and formats:
+    ☐ CSV input @comment (port/optimize from jonasmalacofilho/jonas-haxe)
+    ☐ D-ary heap @comment (port/optimize from jonasmalacofilho/jonas-haxe)
+    ☐ R-Tree (RjTree and Sqlite R-Tree) @comment (port/optimize from jonasmalacofilho/jonas-haxe)
+    ☐ Sqlite library (neko and hxcpp ndlls with optimization settings and the R-Tree extension ON) @comment ( update waneck/sqlite)
   ☐ Network formats:
     ☐ Pedro1
     ☐ Cássio1
     ✔ RodoTollSim SPOD @done (13-07-28)
-  ☐ O/D survey format
+  ☐ O/D survey data format
   ☐ Simulator application:
     ☐ Settings
     ☐ Input
@@ -22,10 +32,15 @@ Implementation:
     ☐ Output
   ☐ Volume output mode assignment
 
+Additional (optional) improvements:
+  ☐ Compute error estimes during the assignments
+  ☐ Compute debug/auxiliary graphs during the assignments
+  ☐ Build maps of the network and/or of the assignment volumes during/after the assignments
+
 Unit testing:
   ✔ Digraph construction @done (13-07-29)
-  ☐ Shortest paths
-  ☐ Volume output assignment
+  ✔ Bellman-Ford shortest paths @comment (the fold function can be used for this) @done (13-07-30)
+  ✔ Volume output assignment @comment (the fold function can be used for this) @done (13-07-30)
 
 Performance testing:
   ☐ Bellman-Ford performance with full network and all O/D surveys
@@ -35,7 +50,3 @@ Production testing:
     ☐ Dist costs only
     ☐ Time costs only
     ☐ Dist+time costs
-
- Optimization:
-  ☐ Bellman-Ford early exit
-  ☐ Bellman-Ford full optimization
