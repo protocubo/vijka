@@ -166,36 +166,6 @@ class TestDigraph extends TestCase {
 	}
 
 	@:access( graph.linkList.Digraph )
-	public function testUserCost() {
-		var check = function ( u:UserCost, dist:Dist, time:Time, toll:Toll ):Void {
-			var ucost:Float = new Digraph().userCost( u, dist, time, toll );
-			assertPosInfinite( ucost ); // we don't want NaN results
-			assertFalse( ucost < Math.POSITIVE_INFINITY ); // redundant with TestHaxe
-			assertFalse( Math.POSITIVE_INFINITY > ucost ); // redundant with TestHaxe
-		}
-
-		var u = new UserCost( 1., 1. );
-		check( u, Math.POSITIVE_INFINITY, 0., 0. );
-		check( u, 0., Math.POSITIVE_INFINITY, 0. );
-		check( u, 0., 0., Math.POSITIVE_INFINITY );
-		
-		var u = new UserCost( 0., 1. );
-		check( u, Math.POSITIVE_INFINITY, 0., 0. );
-		check( u, 0., Math.POSITIVE_INFINITY, 0. );
-		check( u, 0., 0., Math.POSITIVE_INFINITY );
-
-		var u = new UserCost( 1., 0. );
-		check( u, Math.POSITIVE_INFINITY, 0., 0. );
-		check( u, 0., Math.POSITIVE_INFINITY, 0. );
-		check( u, 0., 0., Math.POSITIVE_INFINITY );
-
-		var u = new UserCost( 0., 0. );
-		check( u, Math.POSITIVE_INFINITY, 0., 0. );
-		check( u, 0., Math.POSITIVE_INFINITY, 0. );
-		check( u, 0., 0., Math.POSITIVE_INFINITY );
-	}
-
-	@:access( graph.linkList.Digraph )
 	@:access( graph.linkList.Vertex )
 	public function testSingleRelaxation() {
 		// some nodes
@@ -218,7 +188,7 @@ class TestDigraph extends TestCase {
 		d.addArc( link21 );
 
 		var checkRelax = function ( d:Digraph, link:Link, tollMulti:Float
-		, vclass:def.VehicleClass, ucost:UserCost, selectedToll:Link ):Void {
+		, vclass:def.VehicleClass, ucost:UserCostModel, selectedToll:Link ):Void {
 			var a = d.getArc( link );
 			d.relax( a, tollMulti, vclass, ucost, selectedToll );
 			// trace( [ a.to.dist, a.to.time, a.to.toll, a.to.cost, a.to.selectedToll, a.to.parent != null ] );
@@ -228,14 +198,14 @@ class TestDigraph extends TestCase {
 				assertEquals( a.from.dist+a.link.dist, a.to.dist );
 				assertEquals( a.from.time+a.time( vclass ), a.to.time );
 				assertEquals( a.from.toll+a.toll( tollMulti ), a.to.toll );
-				assertEquals( d.userCost( ucost, a.to.dist, a.to.time, a.to.toll )
+				assertEquals( ucost.userCost( a.to.dist, a.to.time, a.to.toll )
 				, a.to.cost );
 			}
 			else if ( a.from.parent == null ) { // arc not yet reached
 				assertEquals( null, a.to.parent );
 			}
 			else { // arc not relaxed
-				assertTrue( d.userCost( ucost, a.from.dist+a.link.dist
+				assertTrue( ucost.userCost( a.from.dist+a.link.dist
 				            , a.from.time+a.time( vclass ), a.from.toll+a.toll( tollMulti ) )
 				>= a.to.cost );
 			}
@@ -250,18 +220,18 @@ class TestDigraph extends TestCase {
 		d.clearState();
 		d.setVertexInitialState( node1, 0., 0., 0., 0. );
 		d.getVertex( node1 ).selectedToll = true;
-		checkRelax( d, link12, 3.14, Auto, new UserCost( 2.72, 1.62 ), null );
-		checkRelax( d, link21, 3.14, Auto, new UserCost( 2.72, 1.62 ), null );
+		checkRelax( d, link12, 3.14, Auto, new UserCostModel( 2.72, .52, 1.1 ), null );
+		checkRelax( d, link21, 3.14, Auto, new UserCostModel( 2.72, .52, 1.1 ), null );
 		d.clearState();
 		d.setVertexInitialState( node1, 0., 0., 0., 0. );
-		checkRelax( d, link12, 3.14, Auto, new UserCost( 2.72, 1.62 ), link12 );
-		checkRelax( d, link21, 3.14, Auto, new UserCost( 2.72, 1.62 ), link21 );
+		checkRelax( d, link12, 3.14, Auto, new UserCostModel( 2.72, .52, 1.1 ), link12 );
+		checkRelax( d, link21, 3.14, Auto, new UserCostModel( 2.72, .52, 1.1 ), link21 );
 
 		// invalid input
 		d.clearState();
 		d.setVertexInitialState( node1, 0., 0., 0., 0. );
 		assertEquals( null, d.getVertex( node2 ).parent );
-		checkRelax( d, link12, 3.14, LargeTruck, new UserCost( 2.72, 1.62 ), null );
+		checkRelax( d, link12, 3.14, LargeTruck, new UserCostModel( 2.72, .52, 1.1 ), null );
 		assertEquals( null, d.getVertex( node2 ).parent );
 	}
 

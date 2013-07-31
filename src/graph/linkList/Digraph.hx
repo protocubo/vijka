@@ -151,7 +151,7 @@ class Digraph {
 	 * generalized cost.
 	 */
 	public function bellmanFordRelaxation( tollMulti:Float, vclass:VehicleClass
-	, ucost:UserCost, selectedToll:Link ) {
+	, ucost:UserCostModel, selectedToll:Link ) {
 		for ( v in vs )
 			for ( a in as )
 				relax( a, tollMulti, vclass, ucost, selectedToll );
@@ -183,7 +183,7 @@ class Digraph {
 	 * Simple Single Source Shortest Path Tree - simple SSSPT.
 	 */
 	public function simpleSSSPT( origin:Node, tollMulti:Float, vclass:VehicleClass
-	, ucost:UserCost, ?selectedToll:Link ) {
+	, ucost:UserCostModel, ?selectedToll:Link ) {
 		clearState();
 		setVertexInitialState( origin, 0., 0., 0., 0. );		
 		bellmanFordRelaxation( tollMulti, vclass, ucost, selectedToll );
@@ -197,7 +197,7 @@ class Digraph {
 	 * Arc relaxation.
 	 */
 	inline function relax( a:Arc, tollMulti:Float, vclass:VehicleClass
-	, ucost:UserCost, selectedToll:Link ) {
+	, ucost:UserCostModel, selectedToll:Link ) {
 		if ( a.from.parent == null ) {
 			// nothing to do, link not reached yet
 		}
@@ -206,7 +206,7 @@ class Digraph {
 			var tdist = a.from.dist + a.link.dist;
 			var ttime = a.from.time + a.time( vclass );
 			var ttoll = a.from.toll + a.toll( tollMulti );
-			var tcost = userCost( ucost, tdist, ttime, ttoll );
+			var tcost = ucost.userCost( tdist, ttime, ttoll );
 
 			// relaxation
 			if ( tcost < a.to.cost ) {
@@ -219,14 +219,6 @@ class Digraph {
 				|| ( selectedToll != null && a.link == selectedToll );
 			}
 		}
-	}
-
-	/* 
-	 * Generalized cost.
-	 */
-	inline function userCost( ucost:UserCost, dist:Dist, time:Time, toll:Toll ):Cost {
-		var ucost = ucost.a*dist + ucost.b*time + toll;
-		return Math.isNaN( ucost ) ? Math.POSITIVE_INFINITY : ucost;
 	}
 
 }

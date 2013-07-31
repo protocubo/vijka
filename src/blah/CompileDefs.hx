@@ -10,7 +10,7 @@ import def.Section;
 import def.Speed;
 import def.Time;
 import def.Toll;
-import def.UserCost;
+import def.UserCostModel;
 import def.VehicleClass;
 import def.Volume;
 
@@ -29,8 +29,8 @@ class CompileDefs {
 		trace( v );
 
 		var fval:Toll = 5;
-		var u = new UserCost( 10, 20 );
-		trace( u.a*dval + u.b*tval );
+		var u = new UserCostModel( 10, 5, 15 );
+		trace( u.a*dval + ( u.b_social + u.b_operational )*tval );
 		// trace( u.b*dval + u.a*tval ); // EXPECTED compile error
 	}
 

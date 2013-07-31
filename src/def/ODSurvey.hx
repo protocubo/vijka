@@ -8,7 +8,7 @@ class ODSurvey {
 	
 	public var section:Section;
 	
-	public var cost:UserCost;
+	public var cost:UserCostModel;
 
 	public function new( _from, _to, _cost ) {
 		from = _from;

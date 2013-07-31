@@ -5,6 +5,7 @@ class Main {
 		var runner = new haxe.unit.TestRunner();
 		runner.add( new TestAssertion() );
 		runner.add( new TestHaxe() );
+		runner.add( new TestUserCostModel() );
 		runner.add( new TestDigraph() );
 		runner.run();
 	}
