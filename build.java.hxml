@@ -4,7 +4,7 @@
 
 -main blah.CompileSim
 -cp src
--java bin/blah/compile_sim.java/
+-java bin/compile_sim/java/
 # -D dump
 
 --next
@@ -15,5 +15,5 @@
 
 -main test.unit.Main
 -cp src
--java bin/test/unit_tests.java/
+-java bin/unit_tests/java/
 # -D dump

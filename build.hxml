@@ -4,21 +4,21 @@
 
 -main blah.CompileDefs
 -cp src
--neko bin/blah/compile_defs.n
+-neko bin/compile_defs/neko/compile_defs.n
 # -D dump
 
 --next
 
 -main blah.CompileSim
 -cp src
--neko bin/blah/compile_sim.n
+-neko bin/compile_sim/neko/compile_sim.n
 # -D dump
 
 --next
 
 -main blah.CompileSim
 -cp src
--cpp bin/blah/compile_sim.cpp.64/
+-cpp bin/compile_sim/cpp/local64/
 -D HXCPP_M64
 # -D dump
 
@@ -26,7 +26,7 @@
 
 -main blah.CompileSPOD
 -cp src
--neko bin/blah/compile_spod.n
+-neko bin/compile_spod/neko/compile_spod.n
 # -D dump
 
 --next
@@ -37,13 +37,13 @@
 
 -main test.unit.Main
 -cp src
--neko bin/test/unit_tests.n
+-neko bin/unit_tests/neko/unit_tests.n
 # -D dump
 
 --next
 
 -main test.unit.Main
 -cp src
--cpp bin/test/unit_tests.cpp.64/
+-cpp bin/unit_tests/cpp/local64/
 -D HXCPP_M64
 # -D dump

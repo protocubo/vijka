@@ -1,9 +1,5 @@
 *.sublime-workspace
 
-*.n
-*.cpp/
-*.cpp.64/
-*.java/
+/bin/
 /dump/
-
 /gitstats/
