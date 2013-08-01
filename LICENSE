@@ -1,0 +1,23 @@
+LICENSE & COPYING
+
+================================================================================
+
+
+Unless explicitly stated otherwise,
+Copyright (c) 2013, Jonas Malaco Filho and Arthur Campora Szász, Elebeta
+Engenharia Ltda.
+All rights reserved.
+
+The source-code contained here is PROPRIETARY; however there are already plans
+to release it under a open source license (possibly the BSD 3-clause license)
+in the near future.
+
+
+jonas-haxe: license/jonas-haxe
+--------------------------------------------------------------------------------
+This includes code adapted from the haxe3migration branch of the
+jonas-haxe library (https://github.com/jonasmalacofilho/jonas-haxe/tree
+/haxe3migration):
+ - Data structures: R-trees and d-ary heaps
+ - Algorithms: Dijkstra's algorithm for shortest paths
+ - Formats: CSV
