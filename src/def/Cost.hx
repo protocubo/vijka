@@ -1,5 +1,8 @@
 package def;
 
+/* 
+ * Cost.
+ */
 typedef Cost = CostValue;
 
 abstract CostValue( Float ) from Float to Float {

@@ -1,5 +1,8 @@
 package def;
 
+/* 
+ * Speed table for a link.
+ */
 class Speed {
 
 	var values:Array<SpeedValue>;
@@ -8,12 +11,12 @@ class Speed {
 		values = [];
 	}
 
-	public function get( vehicleClass:VehicleClass ):SpeedValue {
-		return values[Type.enumIndex( vehicleClass )];
+	public function get( vclass:VehicleClass ):SpeedValue {
+		return values[vclass.id];
 	}
 
-	public function set( vehicleClass:VehicleClass, val:SpeedValue ):SpeedValue {
-		return values[Type.enumIndex( vehicleClass )] = val;
+	public function set( vclass:VehicleClass, val:SpeedValue ):SpeedValue {
+		return values[vclass.id] = val;
 	}
 	
 }

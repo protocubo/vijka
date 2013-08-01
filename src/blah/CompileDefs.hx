@@ -1,12 +1,13 @@
 package blah;
 
+import def.CargoType;
 import def.Cost;
 import def.Dist;
+import def.ExpansionFactor;
 import def.Link;
 import def.LinkVolume;
 import def.Node;
 import def.ODSurvey;
-import def.Section;
 import def.Speed;
 import def.Time;
 import def.Toll;
@@ -24,8 +25,8 @@ class CompileDefs {
 		var vval:SpeedValue = dval/tval;
 		trace( vval );
 		var v = new Speed();
-		v.set( Auto, 10 );
-		v.set( LargeTruck, 10 );
+		v.set( new VehicleClass( 1, 1, 1, "Auto"), 10 );
+		v.set( new VehicleClass( 8, 8, 8, "Large truck with 8 axis"), 10 );
 		trace( v );
 
 		var fval:Toll = 5;

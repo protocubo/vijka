@@ -1,5 +1,8 @@
 package def;
 
+/* 
+ * Time.
+ */
 typedef Time = TimeValue;
 
 abstract TimeValue( Float ) from Float to Float {

@@ -3,6 +3,9 @@ package def;
 import def.Speed;
 import def.Time;
 
+/* 
+ * Distance.
+ */
 typedef Dist = DistValue;
 
 abstract DistValue( Float ) from Float to Float {

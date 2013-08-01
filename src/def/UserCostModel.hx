@@ -8,7 +8,9 @@ package def;
  * . One associated with time.
  * . Tolls.
  * 
- * userCost = [a]*distance + ( [b_social] + [b_operational] )*time + tolls
+ * userCost = [a]*distance + ( [b_social] + [b_operational] )*time + [c]*tolls
+ *
+ * Changing [c] to 0. can be used to disable toll sensitivity.
  */
 class UserCostModel {
 
@@ -28,19 +30,27 @@ class UserCostModel {
 	public var b_operational( default, null ):TimeCostMultiplier;
 
 	/* 
-	 * New user perception of costs model.
+	 * Sensitivity to tolls. Defaults to 1.0.
 	 */
-	public function new( _a, _b_social, _b_operational ) {
+	public var c( default, null ):TollSensitivity;
+
+	/* 
+	 * New user perception of costs model.
+	 * The sensitivity to tolls defaults to 1.0.
+	 */
+	public function new( _a, _b_social, _b_operational, ?_c=1. ) {
 		a = _a;
 		b_social = _b_social;
 		b_operational = _b_operational;
+		c = _c;
 	}
 
 	/* 
-	 * User cost (in $).
+	 * User cost (in $). If any part of the cost is mathematically indefinite
+	 * , the returned cost will be Math.POSITIVE_INFINITY.
 	 */
 	public inline function userCost( dist:Dist, time:Time, toll:Toll ):Cost {
-		var ucost = a*dist + ( b_social + b_operational )*time + toll;
+		var ucost = a*dist + ( b_social + b_operational )*time + c*toll;
 		return Math.isNaN( ucost ) ? Math.POSITIVE_INFINITY : ucost;
 	}
 
@@ -61,3 +71,11 @@ abstract TimeCostMultiplier( Float ) from Float to Float {
 
 	@:op( A+B ) public static function add( a:TimeCostMultiplier, b:TimeCostMultiplier ):TimeCostMultiplier;
 }
+
+/* 
+ * Toll sensitivity.
+ */
+abstract TollSensitivity( Float ) from Float to Float {
+	@:op( A*B ) public static function multi( a:TollSensitivity, b:Toll ):Cost;
+}
+

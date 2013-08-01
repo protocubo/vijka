@@ -7,10 +7,10 @@ class TestDigraph extends TestCase {
 
 	public function testVertices() {
 		// some nodes
-		var node1 = new Node( 0, .5, -.5 );
-		var node2 = new Node( 1, 1.5, -1.5 );
+		var node1   = new Node( 0, .5, -.5 );
+		var node2   = new Node( 1, 1.5, -1.5 );
 		var node1_2 = new Node( 0, .5, -.5 ); // id colision
-		var node3 = new Node( 2, 2.5, -2.5 );
+		var node3   = new Node( 2, 2.5, -2.5 );
 
 		// vertex insertion
 		var d = new Digraph();
@@ -41,13 +41,13 @@ class TestDigraph extends TestCase {
 		// some links
 		var speed = function ( sval:Float ) {
 			var s = new Speed();
-			s.set( Auto, sval );
+			s.set( new VehicleClass( 1, 1, 1, "Auto" ), sval );
 			return s;
 		};
-		var link1 = new Link( 0, node1, node2, 1., speed( .1 ), .5, 10. );
-		var link2 = new Link( 1, node2, node1, 1., speed( .1 ), .5, 10. );
-		var link1_2 = new Link( 0, node2, node1, 2., speed( .5 ), 0., 20. );
-		var link3 = new Link( 2, node1, node3, 2., speed( .5 ), 0., 15. );
+		var link1   = new Link( 0, node1, node2, 1., speed( .1 ), .5 );
+		var link2   = new Link( 1, node2, node1, 1., speed( .1 ), .5 );
+		var link1_2 = new Link( 0, node2, node1, 2., speed( .5 ), 0. );
+		var link3   = new Link( 2, node1, node3, 2., speed( .5 ), 0. );
 
 		// vertex insertion
 		var d = new Digraph();
@@ -173,13 +173,14 @@ class TestDigraph extends TestCase {
 		var node2 = new Node( 1, 1.5, -1.5 );
 
 		// some links
+		var auto = new VehicleClass( 1, 1, 1, "Auto" );
 		var speed = function ( sval:Float ) {
 			var s = new Speed();
-			s.set( Auto, sval );
+			s.set( auto, sval );
 			return s;
 		};
-		var link12 = new Link( 0, node1, node2, 1., speed( .1 ), .5, 10. );
-		var link21 = new Link( 1, node2, node1, 1., speed( .1 ), .5, 10. );
+		var link12 = new Link( 0, node1, node2, 1., speed( .1 ), .5 );
+		var link21 = new Link( 1, node2, node1, 1., speed( .1 ), .5 );
 
 		var d = new Digraph();
 		d.addVertex( node1 );
@@ -220,18 +221,18 @@ class TestDigraph extends TestCase {
 		d.clearState();
 		d.setVertexInitialState( node1, 0., 0., 0., 0. );
 		d.getVertex( node1 ).selectedToll = true;
-		checkRelax( d, link12, 3.14, Auto, new UserCostModel( 2.72, .52, 1.1 ), null );
-		checkRelax( d, link21, 3.14, Auto, new UserCostModel( 2.72, .52, 1.1 ), null );
+		checkRelax( d, link12, 3.14, auto, new UserCostModel( 2.72, .52, 1.1 ), null );
+		checkRelax( d, link21, 3.14, auto, new UserCostModel( 2.72, .52, 1.1 ), null );
 		d.clearState();
 		d.setVertexInitialState( node1, 0., 0., 0., 0. );
-		checkRelax( d, link12, 3.14, Auto, new UserCostModel( 2.72, .52, 1.1 ), link12 );
-		checkRelax( d, link21, 3.14, Auto, new UserCostModel( 2.72, .52, 1.1 ), link21 );
+		checkRelax( d, link12, 3.14, auto, new UserCostModel( 2.72, .52, 1.1 ), link12 );
+		checkRelax( d, link21, 3.14, auto, new UserCostModel( 2.72, .52, 1.1 ), link21 );
 
 		// invalid input
 		d.clearState();
 		d.setVertexInitialState( node1, 0., 0., 0., 0. );
 		assertEquals( null, d.getVertex( node2 ).parent );
-		checkRelax( d, link12, 3.14, LargeTruck, new UserCostModel( 2.72, .52, 1.1 ), null );
+		checkRelax( d, link12, 3.14, new VehicleClass( 2, 2, 2, "Truck 2 axis" ), new UserCostModel( 2.72, .52, 1.1 ), null );
 		assertEquals( null, d.getVertex( node2 ).parent );
 	}
 
@@ -244,12 +245,12 @@ class TestDigraph extends TestCase {
 		// some links
 		var speed = function ( sval:Float ) {
 			var s = new Speed();
-			s.set( Auto, sval );
+			s.set( new VehicleClass( 1, 1, 1, "Auto" ), sval );
 			return s;
 		};
-		var link1 = new Link( 0, node1, node2, 1., speed( .1 ), .5, 10. );
-		var link2 = new Link( 1, node2, node1, 1., speed( .1 ), .5, 10. );
-		var link3 = new Link( 2, node1, node3, 2., speed( .5 ), 0., 15. );
+		var link1 = new Link( 0, node1, node2, 1., speed( .1 ), .5 );
+		var link2 = new Link( 1, node2, node1, 1., speed( .1 ), .5 );
+		var link3 = new Link( 2, node1, node3, 2., speed( .5 ), 0. );
 
 		// vertex insertion
 		var d = new Digraph();

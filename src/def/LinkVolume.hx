@@ -1,26 +1,28 @@
 package def;
 
+/*
 class LinkVolume {
 	var values:Array<Volume>;
 
 	public function new() {}
 
-	public function get( vehicleClass:VehicleClass ):Volume {
-		var v = values[Type.enumIndex( vehicleClass )];
+	public function get( vclass:VehicleClass ):Volume {
+		var v = values[vclass.id];
 		if ( v == null )
 			v = 0.;
 		return v;
 	}
 
-	public function set( vehicleClass:VehicleClass, val:Volume ):Volume {
-		return values[Type.enumIndex( vehicleClass )] = val;
+	public function set( vclass:VehicleClass, val:Volume ):Volume {
+		return values[vclass.id] = val;
 	}
 
-	public function add( vehicleClass:VehicleClass, val:Volume ):Volume {
-		var v = values[Type.enumIndex( vehicleClass )];
+	public function add( vclass:VehicleClass, val:Volume ):Volume {
+		var v = values[vclass.id];
 		if ( v == null )
 			v = 0.;
-		return values[Type.enumIndex( vehicleClass )] = v + val;
+		return values[vclass.id] = v + val;
 	}
 
 }
+*/
