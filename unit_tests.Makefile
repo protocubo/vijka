@@ -1,9 +1,14 @@
-all: neko cpp64 java
+all: neko cpp cpp64 java
 
 neko:
 	haxe unit_tests.neko.hxml
 	neko exp/unit_tests/neko/unit_tests.n
 .PHONY: neko
+
+cpp:
+	haxe unit_tests.cpp.hxml
+	exp/unit_tests/cpp/local/Main
+.PHONY: cpp64
 
 cpp64:
 	haxe unit_tests.cpp64.hxml

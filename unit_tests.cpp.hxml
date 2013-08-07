@@ -1,4 +1,4 @@
--java exp/unit_tests/java/
+-cpp exp/unit_tests/cpp/local/
 -main test.unit.Main
 -cp src
 -lib elebeta-haxe-format

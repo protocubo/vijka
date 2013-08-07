@@ -1,4 +1,5 @@
+-neko exp/compile_sim/neko/compile_sim.n
 -main blah.CompileSim
 -cp src
--neko exp/compile_sim/neko/compile_sim.n
+-lib elebeta-haxe-format
 # -D dump

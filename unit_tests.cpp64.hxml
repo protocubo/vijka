@@ -1,5 +1,6 @@
+-cpp exp/unit_tests/cpp/local64/
 -main test.unit.Main
 -cp src
--cpp exp/unit_tests/cpp/local64/
+-lib elebeta-haxe-format
 -D HXCPP_M64
 # -D dump
