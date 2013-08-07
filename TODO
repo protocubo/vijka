@@ -1,7 +1,7 @@
 TODO list
 
 General:
-  ☐ Rename from RodoFareSim to RodoTollSim
+  ✔ Rename from RodoFareSim to RodoTollSim @done (13-08-07)
   ✔ Organize unit tests and binaries @done (13-07-31)
 
 Main implementation:
