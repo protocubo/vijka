@@ -1,5 +1,5 @@
 *.sublime-workspace
 
-/bin/
 /dump/
+/exp/
 /gitstats/

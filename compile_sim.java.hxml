@@ -1,0 +1,4 @@
+-main blah.CompileSim
+-cp src
+-java exp/compile_sim/java/
+# -D dump

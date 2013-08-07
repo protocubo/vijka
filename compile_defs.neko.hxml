@@ -1,0 +1,4 @@
+-main blah.CompileDefs
+-cp src
+-neko exp/compile_defs/neko/compile_defs.n
+# -D dump

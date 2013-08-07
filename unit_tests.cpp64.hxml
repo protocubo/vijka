@@ -1,0 +1,5 @@
+-main test.unit.Main
+-cp src
+-cpp exp/unit_tests/cpp/local64/
+-D HXCPP_M64
+# -D dump

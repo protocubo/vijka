@@ -1,0 +1,4 @@
+-main test.unit.Main
+-cp src
+-neko exp/unit_tests/neko/unit_tests.n
+# -D dump

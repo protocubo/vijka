@@ -1,0 +1,4 @@
+-main test.unit.Main
+-cp src
+-java exp/unit_tests/java/
+# -D dump

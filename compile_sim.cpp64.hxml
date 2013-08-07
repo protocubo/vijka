@@ -1,0 +1,5 @@
+-main blah.CompileSim
+-cp src
+-cpp exp/compile_sim/cpp/local64/
+-D HXCPP_M64
+# -D dump

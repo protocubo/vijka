@@ -16,14 +16,13 @@ Main implementation:
     ☐ Improved/faster: Dijkstra @comment (really only depends on a good D-ary heap)
     ☐ Are there any heuristics that can be used? @comment (it's hard to find a valid estimate function for A*)
   ☐ General structures, algorithms and formats:
-    ☐ CSV input @comment (port/optimize from jonasmalacofilho/jonas-haxe)
+    ✔ CSV input @comment (port/optimize from jonasmalacofilho/jonas-haxe) @done (13-08-05)
     ☐ D-ary heap @comment (port/optimize from jonasmalacofilho/jonas-haxe)
     ☐ R-Tree (RjTree and Sqlite R-Tree) @comment (port/optimize from jonasmalacofilho/jonas-haxe)
-    ☐ Sqlite library (neko and hxcpp ndlls with optimization settings and the R-Tree extension ON) @comment ( update waneck/sqlite)
+  ✔ Generic Elebeta Text Table (ETT) @done (13-08-07)
   ☐ Network formats:
-    ☐ Pedro1
-    ☐ Cássio1
-    ✔ RodoTollSim SPOD @done (13-07-28)
+    ☐ Node
+    ☐ Link
   ☐ O/D survey data format
   ☐ Simulator application:
     ☐ Settings
