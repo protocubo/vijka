@@ -33,5 +33,6 @@ class CompileSim {
 
 	static function main() {
 		var app = new CompileSim();
+		Simulator.main();
 	}
 }

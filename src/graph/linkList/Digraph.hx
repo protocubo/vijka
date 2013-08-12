@@ -152,9 +152,16 @@ class Digraph {
 	 */
 	public function bellmanFordRelaxation( tollMulti:Float, vclass:VehicleClass
 	, ucost:UserCostModel, selectedToll:Link ) {
-		for ( v in vs )
+		var relaxing = 1;
+		var i = 0;
+		while ( relaxing > 0 ) {
+			relaxing = 0;
 			for ( a in as )
-				relax( a, tollMulti, vclass, ucost, selectedToll );
+				if ( relax( a, tollMulti, vclass, ucost, selectedToll ) )
+					relaxing++;
+			i++;
+		}
+		trace( 'done in $i iterations' );
 	}
 
 	/* 
@@ -197,9 +204,10 @@ class Digraph {
 	 * Arc relaxation.
 	 */
 	inline function relax( a:Arc, tollMulti:Float, vclass:VehicleClass
-	, ucost:UserCostModel, selectedToll:Link ) {
+	, ucost:UserCostModel, selectedToll:Link ):Bool {
 		if ( a.from.parent == null ) {
 			// nothing to do, link not reached yet
+			return false;
 		}
 		else {
 			// tentative costs
@@ -210,14 +218,17 @@ class Digraph {
 
 			// relaxation
 			if ( tcost < a.to.cost ) {
-				a.to.parent = a;
 				a.to.dist = tdist;
 				a.to.time = ttime;
-				a.to.cost = tcost;
 				a.to.toll = ttoll;
+				a.to.cost = tcost;
+				a.to.parent = a;
 				a.to.selectedToll = a.from.selectedToll
 				|| ( selectedToll != null && a.link == selectedToll );
+				return true;
 			}
+			else
+				return false;
 		}
 	}
 

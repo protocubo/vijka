@@ -3,3 +3,6 @@
 -cp src
 -lib elebeta-haxe-format
 # -D dump
+
+-cmd nekotools boot exp/compile_sim/neko/compile_sim.n
+-cmd mv exp/compile_sim/neko/compile_sim exp/compile_sim/neko/CompileSim
