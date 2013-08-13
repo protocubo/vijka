@@ -1,0 +1,7 @@
+-cpp exp/UnitTests/cpp64/
+-main test.unit.UnitTests
+-cp src
+-lib elebeta-format
+-D HXCPP_M64
+
+# -D dump

@@ -1,6 +1,6 @@
 package test.unit;
 
-class Main {
+class UnitTests {
 	function new() {
 		var runner = new haxe.unit.TestRunner();
 		
@@ -19,6 +19,6 @@ class Main {
 	}
 
 	static function main() {
-		var app = new Main();
+		var app = new UnitTests();
 	}
 }

@@ -1,5 +1,0 @@
--java exp/unit_tests/java/
--main test.unit.Main
--cp src
--lib elebeta-haxe-format
-# -D dump

@@ -1,7 +1,7 @@
 -java exp/Simulator/java/
 -main sim.Simulator
 -cp src
--lib elebeta-haxe-format
+-lib elebeta-format
 -lib mcli
 
 # -D dump

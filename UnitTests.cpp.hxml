@@ -1,0 +1,6 @@
+-cpp exp/UnitTests/cpp/
+-main test.unit.UnitTests
+-cp src
+-lib elebeta-format
+
+# -D dump

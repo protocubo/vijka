@@ -1,8 +1,8 @@
--cpp exp/compile_sim/cpp/local64/
--main blah.CompileSim
+-cpp exp/Simulator/cpp/
+-main sim.Simulator
 -cp src
 -lib elebeta-format
--D HXCPP_M64
+-lib mcli
 
 # -D dump
 

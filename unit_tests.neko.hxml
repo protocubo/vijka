@@ -1,5 +1,0 @@
--neko exp/unit_tests/neko/unit_tests.n
--main test.unit.Main
--cp src
--lib elebeta-haxe-format
-# -D dump

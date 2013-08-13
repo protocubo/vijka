@@ -1,0 +1,8 @@
+-java exp/UnitTests/java/
+-main test.unit.UnitTests
+-cp src
+-lib elebeta-format
+
+# -D dump
+
+-cmd cp exp/UnitTests/java/java.jar exp/UnitTests/java/UnitTests.jar

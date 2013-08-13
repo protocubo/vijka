@@ -1,0 +1,8 @@
+-neko exp/UnitTests/neko/UnitTests.n
+-main test.unit.UnitTests
+-cp src
+-lib elebeta-format
+
+# -D dump
+
+-cmd nekotools boot exp/UnitTests/neko/UnitTests.n

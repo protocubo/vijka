@@ -1,7 +1,7 @@
 -cpp exp/Simulator/cpp64/
 -main sim.Simulator
 -cp src
--lib elebeta-haxe-format
+-lib elebeta-format
 -lib mcli
 -D HXCPP_M64
 

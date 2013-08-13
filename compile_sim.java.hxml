@@ -1,5 +1,5 @@
 -java exp/compile_sim/java/
 -main blah.CompileSim
 -cp src
--lib elebeta-haxe-format
+-lib elebeta-format
 # -D dump

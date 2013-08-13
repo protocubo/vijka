@@ -1,5 +1,0 @@
--cpp exp/unit_tests/cpp/local/
--main test.unit.Main
--cp src
--lib elebeta-haxe-format
-# -D dump
