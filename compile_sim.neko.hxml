@@ -2,6 +2,7 @@
 -main blah.CompileSim
 -cp src
 -lib elebeta-haxe-format
+
 # -D dump
 
 -cmd nekotools boot exp/compile_sim/neko/compile_sim.n

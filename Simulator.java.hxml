@@ -1,0 +1,9 @@
+-java exp/Simulator/java/
+-main sim.Simulator
+-cp src
+-lib elebeta-haxe-format
+-lib mcli
+
+# -D dump
+
+-cmd cp exp/Simulator/java/java.jar exp/Simulator/java/Simulator.jar
