@@ -1,8 +1,12 @@
 package test.unit;
 
+import haxe.unit.TestRunner;
+
 class UnitTests {
-	function new() {
-		var runner = new haxe.unit.TestRunner();
+	var runner:TestRunner;
+
+	public function new() {
+		runner = new haxe.unit.TestRunner();
 		
 		// test custom assertions
 		runner.add( new TestAssertion() );
@@ -14,11 +18,14 @@ class UnitTests {
 		// actual simulator tests
 		runner.add( new TestUserCostModel() );
 		runner.add( new TestDigraph() );
-		
+	}
+
+	public function run() {
 		runner.run();
 	}
 
 	static function main() {
 		var app = new UnitTests();
+		app.run();
 	}
 }
