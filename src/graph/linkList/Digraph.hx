@@ -149,19 +149,20 @@ class Digraph {
 	 * Performs the Bellman-Ford relaxation for computing a shortest path tree.
 	 * Relaxes all arcs, updating finish node state when it would decrease its
 	 * generalized cost.
+	 * Returns the number of relaxation attemps made for each arc.
 	 */
 	public function bellmanFordRelaxation( tollMulti:Float, vclass:VehicleClass
-	, ucost:UserCostModel, selectedToll:Link ) {
-		var relaxing = 1;
+	, ucost:UserCostModel, selectedToll:Link ):Int {
+		var relaxing = true;
 		var i = 0;
-		while ( relaxing > 0 ) {
-			relaxing = 0;
+		while ( relaxing ) {
+			relaxing = false;
 			for ( a in as )
-				if ( relax( a, tollMulti, vclass, ucost, selectedToll ) )
-					relaxing++;
+				relaxing = relax( a, tollMulti, vclass, ucost, selectedToll ) || relaxing;
 			i++;
 		}
-		trace( 'done in $i iterations' );
+		// trace( 'done in $i iterations' );
+		return i;
 	}
 
 	/* 
@@ -202,6 +203,7 @@ class Digraph {
 
 	/* 
 	 * Arc relaxation.
+	 * Returns a boolean representing if the arc was relaxed.
 	 */
 	inline function relax( a:Arc, tollMulti:Float, vclass:VehicleClass
 	, ucost:UserCostModel, selectedToll:Link ):Bool {

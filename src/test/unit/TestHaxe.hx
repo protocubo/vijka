@@ -1,7 +1,7 @@
 package test.unit;
 
 class TestHaxe extends TestCase {
-
+	
 	#if ( !java || debug ) // testBugHaxeJava0001
 	public function testNullableInt() {
 		var x = function ():Null<Int> {
