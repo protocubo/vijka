@@ -31,10 +31,34 @@ class TestFloat extends TestCase {
 		assertNaN( Math.POSITIVE_INFINITY*0. );
 	}
 
-	#if neko
-	public function testBugHaxeNeko0001() {
-		assertFalse( Math.POSITIVE_INFINITY > Math.NaN ); // fails on neko!
+	#if !neko // testBugHaxeNeko0002
+	public function testFloatIntegers() {
+		var i:Int = 65535;
+		var f:Float = 65535;
+		assertFalse( i*i > 0 );
+		assertTrue( f*f > 0 );
 	}
+	#end
+
+
+
+	#if neko
+	
+	// related to: https://code.google.com/p/nekovm/issues/detail?id=37
+	// related to: https://code.google.com/p/nekovm/issues/detail?id=38
+	// related to: https://github.com/HaxeFoundation/neko/pull/2
+	public function testBugHaxeNeko0001() {
+		assertFalse( Math.POSITIVE_INFINITY > Math.NaN );
+	}
+
+	// reported: https://github.com/HaxeFoundation/haxe/issues/1282
+	public function testBugHaxeNeko0002() {
+		var i:Int = 65535;
+		var f:Float = 65535;
+		assertFalse( i*i > 0 );
+		assertTrue( f*f > 0 );
+	}
+	
 	#end
 	
 }
