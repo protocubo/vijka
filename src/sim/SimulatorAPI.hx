@@ -46,6 +46,8 @@ class SimulatorAPI extends mcli.CommandLine {
 	**/
 	@:access( graph.linkList.Digraph )
 	public function something() {
+		println( "Running something" );
+		printHL( "-" );
 		var v = 10;
 		var a = 20;
 		for ( n in 1...#if neko 4 #else 5 #end ) {
@@ -82,6 +84,7 @@ class SimulatorAPI extends mcli.CommandLine {
 			trace( 'ran 10 single source shortest paths in $tel' );
 			trace( '... ${tel/10} per source, on average' );
 			trace( "" );
+			printHL( "-" );
 		}
 	}
 
