@@ -4,9 +4,15 @@ class Simulator {
 
 	public var state:SimulatorState;
 	public var profiling:Null<String>;
+	public var log:Array<String>;
 
 	public function new() {
+		reset();
+	}
+
+	public function reset() {
 		state = new SimulatorState();
+		log = [];
 	}
 
 	public function startProfiling() {
@@ -58,13 +64,38 @@ class Simulator {
 	private static var stdout = Sys.stdout();
 	
 	private static var stderr = Sys.stderr();
+
+	public function run( args:Array<String>, reading:Bool ):Void {
+		try {
+			while ( args.remove( "" ) ) {}
+			if ( args.length != 0 ) {
+				var d = new mcli.Dispatch( args );
+				var a = new SimulatorAPI( sim, reading );
+				sim.startProfiling();
+				d.dispatch( a, false );
+				sim.stopProfiling();
+				sim.log.push( args.join( " " ) );
+			}
+		}
+		catch ( e:mcli.DispatchError ) {
+			sim.stopProfiling();
+			println( "Interface error: "+e );
+		}
+		catch ( e:Dynamic ) {
+			sim.stopProfiling();
+			print( "ERROR: "+e );
+			println( haxe.CallStack.toString( haxe.CallStack.exceptionStack() ) );
+		}
+	}
+
+	public static var sim:Simulator;
 	
 	private static function main() {
 		if ( Sys.args().length > 0 )
 			throw "Cannot yet run in batch mode";
 
 		var inp = new format.csv.Reader( stdin, "\n", " ", "'" );
-		var sim = new Simulator();
+		sim = new Simulator();
 
 		printHL( "=" );
 		println( "Welcome to the RodoTollSim!" );
@@ -73,31 +104,14 @@ class Simulator {
 
 		while ( true ) {
 			try {
-				print( "> " );
+				print( "> " ); stdout.flush();
 				var r = inp.readRecord();
-
-				while ( r.remove( "" ) ) {}
-				if ( r.length != 0 ) {
-					var d = new mcli.Dispatch( r );
-					var a = new SimulatorAPI( sim );
-					sim.startProfiling();
-					d.dispatch( a, false );
-					sim.stopProfiling();
-				}
+				sim.run( r, false );
 			}
 			catch ( e:haxe.io.Eof ) {
 				sim.stopProfiling();
 				println( "" );
 				Sys.exit( 0 );
-			}
-			catch ( e:mcli.DispatchError ) {
-				sim.stopProfiling();
-				println( "Interface error: "+e );
-			}
-			catch ( e:Dynamic ) {
-				sim.stopProfiling();
-				print( "ERROR: "+e );
-				println( haxe.CallStack.toString( haxe.CallStack.exceptionStack() ) );
 			}
 		}
 	}

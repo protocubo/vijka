@@ -6,12 +6,72 @@ import sim.Simulator.printHL;
 import sim.Simulator.println;
 
 class SimulatorAPI extends mcli.CommandLine {
-	
+
+	private var reading:Bool;
 	private var sim:Simulator;
 
-	public function new( _sim:Simulator ) {
+	public function new( _sim:Simulator, _reading:Bool ) {
 		sim = _sim;
+		reading = _reading;
 		super();
+	}
+
+	/**
+		Reset the current state of the simulator
+	**/
+	public function reset() {
+		print( "Reseting the current state" );
+		sim.reset();
+		println( "\rReseting the current state... Done" );
+	}
+
+	/**
+		Save the current command log (from the last reset) to [path]
+	**/
+	public function save( path:String ) {
+		print( "Saving the current command log" );
+		if ( !reading ) {
+			var fout = sys.io.File.write( path, false );
+			fout.writeString( sim.log.join( "\n" )+"\n" );
+			fout.close();
+		}
+		println( "\rSaving the current command log... Done" );
+	}
+
+	/**
+		Read a command log from [path]
+	**/
+	public function read( path:String ) {
+		println( "Reading commands in '"+path+"'" );
+		printHL( "=" );
+		println( "" );
+
+		var finp = sys.io.File.read( path, false );
+		var inp = new format.csv.Reader( finp, "\n", " ", "'" );
+		var eof = false;
+		while ( !eof ) {
+			try {
+				var r = inp.readRecord();
+				println( ">> "+r.join( " " ) );
+				sim.run( r, true );
+			}
+			catch ( e:haxe.io.Eof ) {
+				println( "" );
+				eof = true;
+			}
+		}
+		inp.close();
+		
+		println( "" );
+		println( "Reading commands in '"+path+"'... Done" );
+		printHL( "=" );
+	}
+
+	public function showLog() {
+		println( "Showing the current log" );
+		printHL( "-" );
+		println( "\t// "+sim.log.join( "\n\t// " ) );
+		printHL( "-" );
 	}
 
 	/**
