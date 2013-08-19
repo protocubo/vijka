@@ -7,3 +7,5 @@
 # -D dump
 
 -cmd cp exp/Simulator/java/java.jar exp/Simulator/java/Simulator.jar
+-cmd cp exp/Simulator/java/java.jar exp/Simulator/java/Simulator
+-cmd chmod +x exp/Simulator/java/java.jar exp/Simulator/java/Simulator
