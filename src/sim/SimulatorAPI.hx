@@ -1,22 +1,27 @@
 package sim;
 
 import elebeta.ett.rodoTollSim.*;
-import format.ett.Data.Field in ETTField;
 import format.ett.Data.Encoding in ETTEncoding;
+import format.ett.Data.Field in ETTField;
 import format.ett.Reader;
 import format.ett.Writer;
 import haxe.io.Eof;
-import sim.OnlineNetwork;
-import sim.Runner;
 import sys.io.FileInput;
 import sys.io.FileOutput;
 
 import Std.parseFloat;
 import Std.parseInt;
 import Std.string;
+import Lambda.list;
+import Lambda.array;
+import Lambda.filter;
+import Lambda.has;
 
 import sim.col.*;
+import sim.OnlineNetwork;
+import sim.Runner;
 import sim.Simulator;
+import sim.SimulatorState;
 
 import sim.Simulator.print;
 import sim.Simulator.printHL;
@@ -49,7 +54,6 @@ class SimulatorAPI extends mcli.CommandLine {
 			println( "Reading additional nodes" );
 			println( "Existing nodes may have been changed, consider verifying link shapes" );
 		}
-		printHL( "-" );
 		var nodes = sim.state.nodes; // just a shortcut
 		var einp = readEtt( inputPath );
 		sim.state.invalidate();
@@ -85,7 +89,6 @@ class SimulatorAPI extends mcli.CommandLine {
 		else {
 			println( "Reading additional link types" );
 		}
-		printHL( "-" );
 		var linkTypes = sim.state.linkTypes; // just a shortcut
 		var einp = readEtt( inputPath );
 		while ( true ) {
@@ -102,10 +105,10 @@ class SimulatorAPI extends mcli.CommandLine {
 	**/
 	public function showLinkTypes() {
 		println( "Known types:" );
+		println( right("id",6)+"  |  name" );
 		printHL( "-" );
 		for ( type in sim.state.linkTypes )
-			println( right(type.id,6)+": "+type.name );
-		printHL( "-" );
+			println( right(type.id,6)+"  |  "+type.name );
 	}
 
 	/**
@@ -131,7 +134,6 @@ class SimulatorAPI extends mcli.CommandLine {
 		else {
 			println( "Reading additional links" );
 		}
-		printHL( "-" );
 		var nodes = sim.state.nodes; // just a shortcut
 		var links = sim.state.links; // just a shortcut
 		var linkTypes = sim.state.linkTypes; // just a shortcut
@@ -177,7 +179,6 @@ class SimulatorAPI extends mcli.CommandLine {
 		else {
 			println( "Reading additional vehicles" );
 		}
-		printHL( "-" );
 		var vehicles = sim.state.vehicles; // just a shortcut
 		var einp = readEtt( inputPath );
 		sim.state.invalidate(); // this might (and should) not be necessary in the future
@@ -195,10 +196,10 @@ class SimulatorAPI extends mcli.CommandLine {
 	**/
 	public function showVehicles() {
 		println( "Known types:" );
+		println( right("id",6)+"  |  name" );
 		printHL( "-" );
 		for ( type in sim.state.vehicles )
-			println( right(type.id,6)+": "+type.name );
-		printHL( "-" );
+			println( right(type.id,6)+"  |  "+type.name );
 	}
 
 	/**
@@ -224,7 +225,6 @@ class SimulatorAPI extends mcli.CommandLine {
 		else {
 			println( "Reading additional link type speeds" );
 		}
-		printHL( "-" );
 		var linkTypes = sim.state.linkTypes; // just a shortcut
 		var vehicles = sim.state.vehicles; // just a shortcut
 		if ( linkTypes == null ) throw "No link types";
@@ -255,6 +255,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		print( "Link speeds for " );
 		print( t != null ? " typeId="+t+" " : "all link types " );
 		println( v != null ? " vehicleId="+v+" " : "all vehicles:" );
+		println( right("type",6)+"  |  "+right("vehicle",8)+"  |  speed (km/h" );
 		printHL( "-" );
 		// TODO get typeId,vehicleId from the other collections and show missing values
 		if ( sim.state.speeds == null )
@@ -264,8 +265,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		for ( speed in speeds )
 			if ( ( t == null || speed.typeId == t )
 			&& ( v == null || speed.vehicleId == v ) )
-				println( right(speed.typeId,6)+", "+right(speed.vehicleId,6)+": "+speed.speed+" km/h" );
-		printHL( "-" );
+				println( right(speed.typeId,6)+"  |  "+right(speed.vehicleId,8)+"  |  "+speed.speed );
 	}
 
 
@@ -283,7 +283,6 @@ class SimulatorAPI extends mcli.CommandLine {
 		else {
 			println( "Reading additional od data" );
 		}
-		printHL( "-" );
 		var vehicles = sim.state.vehicles; // just a shortcut
 		var ods = sim.state.ods; // just a shortcut
 		if ( vehicles == null ) throw "No vehicles";
@@ -314,37 +313,124 @@ class SimulatorAPI extends mcli.CommandLine {
 	// RUNNING ------------------------------------------------------------------
 
 	/**
-		Run; parameters are filters (id, lot, section, direction, vehicle and cargo)
-		and output settings (volume, path)
+		Set a different algorithm; the avaliable ones are Dijkstra, A* and
+		Bellmand-Ford
 	**/
-	public function run( idFilter:String, lotFilter:String, sectionFilter:String
-	, directionFilter:String, vehicleFilter:String, cargoFilter:String
-	, volumes:String, paths:String ) {
-		println( "Running" );
-		printHL( "-" );
-		assemble();
-		println( "Preparing O/D" );
-		var runner = Runner.parse( idFilter, lotFilter, sectionFilter
-		, directionFilter, vehicleFilter, cargoFilter );
-		println( "O/D active query is: "+runner.showQuery() );
-		println( "Beginning" );
-		runner.run( sim, readBool(volumes), readBool(paths) );
-		printHL( "-" );
+	public function setAlgorithm( name:String ) {
+		var algo = switch ( name.toLowerCase() ) {
+		case "dijkstra", "ijk":
+			ADijkstra;
+		case "a*", "astar", "a-star", "star":
+			AAStar;
+		case "bellman-ford", "bford", "bell":
+			ABellmanFord;
+			throw "Bellman-Ford algorithm has been disabled";
+		case all:
+			throw "Unknown algorithm "+all;
+		};
+		if ( algo != sim.state.algorithm ) {
+			var old = algoName( sim.state.algorithm );
+			var newName = algoName( algo );
+			println( "Changing algorithm from "+old+" to "+newName );
+			sim.state.algorithm = algo;
+			sim.state.invalidate();
+			printHL( "-" );
+		}
 	}
 
 	/**
-		Run all; only parameters are related to the output of volumes and paths
+		Show the current enabled algorithm
 	**/
-	public function runAll( volumes:String, paths:String ) {
-		run( "_", "_", "_", "_", "_", "_", volumes, paths );
+	public function showAlgorithm() {
+		println( "The current algithm is: "+algoName( sim.state.algorithm ) );
+	}
+	private function algoName( a:Algorithm ) {
+		return switch ( a ) {
+		case ADijkstra: "Dijkstra";
+		case AAStar: "A*";
+		case ABellmanFord: "Bellman-Ford";
+		};
 	}
 
 	/**
-		Clear all result data from state
+		Filter O/D data (reentrant); type may be `id`, `lot`, `section`, `direction`,
+		`vehicleId` and `cargo`
 	**/
-	public function clearResults() {
-		sim.state.clearResults();
+	public function filterOd( type:String, clause:String ) {
+		var c = readSet( clause );
+		if ( c == null )
+			return; // all selected
+		var ods = sim.state.ods;
+		if ( ods == null ) throw "No O/D data";
+		var activeOds = list( sim.state.activeOds != null ? sim.state.activeOds : sim.state.ods );
+		var activeOdFilter = sim.state.activeOdFilter; if ( activeOdFilter == null ) activeOdFilter = [];
+		switch ( type ) {
+		case "id":
+			var f = c.map( parseInt );
+			var exp = "`id` in ("+f.join(",")+")";
+			activeOdFilter.push( exp );
+			println( "Filtering OD data with clause: "+exp );
+			activeOds = filter( activeOds, function (od) return has(f,od.id) );
+		case "lot":
+			var f = c.map( parseInt );
+			var exp = "`lot` in ("+f.join(",")+")";
+			activeOdFilter.push( exp );
+			println( "Filtering OD data with clause: "+exp );
+			activeOds = filter( activeOds, function (od) return has(f,od.lot) );
+		case "section", "point", "pt":
+			var f = c.map( parseInt );
+			var exp = "`section` in ("+f.join(",")+")";
+			activeOdFilter.push( exp );
+			println( "Filtering OD data with clause: "+exp );
+			activeOds = filter( activeOds, function (od) return has(f,od.section) );
+		case "direction", "dir":
+			var f = c.map( parseInt );
+			var exp = "`direction` in ("+f.join(",")+")";
+			activeOdFilter.push( exp );
+			println( "Filtering OD data with clause: "+exp );
+			activeOds = filter( activeOds, function (od) return has(f,od.direction) );
+		case "vehicle", "vehicleId", "veh":
+			var f = c.map( parseInt );
+			var exp = "`vehicleId` in ("+f.join(",")+")";
+			activeOdFilter.push( exp );
+			println( "Filtering OD data with clause: "+exp );
+			activeOds = filter( activeOds, function (od) return has(f,od.vehicleId) );
+		case "cargo", "product", "prod":
+			var exp = "`cargo` in ('"+c.join("','")+"'')";
+			activeOdFilter.push( exp );
+			println( "Filtering OD data with clause: "+exp );
+			activeOds = filter( activeOds, function (od) return has(c,od.cargo) );
+		case all: throw "Unknown filter type '"+type+"'";
+		}
+		sim.state.activeOds = array( activeOds );
+		sim.state.activeOdFilter = activeOdFilter;
+		println( "Current selected records: "+activeOds.length );
 	}
+
+	/**
+		Show O/D query expression
+	**/
+	public function showOdFilter() {
+		if ( sim.state.activeOdFilter == null )
+			println( "No O/D filter at the moment... All available data selected" );
+		else
+			println( "Selected O/D records: where "+sim.state.activeOdFilter.join("\n\t&& ") );
+	}
+
+	/**
+		Clear all O/D filters
+	**/
+	public function clearOdFilter() {
+		sim.state.activeOds = null;
+		sim.state.activeOdFilter = null;
+	}
+
+	// /**
+	// 	Clear all result data from state
+	// **/
+	// public function clearResults() {
+	// 	sim.state.clearResults();
+	// }
 
 	// VOLUME I/O ---------------------------------------------------------------
 
@@ -361,15 +447,16 @@ class SimulatorAPI extends mcli.CommandLine {
 		for ( v in volumes )
 			eout.write( v );
 		eout.close();
-		printHL( "-" );
 	}
 
+	/**
+		Write volumes to GeoJSON, using available link shape data
+	**/
 	public function geojsonVolumes( outputPath:String ) {
 		println( "Mapping volumes in GeoJSON" );
 		printHL( "-" );
 		var volumes = sim.state.volumes; // just a shortcut
-		if ( volumes == null )
-			throw "No volumes";
+		if ( volumes == null ) throw "No volumes";
 		var fout = writeFile( outputPath, false );
 		fout.writeString( '{"type":"FeatureCollection","features":[\n' );
 		var first = true;
@@ -400,7 +487,7 @@ class SimulatorAPI extends mcli.CommandLine {
 	public function save( path:String ) {
 		print( "Saving the current command log" );
 		if ( !reading ) {
-			var fout = sys.io.File.write( path, false );
+			var fout = writeFile( path, false );
 			fout.writeString( sim.log.join( "\n" )+"\n" );
 			fout.close();
 		}
@@ -411,8 +498,13 @@ class SimulatorAPI extends mcli.CommandLine {
 		Read a command log from [path]
 	**/
 	public function read( path:String ) {
+		if ( !reading ) {
+			printHL( "-" );
+			printHL( "-" );
+		}
 		println( "Reading commands in '"+path+"'" );
-		println( "" );	printHL( "#" ); printHL( "#" );
+		if ( !reading )
+			println( "" );
 
 		var finp = sys.io.File.read( path, false );
 		var inp = new format.csv.Reader( finp, "\n", " ", "'" );
@@ -420,7 +512,9 @@ class SimulatorAPI extends mcli.CommandLine {
 		while ( !eof ) {
 			try {
 				var r = inp.readRecord();
-				println( ">> "+r.join( " " ) );
+				if ( r.length == 0 )
+					continue;
+				println( ":: "+r.join( " " ) );
 				sim.run( r, true );
 			}
 			catch ( e:haxe.io.Eof ) {
@@ -429,15 +523,19 @@ class SimulatorAPI extends mcli.CommandLine {
 		}
 		inp.close();
 		
+		if ( !reading )
+			println( "" );
 		println( "Reading commands in '"+path+"'... Done" );
-		printHL( "#" ); printHL( "#" ); println( "" );
+		if ( !reading ) {
+			printHL( "-" );
+			printHL( "-" );
+		}
 	}
 
 	public function showLog() {
 		println( "Showing the current log" );
 		printHL( "-" );
 		println( "\t// "+sim.log.join( "\n\t// " ) );
-		printHL( "-" );
 	}
 
 
@@ -463,9 +561,6 @@ class SimulatorAPI extends mcli.CommandLine {
 			println( "Assembling the (directed) graph" );
 			var dg = sim.state.digraph = new OnlineDigraph( sim );
 		}
-		if ( force ) {
-			printHL( "-" );
-		}
 	}
 
 	/**
@@ -476,7 +571,6 @@ class SimulatorAPI extends mcli.CommandLine {
 		printHL( "-" );
 		var app = new test.unit.UnitTests();
 		app.run();
-		printHL( "-" );
 	}
 
 	/**
@@ -567,7 +661,6 @@ class SimulatorAPI extends mcli.CommandLine {
 		println( "Usage:" );
 		printHL( "-" );
 		print( this.showUsage() );
-		printHL( "-" );
 	}
 
 	/**
@@ -601,6 +694,7 @@ class SimulatorAPI extends mcli.CommandLine {
 
 	private function autoLinkShape( link:Link ):LinkShape {
 		var nodes = sim.state.nodes;
+		if ( nodes == null ) throw "No nodes";
 		var pts = [ nodes.get( link.startNodeId ).point, nodes.get( link.finishNodeId ).point ];
 		var shp = LinkShape.make( link.id, new format.ett.Geometry.LineString( pts ) );
 		sim.state.shapes.set( link.id, shp );
@@ -647,17 +741,24 @@ class SimulatorAPI extends mcli.CommandLine {
 
 	private static function readInt( s:String ):Null<Int> {
 		return switch ( s.toLowerCase() ) {
-		case "_", "*": null;
+		case "", "_", "*", "a", "all": null;
 		case all: parseInt( s );
 		};
 	}
 
 	private static function readBool( s:String ):Null<Bool> {
 		return switch ( s.toLowerCase() ) {
-		case "_", "*": null;
+		case "", "_", "*", "a", "all": null;
 		case "false", "no", "n", "0": false;
 		case "true", "yes", "y", "1": true;
 		case all: throw "Invalid Bool "+s;
+		};
+	}
+
+	private static function readSet( s:String ):Null<Array<String>> {
+		return switch ( s.toLowerCase() ) {
+		case "", "_", "*": null;
+		case all: s.split( "," );
 		};
 	}
 

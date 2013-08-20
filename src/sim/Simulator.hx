@@ -1,5 +1,5 @@
 package sim;
-import graph.adjLists.Digraph;
+
 class Simulator {
 
 	public var state:SimulatorState;
@@ -41,7 +41,7 @@ class Simulator {
 		                                 	#else
 		                                 		"C++";
 		                                 	#end
-		                                 #elseif jva
+		                                 #elseif java
 		                                 	"Java";
 		                                 #else
 		                                 	"Unknown";
@@ -78,17 +78,20 @@ class Simulator {
 				sim.stopProfiling();
 				sim.log.push( args.join( " " ) );
 				println( "Done in "+dt+" seconds" );
+				printHL( "-" );
 			}
 		}
 		catch ( e:mcli.DispatchError ) {
 			sim.stopProfiling();
 			println( "Interface error: "+e );
+			printHL( "-" );
 		}
 		catch ( e:Dynamic ) {
 			sim.stopProfiling();
 			sim.log.push( args.join( " " ) );
 			print( "ERROR: "+e );
 			println( haxe.CallStack.toString( haxe.CallStack.exceptionStack() ) );
+			printHL( "-" );
 		}
 	}
 
