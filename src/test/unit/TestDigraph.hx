@@ -148,7 +148,7 @@ class TestDigraph extends TestCase {
 
 		assertEquals( 1, count( 0 ) );
 		assertEquals( 2, count( 1 ) );
-		assertEquals( null, count( 2 ) );
+		assertEquals( null, count( 2 ) ); // this fails on Java
 
 		var pathFold = function ( current:Arc, pre:List<Vertex> ):List<Vertex> {
 			pre.push( current.to );
