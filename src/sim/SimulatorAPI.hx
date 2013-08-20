@@ -1,9 +1,11 @@
 package sim;
 
-import sim.Simulator;
+import elebeta.ett.rodoTollSim.*;
+import haxe.io.Eof;
 import sim.Simulator.print;
 import sim.Simulator.printHL;
 import sim.Simulator.println;
+import sim.Simulator;
 
 class SimulatorAPI extends mcli.CommandLine {
 
@@ -14,6 +16,110 @@ class SimulatorAPI extends mcli.CommandLine {
 		sim = _sim;
 		reading = _reading;
 		super();
+	}
+
+	/**
+		Read nodes (reentrant)
+	**/
+	public function readNodes( inputPath:String ) {
+		if ( sim.state.nodes == null ) {
+			println( "Reading nodes" );
+			sim.state.nodes = new Map();
+		}
+		else {
+			println( "Reading additional nodes" );
+			println( "Existing nodes may have been changed, consider verifying link shapes" );
+		}
+		printHL( "-" );
+		var nodes = sim.state.nodes; // just a shortcut
+		var einp = readEtt( inputPath );
+		sim.state.invalidate();
+		while ( true ) {
+			var node = try { einp.fastReadRecord( Node.makeEmpty() ); }
+			        catch ( e:Eof ) { null; };
+			if ( node == null ) break;
+			nodes.set( node.id, node );
+		}
+	}
+
+	/**
+		Count nodes
+	**/
+	public function countNodes() {
+		var cnt = sim.state.nodes != null ? Lambda.count( sim.state.nodes ) : 0;
+		println( "Counted "+cnt+" nodes" );
+	}
+
+	/**
+		Read link types (reentrant)
+	**/
+	public function readLinkTypes( inputPath:String ) {
+		if ( sim.state.linkTypes == null ) {
+			println( "Reading link types" );
+			sim.state.linkTypes = new Map();
+		}
+		else {
+			println( "Reading additional link types" );
+		}
+		printHL( "-" );
+		var linkTypes = sim.state.linkTypes; // just a shortcut
+		var einp = readEtt( inputPath );
+		sim.state.invalidate();
+		while ( true ) {
+			var type = try { einp.fastReadRecord( LinkType.makeEmpty() ); }
+			        catch ( e:Eof ) { null; };
+			if ( type == null ) break;
+			linkTypes.set( type.id, type );
+		}
+	}
+
+	/**
+		Count link types
+	**/
+	public function countLinkTypes() {
+		var cnt = sim.state.linkTypes != null ? Lambda.count( sim.state.linkTypes ) : 0;
+		println( "Counted "+cnt+" link types" );
+	}
+
+	/**
+		Read links (reentrant); requires nodes and link types
+	**/
+	public function readLinks( inputPath:String ) {
+		if ( sim.state.links == null ) {
+			println( "Reading links" );
+			sim.state.links = new Map();
+		}
+		else {
+			println( "Reading additional links" );
+		}
+		printHL( "-" );
+		var nodes = sim.state.nodes; // just a shortcut
+		var links = sim.state.links; // just a shortcut
+		var linkTypes = sim.state.linkTypes; // just a shortcut
+		if ( nodes == null ) throw "No nodes";
+		if ( linkTypes == null ) throw "No link types";
+		var einp = readEtt( inputPath );
+		sim.state.invalidate();
+		while ( true ) {
+			var link = try { einp.fastReadRecord( Link.makeEmpty() ); }
+			        catch ( e:Eof ) { null; };
+			if ( link == null ) break;
+			if ( !nodes.exists( link.startNodeId ) )
+				throw "Missing node "+link.startNodeId;
+			if ( !nodes.exists( link.finishNodeId ) )
+				throw "Missing node "+link.finishNodeId;
+			if ( !linkTypes.exists( link.typeId ) )
+				throw "Missing link type "+link.typeId;
+			links.set( link.id, link );
+		}
+	}
+
+	/**
+		Count links
+	**/
+	public function countLinks() {
+		var cnt = sim.state.links != null ? Lambda.count( sim.state.links ) : 0;
+		println( "Counted "+cnt+" links" );
 	}
 
 	/**
@@ -44,7 +150,7 @@ class SimulatorAPI extends mcli.CommandLine {
 	public function read( path:String ) {
 		println( "Reading commands in '"+path+"'" );
 		printHL( "=" );
-		println( "" );
+		printHL( "#" );
 
 		var finp = sys.io.File.read( path, false );
 		var inp = new format.csv.Reader( finp, "\n", " ", "'" );
@@ -56,14 +162,13 @@ class SimulatorAPI extends mcli.CommandLine {
 				sim.run( r, true );
 			}
 			catch ( e:haxe.io.Eof ) {
-				println( "" );
 				eof = true;
 			}
 		}
 		inp.close();
 		
-		println( "" );
 		println( "Reading commands in '"+path+"'... Done" );
+		printHL( "#" );
 		printHL( "=" );
 	}
 
@@ -177,6 +282,23 @@ class SimulatorAPI extends mcli.CommandLine {
 	**/
 	public function quit() {
 		Sys.exit( 0 );
+	}
+
+
+
+	// HELPERS ------------------------------------------------------------------
+
+
+	private static function readEtt( inputPath:String ):format.ett.Reader {
+		return new format.ett.Reader( readFile( inputPath ) );
+	}
+
+	private static function readFile( inputPath:String ):sys.io.FileInput {
+		if ( !sys.FileSystem.exists( inputPath ) )
+			throw "File '"+inputPath+"' does not exist";
+		if ( sys.FileSystem.isDirectory( inputPath ) )
+			throw "Expected a file but found a folder: '"+inputPath+"'";
+		return sys.io.File.read( inputPath, true );
 	}
 
 }

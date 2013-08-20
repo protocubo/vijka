@@ -72,9 +72,12 @@ class Simulator {
 				var d = new mcli.Dispatch( args );
 				var a = new SimulatorAPI( sim, reading );
 				sim.startProfiling();
+				var t0 = haxe.Timer.stamp();
 				d.dispatch( a, false );
+				var dt = haxe.Timer.stamp() - t0;
 				sim.stopProfiling();
 				sim.log.push( args.join( " " ) );
+				println( "Took "+dt+" seconds" );
 			}
 		}
 		catch ( e:mcli.DispatchError ) {
