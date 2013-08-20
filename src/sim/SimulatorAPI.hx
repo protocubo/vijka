@@ -287,7 +287,6 @@ class SimulatorAPI extends mcli.CommandLine {
 		var ods = sim.state.ods; // just a shortcut
 		if ( vehicles == null ) throw "No vehicles";
 		var einp = readEtt( inputPath );
-		sim.state.invalidate();
 		while ( true ) {
 			var od = try { einp.fastReadRecord( OD.makeEmpty() ); }
 			         catch ( e:Eof ) { null; };
@@ -425,12 +424,13 @@ class SimulatorAPI extends mcli.CommandLine {
 		sim.state.activeOdFilter = null;
 	}
 
-	// /**
-	// 	Clear all result data from state
-	// **/
-	// public function clearResults() {
-	// 	sim.state.clearResults();
-	// }
+	/**
+		Clear all result data from state
+	**/
+	public function clearResults() {
+		sim.state.clearResults();
+	}
+
 
 	// VOLUME I/O ---------------------------------------------------------------
 
@@ -439,7 +439,6 @@ class SimulatorAPI extends mcli.CommandLine {
 	**/
 	public function writeVolumes( outputPath:String ) {
 		println( "Writing volumes" );
-		printHL( "-" );
 		var volumes = sim.state.volumes; // just a shortcut
 		if ( volumes == null )
 			throw "No volumes";
@@ -454,7 +453,6 @@ class SimulatorAPI extends mcli.CommandLine {
 	**/
 	public function geojsonVolumes( outputPath:String ) {
 		println( "Mapping volumes in GeoJSON" );
-		printHL( "-" );
 		var volumes = sim.state.volumes; // just a shortcut
 		if ( volumes == null ) throw "No volumes";
 		var fout = writeFile( outputPath, false );
@@ -468,6 +466,27 @@ class SimulatorAPI extends mcli.CommandLine {
 		fout.close();
 	}
 
+
+	// RESULTS I/O --------------------------------------------------------------
+
+	/**
+		Write results to ETT
+	**/
+	public function writeResults( outputPath:String ) {
+		println( "Writing results" );
+		var results = sim.state.results; // just a shortcut
+		if ( results == null )
+			throw "No results";
+		var eout = writeEtt( ODResult, ODResult.ettFields(), outputPath );
+		for ( v in results )
+			eout.write( v );
+		eout.close();
+	}
+
+
+	// RESULT ANALYSIS ----------------------------------------------------------
+
+	// TODO
 
 
 	// COMMAND HISTORY ----------------------------------------------------------
@@ -512,10 +531,13 @@ class SimulatorAPI extends mcli.CommandLine {
 		while ( !eof ) {
 			try {
 				var r = inp.readRecord();
-				if ( r.length == 0 )
-					continue;
-				println( ":: "+r.join( " " ) );
-				sim.run( r, true );
+				if ( r.length == 0 ) {
+					eof = true;
+				}
+				else {
+					println( ":: "+r.join( " " ) );
+					sim.run( r, true );
+				}
 			}
 			catch ( e:haxe.io.Eof ) {
 				eof = true;
@@ -543,7 +565,7 @@ class SimulatorAPI extends mcli.CommandLine {
 	// ADVANCED -----------------------------------------------------------------
 
 	/**
-		Force network and graph assembly; this is
+		[advanced] Force network and graph assembly; this is
 		automaticallly called from --run
 	**/
 	public function forceAssemble() assemble( true );
@@ -574,23 +596,23 @@ class SimulatorAPI extends mcli.CommandLine {
 	}
 
 	/**
-		[advanced] Enable the code profiler.
-		Only available on C++ versions; NOOP elsewhere.
+		[advanced] Enable the code profiler; only available on C++ versions,
+		NOOP elsewhere.
 	**/
 	public function enableProfiling( basePath:String ) {
 		sim.profiling = basePath;
 	}
 
 	/**
-		[advanced] Disable the code profiler.
-		Only available on C++ versions; NOOP elsewhere.
+		[advanced] Disable the code profiler; only available on C++ versions,
+		NOOP elsewhere.
 	**/
 	public function disableProfiling() {
 		sim.profiling = null;
 	}
 
 	/**
-		[undocumented] Space for testing.
+		[undocumented] Space for testing
 	**/
 	@:access( graph.linkList.Digraph )
 	public function something() {
@@ -636,6 +658,20 @@ class SimulatorAPI extends mcli.CommandLine {
 		}
 	}
 
+	/**
+		[advanced] Dump ETT
+	**/
+	public function dumpEtt( table:String, outputPath:String ) {
+		println( "Attempting to dump table "+table+" in '"+outputPath+"'" );
+		var table:{ iterator:Void->Iterator<Dynamic> } = Reflect.field( sim.state, table );
+		if ( table == null )
+			throw "No table";
+		var cl:Dynamic = Type.getClass( table.iterator().next() );
+		var eout = writeEtt( cl, cl.ettFields(), outputPath );
+		for ( r in table )
+			eout.write( r );
+		eout.close();
+	}
 
 
 	// OTHERS -------------------------------------------------------------------

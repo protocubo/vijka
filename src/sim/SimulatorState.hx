@@ -20,11 +20,12 @@ class SimulatorState {
 	public var activeOdFilter:Null<Array<String>>;
 
 	public var volumes:Null<Map<Int,LinkVolume>>;
+	public var results:Null<Map<Int,ODResult>>; // TODO implement
 
 	public var algorithm:Algorithm;
 
 	public var network:Null<OnlineNetwork>;
-	public var digraph:Null<OnlineDigraph>;
+	public var digraph:Null<OnlineDigraph>; // TODO adapt to new TUI and Dijkstra/A*
 
 	public function new() {
 		algorithm = AAStar;
@@ -37,7 +38,7 @@ class SimulatorState {
 
 	public function clearResults() {
 		volumes = null;
-		// TODO clear O/D results
+		results = null;
 	}
 
 }
