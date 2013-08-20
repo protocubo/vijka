@@ -7,6 +7,7 @@ import format.ett.Reader;
 import format.ett.Writer;
 import haxe.io.Eof;
 import sim.OnlineNetwork;
+import sim.Runner;
 import sys.io.FileInput;
 import sys.io.FileOutput;
 
@@ -244,8 +245,8 @@ class SimulatorAPI extends mcli.CommandLine {
 		vehicles use '*'
 	**/
 	public function showSpeeds( typeId:String, vehicleId:String ) {
-		var t:Null<Int> = typeId != "*" ? parseInt( typeId ) : null;
-		var v:Null<Int> = vehicleId != "*" ? parseInt( vehicleId ) : null;
+		var t:Null<Int> = readInt( typeId );
+		var v:Null<Int> = readInt( vehicleId );
 		print( "Link speeds for " );
 		print( t != null ? " typeId="+t+" " : "all link types " );
 		println( v != null ? " vehicleId="+v+" " : "all vehicles:" );
@@ -304,7 +305,28 @@ class SimulatorAPI extends mcli.CommandLine {
 
 
 
-	// // VOLUME I/O -----------------------------------------------------------------
+	// RUNNING ------------------------------------------------------------------
+
+	public function runAll( volumes:String, paths:String ) {
+		run( "_", "_", "_", "_", "_", "_", volumes, paths );
+	}
+
+	public function run( idFilter:String, lotFilter:String, sectionFilter:String
+	, directionFilter:String, vehicleFilter:String, cargoFilter:String
+	, volumes:String, paths:String ) {
+		println( "Running" );
+		printHL( "-" );
+		assemble();
+		println( "Preparing O/D" );
+		var runner = Runner.parse( idFilter, lotFilter, sectionFilter
+		, directionFilter, vehicleFilter, cargoFilter );
+		println( "O/D active query is: "+runner.showQuery() );
+		println( "Beginning" );
+		runner.run( sim, readBool(volumes), readBool(paths) );
+		printHL( "-" );
+	}
+
+	// VOLUME I/O ---------------------------------------------------------------
 
 	// TODO
 
@@ -339,8 +361,7 @@ class SimulatorAPI extends mcli.CommandLine {
 	**/
 	public function read( path:String ) {
 		println( "Reading commands in '"+path+"'" );
-		printHL( "=" );
-		printHL( "#" );
+		println( "" );	printHL( "#" ); printHL( "#" );
 
 		var finp = sys.io.File.read( path, false );
 		var inp = new format.csv.Reader( finp, "\n", " ", "'" );
@@ -358,8 +379,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		inp.close();
 		
 		println( "Reading commands in '"+path+"'... Done" );
-		printHL( "#" );
-		printHL( "=" );
+		printHL( "#" ); printHL( "#" ); println( "" );
 	}
 
 	public function showLog() {
@@ -547,6 +567,22 @@ class SimulatorAPI extends mcli.CommandLine {
 
 	private static function left( data:Dynamic, len:Int, ?pad=" " ):String {
 		return StringTools.rpad( string( data ), pad, len );
+	}
+
+	private static function readInt( s:String ):Null<Int> {
+		return switch ( s.toLowerCase() ) {
+		case "_": null;
+		case all: parseInt( s );
+		};
+	}
+
+	private static function readBool( s:String ):Null<Bool> {
+		return switch ( s.toLowerCase() ) {
+		case "_": null;
+		case "false", "no", "n": false;
+		case "true", "yes", "y": true;
+		case all: throw "Invalid Bool "+s;
+		};
 	}
 
 }

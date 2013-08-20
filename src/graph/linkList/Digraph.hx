@@ -161,7 +161,7 @@ class Digraph {
 				relaxing = relax( a, tollMulti, vclass, ucost, selectedToll ) || relaxing;
 			i++;
 		}
-		// trace( 'done in $i iterations' );
+		trace( 'done in $i iterations' );
 		return i;
 	}
 

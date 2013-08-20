@@ -10,7 +10,7 @@ class OD {
 	public var section:Int;
 	public var direction:Int;
 	public var vehicleId:Int;
-	public var loadType:Null<String>;
+	public var cargo:Null<String>;
 	public var distWeight:Float;
 	public var timeOperationalWeight:Float;
 	public var timeSocialWeight:Float;
@@ -29,7 +29,7 @@ class OD {
 			new Field( "section", TInt ),
 			new Field( "direction", TInt ),
 			new Field( "vehicleId", TInt ),
-			new Field( "loadType", TNull(TString) ),
+			new Field( "cargo", TNull(TString) ),
 			new Field( "distWeight", TFloat ),
 			new Field( "timeOperationalWeight", TFloat ),
 			new Field( "timeSocialWeight", TFloat ),
@@ -39,7 +39,7 @@ class OD {
 		];
 	}
 
-	public static function make( id, lot, section, direction, vehicleId, loadType
+	public static function make( id, lot, section, direction, vehicleId, cargo
 	, distWeight, timeOperationalWeight, timeSocialWeight, sampleWeight
 	, origin, destination ):OD {
 		var od = new OD();
@@ -48,7 +48,7 @@ class OD {
 		od.section = section;
 		od.direction = direction;
 		od.vehicleId = vehicleId;
-		od.loadType = loadType;
+		od.cargo = cargo;
 		od.distWeight = distWeight;
 		od.timeOperationalWeight = timeOperationalWeight;
 		od.timeSocialWeight = timeSocialWeight;
