@@ -2,11 +2,16 @@ package sim;
 
 import elebeta.ett.rodoTollSim.*;
 import haxe.io.Eof;
+import Std.parseFloat;
+import Std.parseInt;
+import Std.string;
+
+import sim.col.*;
+import sim.Simulator;
+
 import sim.Simulator.print;
 import sim.Simulator.printHL;
 import sim.Simulator.println;
-import sim.Simulator;
-import Std.string;
 
 class SimulatorAPI extends mcli.CommandLine {
 
@@ -18,6 +23,10 @@ class SimulatorAPI extends mcli.CommandLine {
 		reading = _reading;
 		super();
 	}
+
+
+
+	// NODE I/O -----------------------------------------------------------------
 
 	/**
 		Read nodes (reentrant)
@@ -37,7 +46,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		sim.state.invalidate();
 		while ( true ) {
 			var node = try { einp.fastReadRecord( Node.makeEmpty() ); }
-			        catch ( e:Eof ) { null; };
+			           catch ( e:Eof ) { null; };
 			if ( node == null ) break;
 			nodes.set( node.id, node );
 		}
@@ -50,6 +59,10 @@ class SimulatorAPI extends mcli.CommandLine {
 		var cnt = sim.state.nodes != null ? Lambda.count( sim.state.nodes ) : 0;
 		println( "Counted "+cnt+" nodes" );
 	}
+
+
+
+	// LINK TYPE I/O ------------------------------------------------------------
 
 	/**
 		Read link types (reentrant)
@@ -65,10 +78,9 @@ class SimulatorAPI extends mcli.CommandLine {
 		printHL( "-" );
 		var linkTypes = sim.state.linkTypes; // just a shortcut
 		var einp = readEtt( inputPath );
-		sim.state.invalidate();
 		while ( true ) {
 			var type = try { einp.fastReadRecord( LinkType.makeEmpty() ); }
-			        catch ( e:Eof ) { null; };
+			           catch ( e:Eof ) { null; };
 			if ( type == null ) break;
 			linkTypes.set( type.id, type );
 		}
@@ -93,8 +105,12 @@ class SimulatorAPI extends mcli.CommandLine {
 		println( "Counted "+cnt+" link types" );
 	}
 
+
+
+	// LINK I/O -----------------------------------------------------------------
+
 	/**
-		Read links (reentrant); requires nodes and link types
+		Read links (reentrant); requires nodes and link types; link extensions in km
 	**/
 	public function readLinks( inputPath:String ) {
 		if ( sim.state.links == null ) {
@@ -114,7 +130,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		sim.state.invalidate();
 		while ( true ) {
 			var link = try { einp.fastReadRecord( Link.makeEmpty() ); }
-			        catch ( e:Eof ) { null; };
+			           catch ( e:Eof ) { null; };
 			if ( link == null ) break;
 			if ( !nodes.exists( link.startNodeId ) )
 				throw "Missing node "+link.startNodeId;
@@ -133,6 +149,103 @@ class SimulatorAPI extends mcli.CommandLine {
 		var cnt = sim.state.links != null ? Lambda.count( sim.state.links ) : 0;
 		println( "Counted "+cnt+" links" );
 	}
+
+
+
+	// VEHICLE I/O --------------------------------------------------------------
+
+	/**
+		Read vehicles (reentrant)
+	**/
+	public function readVehicles( inputPath:String ) {
+		if ( sim.state.vehicles == null ) {
+			println( "Reading vehicles" );
+			sim.state.vehicles = new Map();
+		}
+		else {
+			println( "Reading additional vehicles" );
+		}
+		printHL( "-" );
+		var vehicles = sim.state.vehicles; // just a shortcut
+		var einp = readEtt( inputPath );
+		sim.state.invalidate(); // this might (and should) not be necessary in the future
+		while ( true ) {
+			var type = try { einp.fastReadRecord( Vehicle.makeEmpty() ); }
+			           catch ( e:Eof ) { null; };
+			if ( type == null ) break;
+			vehicles.set( type.id, type );
+		}
+	}
+
+	/**
+		Show vehicles
+	**/
+	public function showVehicles() {
+		println( "Known types:" );
+		printHL( "-" );
+		for ( type in sim.state.vehicles )
+			println( right(type.id,6)+": "+type.name );
+		printHL( "-" );
+	}
+
+	/**
+		Count vehicles
+	**/
+	public function countVehicles() {
+		var cnt = sim.state.vehicles != null ? Lambda.count( sim.state.vehicles ) : 0;
+		println( "Counted "+cnt+" vehicles" );
+	}
+
+
+
+	// LINK TYPE SPEED I/O ------------------------------------------------------
+
+	/**
+		Read link type speeds (reentrant); speeds in km/h
+	**/
+	public function readSpeeds( inputPath:String ) {
+		if ( sim.state.speeds == null ) {
+			println( "Reading link type speeds" );
+			sim.state.speeds = new LinkTypeSpeedMap();
+		}
+		else {
+			println( "Reading additional link type speeds" );
+		}
+		printHL( "-" );
+		var speeds = sim.state.speeds; // just a shortcut
+		var einp = readEtt( inputPath );
+		sim.state.invalidate(); // this might (and should) not be necessary in the future
+		while ( true ) {
+			var speed = try { einp.fastReadRecord( LinkTypeSpeed.makeEmpty() ); }
+			            catch ( e:Eof ) { null; };
+			if ( speed == null ) break;
+			speeds.set( speed, speed );
+		}
+	}
+
+	/**
+		Show speeds for links with [typeId]  and [vehicleId]; for all types and/or
+		vehicles use '*'
+	**/
+	public function showSpeeds( typeId:String, vehicleId:String ) {
+		var t:Null<Int> = typeId != "*" ? parseInt( typeId ) : null;
+		var v:Null<Int> = vehicleId != "*" ? parseInt( vehicleId ) : null;
+		print( "Link speeds for " );
+		print( t != null ? " typeId="+t+" " : "all link types " );
+		println( v != null ? " vehicleId="+v+" " : "all vehicles:" );
+		printHL( "-" );
+		var speeds = [ for ( s in sim.state.speeds ) s ];
+		speeds.sort( function (a,b) return 2*Reflect.compare(a.typeId,b.typeId)+Reflect.compare(a.vehicleId,b.vehicleId) );
+		for ( speed in speeds )
+			if ( ( t == null || speed.typeId == t )
+			&& ( v == null || speed.vehicleId == v ) )
+				println( right(speed.typeId,6)+", "+right(speed.vehicleId,6)+": "+speed.speed+" km/h" );
+		printHL( "-" );
+	}
+
+
+
+	// COMMAND HISTORY ----------------------------------------------------------
 
 	/**
 		Reset the current state of the simulator
@@ -190,6 +303,10 @@ class SimulatorAPI extends mcli.CommandLine {
 		println( "\t// "+sim.log.join( "\n\t// " ) );
 		printHL( "-" );
 	}
+
+
+
+	// ADVANCED -----------------------------------------------------------------
 
 	/**
 		[advanced] Run the unit tests.
@@ -264,6 +381,10 @@ class SimulatorAPI extends mcli.CommandLine {
 			printHL( "-" );
 		}
 	}
+
+
+
+	// OTHERS -------------------------------------------------------------------
 
 	/**
 		Show simulator version.

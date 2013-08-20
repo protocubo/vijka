@@ -6,7 +6,6 @@ class LinkType {
 	public var id:Int;
 	public var name:Null<String>;
 
-
 	public static function ettFields():Array<Field> {
 		return [
 			new Field( "id", TInt ),
