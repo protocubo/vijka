@@ -77,7 +77,7 @@ class Simulator {
 				var dt = haxe.Timer.stamp() - t0;
 				sim.stopProfiling();
 				sim.log.push( args.join( " " ) );
-				println( "Took "+dt+" seconds" );
+				println( "Done in "+dt+" seconds" );
 			}
 		}
 		catch ( e:mcli.DispatchError ) {
@@ -86,6 +86,7 @@ class Simulator {
 		}
 		catch ( e:Dynamic ) {
 			sim.stopProfiling();
+			sim.log.push( args.join( " " ) );
 			print( "ERROR: "+e );
 			println( haxe.CallStack.toString( haxe.CallStack.exceptionStack() ) );
 		}

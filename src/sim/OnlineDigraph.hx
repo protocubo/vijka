@@ -120,17 +120,21 @@ private class VolumeSaver {
 	}
 
 	public function save( a:Arc, pre:Int ):Int {
-		getVolume( a ).sum( vehicles, axis, tolls, equivalentVehicles );
+		var vol = getVolume( a );
+		if ( vol != null ) vol.sum( vehicles, axis, tolls, equivalentVehicles );
 		if ( path != null ) path.push( a.link );
 		return pre + 1;
 	}
 
-	private function getVolume( a:Arc ):LinkVolume {
-		if ( sim.state.volumes == null )
-			sim.state.volumes = new Map();
-		var x = sim.state.volumes.get( a.link.id );
-		if ( x == null ) sim.state.volumes.set( a.link.id, LinkVolume.make( a.link.id, 0, 0, 0, 0 ) );
-		return x;
+	private function getVolume( a:Arc ):Null<LinkVolume> {
+		if ( a.link == null ) return null;
+		else {
+			if ( sim.state.volumes == null )
+				sim.state.volumes = new Map();
+			var x = sim.state.volumes.get( a.link.id );
+			if ( x == null ) sim.state.volumes.set( a.link.id, x = LinkVolume.make( a.link.id, 0, 0, 0, 0 ) );
+			return x;
+		}
 	}
 
 }

@@ -11,13 +11,17 @@ class Link {
 	public var typeId:Int;
 	public var toll:Float;
 
+	public function jsonBody():String {
+		return '"id":$id,"startNodeId":$startNodeId,"finishNodeId":$finishNodeId,"extension":$extension,"typeId":$typeId,"toll":$toll';
+	}
+
 	public static function ettFields():Array<Field> {
 		return [
 			new Field( "id", TInt ),
 			new Field( "startNodeId", TInt ),
 			new Field( "finishNodeId", TInt ),
 			new Field( "extension", TFloat ),
-			new Field( "typeId", TFloat ),
+			new Field( "typeId", TInt ),
 			new Field( "toll", TFloat )
 		];
 	}

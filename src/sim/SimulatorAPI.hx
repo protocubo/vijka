@@ -59,6 +59,7 @@ class SimulatorAPI extends mcli.CommandLine {
 			if ( node == null ) break;
 			nodes.set( node.id, node );
 		}
+		einp.close();
 	}
 
 	/**
@@ -93,6 +94,7 @@ class SimulatorAPI extends mcli.CommandLine {
 			if ( type == null ) break;
 			linkTypes.set( type.id, type );
 		}
+		einp.close();
 	}
 
 	/**
@@ -149,6 +151,7 @@ class SimulatorAPI extends mcli.CommandLine {
 				throw "Missing link type "+link.typeId;
 			links.set( link.id, link );
 		}
+		einp.close();
 	}
 
 	/**
@@ -184,6 +187,7 @@ class SimulatorAPI extends mcli.CommandLine {
 			if ( type == null ) break;
 			vehicles.set( type.id, type );
 		}
+		einp.close();
 	}
 
 	/**
@@ -238,6 +242,7 @@ class SimulatorAPI extends mcli.CommandLine {
 				throw "Missing vehicle "+speed.vehicleId;
 			speeds.set( speed, speed );
 		}
+		einp.close();
 	}
 
 	/**
@@ -293,6 +298,7 @@ class SimulatorAPI extends mcli.CommandLine {
 				throw "Missing vehicle "+od.vehicleId;
 			ods.set( od.id, od );
 		}
+		einp.close();
 	}
 
 	/**
@@ -307,10 +313,10 @@ class SimulatorAPI extends mcli.CommandLine {
 
 	// RUNNING ------------------------------------------------------------------
 
-	public function runAll( volumes:String, paths:String ) {
-		run( "_", "_", "_", "_", "_", "_", volumes, paths );
-	}
-
+	/**
+		Run; parameters are filters (id, lot, section, direction, vehicle and cargo)
+		and output settings (volume, path)
+	**/
 	public function run( idFilter:String, lotFilter:String, sectionFilter:String
 	, directionFilter:String, vehicleFilter:String, cargoFilter:String
 	, volumes:String, paths:String ) {
@@ -326,9 +332,54 @@ class SimulatorAPI extends mcli.CommandLine {
 		printHL( "-" );
 	}
 
+	/**
+		Run all; only parameters are related to the output of volumes and paths
+	**/
+	public function runAll( volumes:String, paths:String ) {
+		run( "_", "_", "_", "_", "_", "_", volumes, paths );
+	}
+
+	/**
+		Clear all result data from state
+	**/
+	public function clearResults() {
+		sim.state.clearResults();
+	}
+
 	// VOLUME I/O ---------------------------------------------------------------
 
-	// TODO
+	/**
+		Write volumes to ETT
+	**/
+	public function writeVolumes( outputPath:String ) {
+		println( "Writing volumes" );
+		printHL( "-" );
+		var volumes = sim.state.volumes; // just a shortcut
+		if ( volumes == null )
+			throw "No volumes";
+		var eout = writeEtt( LinkVolume, LinkVolume.ettFields(), outputPath );
+		for ( v in volumes )
+			eout.write( v );
+		eout.close();
+		printHL( "-" );
+	}
+
+	public function geojsonVolumes( outputPath:String ) {
+		println( "Mapping volumes in GeoJSON" );
+		printHL( "-" );
+		var volumes = sim.state.volumes; // just a shortcut
+		if ( volumes == null )
+			throw "No volumes";
+		var fout = writeFile( outputPath, false );
+		fout.writeString( '{"type":"FeatureCollection","features":[\n' );
+		var first = true;
+		for ( v in volumes ) {
+			if ( first ) first = false; else fout.writeString( ",\n" );
+			fout.writeString( geojsonVolume( v ) );
+		}
+		fout.writeString( "\n] }\n" );
+		fout.close();
+	}
 
 
 
@@ -530,6 +581,31 @@ class SimulatorAPI extends mcli.CommandLine {
 
 	// HELPERS ------------------------------------------------------------------
 
+	private function geojsonVolume( volume:LinkVolume ):String {
+		var link = sim.state.links.get( volume.linkId );
+		var linkProp = link.jsonBody();
+		var linkVolume = volume.jsonBody();
+		var geom = getShape( link ).geojsonGeometry();
+		return '{"id":${link.id},"type":"Feature","geometry":$geom,"properties":{$linkProp,$linkVolume}}';
+	}
+
+	private function getShape( link:Link):LinkShape {
+		var shapes = sim.state.shapes;
+		if ( shapes == null )
+			sim.state.shapes = shapes = new Map();
+		var shp = shapes.get( link.id );
+		if ( shp == null )
+			shp = autoLinkShape( link );
+		return shp;
+	}
+
+	private function autoLinkShape( link:Link ):LinkShape {
+		var nodes = sim.state.nodes;
+		var pts = [ nodes.get( link.startNodeId ).point, nodes.get( link.finishNodeId ).point ];
+		var shp = LinkShape.make( link.id, new format.ett.Geometry.LineString( pts ) );
+		sim.state.shapes.set( link.id, shp );
+		return shp;
+	}
 
 	private static function readEtt( inputPath:String ):ETTReader {
 		return new ETTReader( readFile( inputPath, true ) );
@@ -571,16 +647,16 @@ class SimulatorAPI extends mcli.CommandLine {
 
 	private static function readInt( s:String ):Null<Int> {
 		return switch ( s.toLowerCase() ) {
-		case "_": null;
+		case "_", "*": null;
 		case all: parseInt( s );
 		};
 	}
 
 	private static function readBool( s:String ):Null<Bool> {
 		return switch ( s.toLowerCase() ) {
-		case "_": null;
-		case "false", "no", "n": false;
-		case "true", "yes", "y": true;
+		case "_", "*": null;
+		case "false", "no", "n", "0": false;
+		case "true", "yes", "y", "1": true;
 		case all: throw "Invalid Bool "+s;
 		};
 	}

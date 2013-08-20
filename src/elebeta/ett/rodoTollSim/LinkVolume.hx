@@ -10,11 +10,15 @@ class LinkVolume {
 	public var tolls:Float;
 	public var equivalentVehicles:Float;
 
-	public function sum( _vehicles, _axis, _tolls, _equivalentVehicles ) {
+	public function sum( _vehicles, _axis, _tolls, _equivalentVehicles ):Void {
 		vehicles += _vehicles;
 		axis += _axis;
 		tolls += _tolls;
 		equivalentVehicles += _equivalentVehicles;
+	}
+
+	public function jsonBody():String {
+		return '"vehicles":$vehicles,"axis":$axis,"tolls":$tolls,"equivalentVehicles":$equivalentVehicles';
 	}
 
 	public static function ettFields():Array<Field> {

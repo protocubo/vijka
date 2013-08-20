@@ -13,6 +13,8 @@ class SimulatorState {
 	public var vehicles:Null<Map<Int,Vehicle>>;
 	public var speeds:Null<LinkTypeSpeedMap>;
 
+	public var shapes:Null<Map<Int,LinkShape>>;
+
 	public var ods:Null<Map<Int,OD>>;
 
 	public var volumes:Null<Map<Int,LinkVolume>>;
@@ -24,9 +26,14 @@ class SimulatorState {
 
 	}
 	
-	public inline function invalidate() {
+	public function invalidate() {
 		network = null;
 		digraph = null;
+	}
+
+	public function clearResults() {
+		volumes = null;
+		// TODO clear O/D results
 	}
 
 }
