@@ -8,11 +8,6 @@ class Node {
 	public var id:Int;
 	public var point:Point;
 
-	public function geoJSONString( ?propJSON:String ):String {
-		if ( propJSON == null ) propJSON = '{"id":$id}';
-		return '{"id":$id,"type":"Feature","geometry":${point.geoJSONString()},"properties":$propJSON}';
-	}
-
 	public static function ettFields():Array<Field> {
 		return [
 			new Field( "id", TInt ),

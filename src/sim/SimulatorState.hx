@@ -13,6 +13,10 @@ class SimulatorState {
 	public var vehicles:Null<Map<Int,Vehicle>>;
 	public var speeds:Null<LinkTypeSpeedMap>;
 
+	public var ods:Null<Map<Int,OD>>;
+
+	public var volumes:Null<Map<Int,LinkVolume>>;
+
 	public var network:Null<OnlineNetwork>;
 	public var digraph:Null<Digraph>;
 

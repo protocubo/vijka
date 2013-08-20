@@ -1,7 +1,14 @@
 package sim;
 
 import elebeta.ett.rodoTollSim.*;
+import format.ett.Data.Field in ETTField;
+import format.ett.Data.Encoding in ETTEncoding;
+import format.ett.Reader;
+import format.ett.Writer;
 import haxe.io.Eof;
+import sys.io.FileInput;
+import sys.io.FileOutput;
+
 import Std.parseFloat;
 import Std.parseInt;
 import Std.string;
@@ -212,6 +219,10 @@ class SimulatorAPI extends mcli.CommandLine {
 			println( "Reading additional link type speeds" );
 		}
 		printHL( "-" );
+		var linkTypes = sim.state.linkTypes; // just a shortcut
+		var vehicles = sim.state.vehicles; // just a shortcut
+		if ( linkTypes == null ) throw "No link types";
+		if ( vehicles == null ) throw "No vehicles";
 		var speeds = sim.state.speeds; // just a shortcut
 		var einp = readEtt( inputPath );
 		sim.state.invalidate(); // this might (and should) not be necessary in the future
@@ -219,6 +230,10 @@ class SimulatorAPI extends mcli.CommandLine {
 			var speed = try { einp.fastReadRecord( LinkTypeSpeed.makeEmpty() ); }
 			            catch ( e:Eof ) { null; };
 			if ( speed == null ) break;
+			if ( !linkTypes.exists( speed.typeId ) )
+				throw "Missing link type "+speed.typeId;
+			if ( !vehicles.exists( speed.vehicleId ) )
+				throw "Missing vehicle "+speed.vehicleId;
 			speeds.set( speed, speed );
 		}
 	}
@@ -245,6 +260,52 @@ class SimulatorAPI extends mcli.CommandLine {
 				println( right(speed.typeId,6)+", "+right(speed.vehicleId,6)+": "+speed.speed+" km/h" );
 		printHL( "-" );
 	}
+
+
+
+	// OD I/O -----------------------------------------------------------------
+
+	/**
+		Read od data (reentrant)
+	**/
+	public function readOdData( inputPath:String ) {
+		if ( sim.state.ods == null ) {
+			println( "Reading od data" );
+			sim.state.ods = new Map();
+		}
+		else {
+			println( "Reading additional od data" );
+		}
+		printHL( "-" );
+		var vehicles = sim.state.vehicles; // just a shortcut
+		var ods = sim.state.ods; // just a shortcut
+		if ( vehicles == null ) throw "No vehicles";
+		var einp = readEtt( inputPath );
+		sim.state.invalidate();
+		while ( true ) {
+			var od = try { einp.fastReadRecord( OD.makeEmpty() ); }
+			         catch ( e:Eof ) { null; };
+			if ( od == null ) break;
+			if ( !vehicles.exists( od.vehicleId ) )
+			if ( !vehicles.exists( od.vehicleId ) )
+				throw "Missing vehicle "+od.vehicleId;
+			ods.set( od.id, od );
+		}
+	}
+
+	/**
+		Count ods
+	**/
+	public function countOdData() {
+		var cnt = sim.state.ods != null ? Lambda.count( sim.state.ods ) : 0;
+		println( "Counted "+cnt+" od records" );
+	}
+
+
+
+	// // VOLUME I/O -----------------------------------------------------------------
+
+	// TODO
 
 
 
@@ -425,16 +486,34 @@ class SimulatorAPI extends mcli.CommandLine {
 	// HELPERS ------------------------------------------------------------------
 
 
-	private static function readEtt( inputPath:String ):format.ett.Reader {
-		return new format.ett.Reader( readFile( inputPath ) );
+	private static function readEtt( inputPath:String ):ETTReader {
+		return new ETTReader( readFile( inputPath, true ) );
 	}
 
-	private static function readFile( inputPath:String ):sys.io.FileInput {
+	private static function writeEtt( cl:Class<Dynamic>, fields:Array<ETTField>, outputPath:String ):ETTWriter {
+		var fout = writeFile( outputPath, true );
+		var finfo = new format.ett.Data.FileInfo( "\n", ETTEncoding.UTF8, "\t", "\""
+		, Type.getClassName( cl ), fields );
+		var w = new ETTWriter( finfo );
+		w.prepare( fout );
+		return w;
+	}
+
+	private static function readFile( inputPath:String, binary:Bool ):FileInput {
 		if ( !sys.FileSystem.exists( inputPath ) )
 			throw "File '"+inputPath+"' does not exist";
 		if ( sys.FileSystem.isDirectory( inputPath ) )
 			throw "Expected a file but found a folder: '"+inputPath+"'";
-		return sys.io.File.read( inputPath, true );
+		return sys.io.File.read( inputPath, binary );
+	}
+
+	private static function writeFile( outputPath:String, binary:Bool ):FileOutput {
+		if ( sys.FileSystem.exists( outputPath ) )
+			if ( sys.FileSystem.isDirectory( outputPath ) )
+				throw "Cannot overwrite a folder with a file: '"+outputPath+"'";
+			else
+			 	println( "File '"+outputPath+"' overwritten" );
+		return sys.io.File.write( outputPath, binary );
 	}
 
 	private static function right( data:Dynamic, len:Int, ?pad=" " ):String {

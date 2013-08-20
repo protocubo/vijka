@@ -1,7 +1,6 @@
 package elebeta.ett.rodoTollSim;
 
 import format.ett.Data;
-import format.ett.Geometry;
 
 class Link {
 
@@ -11,10 +10,6 @@ class Link {
 	public var extension:Float;
 	public var typeId:Int;
 	public var toll:Float;
-	
-	public function propJSONString():String {
-		return '{"id":$id,"startNodeId":$startNodeId,"finishNodeId":$finishNodeId,"extension":$extension,"typeId":$typeId,"toll":$toll}';
-	}
 
 	public static function ettFields():Array<Field> {
 		return [
