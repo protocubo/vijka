@@ -6,6 +6,7 @@ import sim.Simulator.print;
 import sim.Simulator.printHL;
 import sim.Simulator.println;
 import sim.Simulator;
+import Std.string;
 
 class SimulatorAPI extends mcli.CommandLine {
 
@@ -71,6 +72,17 @@ class SimulatorAPI extends mcli.CommandLine {
 			if ( type == null ) break;
 			linkTypes.set( type.id, type );
 		}
+	}
+
+	/**
+		Show link types
+	**/
+	public function showLinkTypes() {
+		println( "Known types:" );
+		printHL( "-" );
+		for ( type in sim.state.linkTypes )
+			println( right(type.id,6)+": "+type.name );
+		printHL( "-" );
 	}
 
 	/**
@@ -299,6 +311,14 @@ class SimulatorAPI extends mcli.CommandLine {
 		if ( sys.FileSystem.isDirectory( inputPath ) )
 			throw "Expected a file but found a folder: '"+inputPath+"'";
 		return sys.io.File.read( inputPath, true );
+	}
+
+	private static function right( data:Dynamic, len:Int, ?pad=" " ):String {
+		return StringTools.lpad( string( data ), pad, len );
+	}
+
+	private static function left( data:Dynamic, len:Int, ?pad=" " ):String {
+		return StringTools.rpad( string( data ), pad, len );
 	}
 
 }
