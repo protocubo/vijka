@@ -2,7 +2,7 @@ package sim;
 
 import sim.Simulator;
 
-class OnlineNetwork {
+class OnlineDigraph {
 
 	private var sim:Simulator;
 

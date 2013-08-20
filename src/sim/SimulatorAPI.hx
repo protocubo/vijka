@@ -6,6 +6,7 @@ import format.ett.Data.Encoding in ETTEncoding;
 import format.ett.Reader;
 import format.ett.Writer;
 import haxe.io.Eof;
+import sim.OnlineNetwork;
 import sys.io.FileInput;
 import sys.io.FileOutput;
 
@@ -371,6 +372,27 @@ class SimulatorAPI extends mcli.CommandLine {
 
 
 	// ADVANCED -----------------------------------------------------------------
+
+	/**
+		Assemble; creates the online network and graph; this is
+		automaticallly called from --run
+	**/
+	public function assemble( ?force=true ) {
+		if ( force ) {
+			println( "Forcing online network and graph assembly" );
+			printHL( "-" );
+		}
+		if ( sim.state.network == null || force ) {
+			sim.state.digraph = null;
+			var nk = sim.state.network = new OnlineNetwork( sim );
+		}
+		if ( sim.state.digraph == null || force ) {
+			var dg = sim.state.digraph = new OnlineDigraph( sim );
+		}
+		if ( force ) {
+			printHL( "-" );
+		}
+	}
 
 	/**
 		[advanced] Run the unit tests.

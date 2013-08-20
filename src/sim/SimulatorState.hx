@@ -18,7 +18,7 @@ class SimulatorState {
 	public var volumes:Null<Map<Int,LinkVolume>>;
 
 	public var network:Null<OnlineNetwork>;
-	public var digraph:Null<Digraph>;
+	public var digraph:Null<OnlineDigraph>;
 
 	public function new() {
 
