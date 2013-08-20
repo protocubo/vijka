@@ -1,9 +1,9 @@
 package elebeta.ds.heap;
 
 private typedef Underlying<T> = Array<T>;
-private typedef Item = elebeta.ds.heap.DAryHeapItem;
+private typedef Item<T> = elebeta.ds.heap.DAryHeapItem<T>;
 
-class DAryHeap {
+class DAryHeap<T> {
 
 	public inline static var DEFAULT_ARITY = 4;
 	public inline static var DEFAULT_RESERVE = 32;
@@ -12,7 +12,7 @@ class DAryHeap {
 	public var length(default,null):Int;
 	public var capacity(get,never):Int;
 
-	private var h:Underlying<Item>; // [ 1, 11, 12, 13, 14, 111, 112, 113, 114, 121, 122, 123, 124, ... ]
+	private var h:Underlying<Item<T>>; // [ 1, 11, 12, 13, 14, 111, 112, 113, 114, 121, 122, 123, 124, ... ]
 
 
 	// CONSTRUCTION -------------------------------------------------------------
@@ -26,8 +26,8 @@ class DAryHeap {
 			h = emptyUrderlying( _reserve );
 	}
 
-	public static function build( it:Iterable<Item>, ?_arity=DEFAULT_ARITY ) {
-		var heap = new DAryHeap( _arity, -1 );
+	public static function build<T>( it:Iterable<Item<T>>, ?_arity=DEFAULT_ARITY ):DAryHeap<T> {
+		var heap = new DAryHeap<T>( _arity, -1 );
 		heap.h = underlying( it );
 		heap.length = heap.h.length;
 		heap.heapify();
@@ -41,12 +41,12 @@ class DAryHeap {
 
 	public inline function notEmpty():Bool return length > 0;
 
-	public inline function put( e:Item ):Void {
+	public inline function put( e:Item<T> ):Void {
 		insert( length, e );
 		fix_up( length++ );
 	}
 
-	public inline function extract():Null<Item> {
+	public inline function extract():Null<Item<T>> {
 		if ( notEmpty() ) {
 			exchange( 0, --length );
 			fix_down( 0 );
@@ -56,11 +56,11 @@ class DAryHeap {
 			return null;
 	}
 
-	public inline function peek():Null<Item> {
+	public inline function peek():Null<Item<T>> {
 		return notEmpty() ? hget( 0 ) : null;
 	}
 
-	public inline function update( e:Item ):Void {
+	public inline function update( e:Item<T> ):Void {
 		var i = e.getIndex( this );
 		fix_up( i );
 		fix_down( i );
@@ -69,7 +69,7 @@ class DAryHeap {
 
 	// INSPECTION API -----------------------------------------------------------
 
-	public function dumpUnderlying():Iterable<Item> {
+	public function dumpUnderlying():Iterable<Item<T>> {
 		return h.copy(); // only because underlying is Array
 	}
 
@@ -120,7 +120,7 @@ class DAryHeap {
 		insert( j, t );
 	}
 
-	private inline function insert( i:Int, e:Item ):Void {
+	private inline function insert( i:Int, e:Item<T> ):Void {
 		hset( i, e );
 		e.saveIndex( this, i );
 	}
@@ -139,9 +139,9 @@ class DAryHeap {
 
 	// these will be important if underlying changes to haxe.ds.Vector
 	// later these may also be abstracted
-	private inline function hget( i:Int ):Item return h[i];
-	private inline function hext( i:Int ):Item return h[i];
-	private inline function hset( i:Int, e:Item ):Item return h[i] = e;
+	private inline function hget( i:Int ):Item<T> return h[i];
+	private inline function hext( i:Int ):Item<T> return h[i];
+	private inline function hset( i:Int, e:Item<T> ):Item<T> return h[i] = e;
 
 	// fast floor
 	// `Std.int` should be faster than `Math.floor`, although it only makes sense
@@ -155,7 +155,7 @@ class DAryHeap {
 		return a;
 	}
 
-	private static function underlying( it:Iterable<Item> ) {
+	private static function underlying<T>( it:Iterable<Item<T>> ) {
 		return Lambda.array( it );
 	}
 

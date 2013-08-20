@@ -1,5 +1,5 @@
 package sim;
-
+import graph.adjLists.Digraph;
 class Simulator {
 
 	public var state:SimulatorState;
