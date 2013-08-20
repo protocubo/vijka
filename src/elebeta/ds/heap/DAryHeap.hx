@@ -1,23 +1,20 @@
 package elebeta.ds.heap;
 
-private typedef Underlying<T> = Array<T>;
-private typedef Item<T> = elebeta.ds.heap.DAryHeapItem<T>;
+private typedef Underlying<I> = Array<I>;
 
-class DAryHeap<T> {
-
-	public inline static var DEFAULT_ARITY = 4;
-	public inline static var DEFAULT_RESERVE = 32;
-
+@:generic
+class DAryHeap<Item> {
+	
 	public var arity(default,null):Int;
 	public var length(default,null):Int;
 	public var capacity(get,never):Int;
 
-	private var h:Underlying<Item<T>>; // [ 1, 11, 12, 13, 14, 111, 112, 113, 114, 121, 122, 123, 124, ... ]
+	private var h:Underlying<Item>; // [ 1, 11, 12, 13, 14, 111, 112, 113, 114, 121, 122, 123, 124, ... ]
 
 
 	// CONSTRUCTION -------------------------------------------------------------
 
-	public function new( ?_arity=DEFAULT_ARITY, ?_reserve=DEFAULT_RESERVE ) {
+	private function new( _arity, _reserve ) {
 		if ( arity < 2 )
 			throw "D-ary heap are only possible for D >= 2";
 		arity = _arity;
@@ -26,13 +23,27 @@ class DAryHeap<T> {
 			h = emptyUrderlying( _reserve );
 	}
 
-	public static function build<T>( it:Iterable<Item<T>>, ?_arity=DEFAULT_ARITY ):DAryHeap<T> {
-		var heap = new DAryHeap<T>( _arity, -1 );
-		heap.h = underlying( it );
-		heap.length = heap.h.length;
-		heap.heapify();
-		return heap;
-	}
+
+	// NOT IMPLEMENTED METHODS --------------------------------------------------
+
+	/* 
+	 * The predicate of a D-ary Heap dictates if it is a min or max heap, and
+	 * also how comparissons are made; the `checkPredicate` function should be
+	 * such that it returns `true` if `a` could appear before `b`.
+	 * This is equivalent of returning `true` if `a` <= `b` on a min heap and
+	 * `a` >= `b` on a max heap
+	 */
+	public function checkPredicate( a:Item, b:Item ):Bool { throw "checkPredicate not implemented"; }
+	
+	/* 
+	 * Method used by a DAryHeap for finding its position for this item
+	 */
+	public function getIndex( e:Item ):Int { throw "getIndex not implemented"; }
+
+	/* 
+	 * Method used by a DAryHeap for saving its position for this item
+	 */
+	public function saveIndex( e:Item, i:Int ):Void { throw "saveIndex not implemented"; }
 
 
 	// QUEUING API --------------------------------------------------------------
@@ -41,12 +52,12 @@ class DAryHeap<T> {
 
 	public inline function notEmpty():Bool return length > 0;
 
-	public inline function put( e:Item<T> ):Void {
+	public inline function put( e:Item ):Void {
 		insert( length, e );
 		fix_up( length++ );
 	}
 
-	public inline function extract():Null<Item<T>> {
+	public inline function extract():Null<Item> {
 		if ( notEmpty() ) {
 			exchange( 0, --length );
 			fix_down( 0 );
@@ -56,12 +67,12 @@ class DAryHeap<T> {
 			return null;
 	}
 
-	public inline function peek():Null<Item<T>> {
+	public inline function peek():Null<Item> {
 		return notEmpty() ? hget( 0 ) : null;
 	}
 
-	public inline function update( e:Item<T> ):Void {
-		var i = e.getIndex( this );
+	public inline function update( e:Item ):Void {
+		var i = getIndex( e );
 		fix_up( i );
 		fix_down( i );
 	}
@@ -69,7 +80,7 @@ class DAryHeap<T> {
 
 	// INSPECTION API -----------------------------------------------------------
 
-	public function dumpUnderlying():Iterable<Item<T>> {
+	public function dumpUnderlying():Iterable<Item> {
 		return h.copy(); // only because underlying is Array
 	}
 
@@ -84,14 +95,14 @@ class DAryHeap<T> {
 	private inline function heapify() {
 		var s = floor( parent( length - 1 ) );
 		for ( i in 0...length )
-			h[i].saveIndex( this, i );
+			saveIndex( h[i], i );
 		while ( 0 <= s )
 			fix_down( s-- );
 	}
 
 	private inline function fix_up( i:Int ):Void {
 		var j;
-		while ( 0 < i && !h[ j=parent(i) ].checkPredicate( h[i] ) ) {
+		while ( 0 < i && !checkPredicate( h[j=parent(i)], h[i] ) ) {
 			exchange( i, j );
 			i = j;
 		}
@@ -103,11 +114,11 @@ class DAryHeap<T> {
 			var a = 2;
 			var k;
 			while ( arity >= a && length > ( k = child( i, a ) ) ) {
-				if ( h[k].checkPredicate( h[j] ) )
+				if ( checkPredicate( h[k], h[j] ) )
 					j = k;
 				a++;
 			}
-			if ( h[i].checkPredicate( h[j] ) )
+			if ( checkPredicate( h[i], h[j] ) )
 				break;
 			exchange( i, j );
 			i = j;
@@ -120,9 +131,9 @@ class DAryHeap<T> {
 		insert( j, t );
 	}
 
-	private inline function insert( i:Int, e:Item<T> ):Void {
+	private inline function insert( i:Int, e:Item ):Void {
 		hset( i, e );
-		e.saveIndex( this, i );
+		saveIndex( e, i );
 	}
 
 	// 1 <= n <= arity
@@ -139,23 +150,23 @@ class DAryHeap<T> {
 
 	// these will be important if underlying changes to haxe.ds.Vector
 	// later these may also be abstracted
-	private inline function hget( i:Int ):Item<T> return h[i];
-	private inline function hext( i:Int ):Item<T> return h[i];
-	private inline function hset( i:Int, e:Item<T> ):Item<T> return h[i] = e;
+	private inline function hget( i:Int ):Item return h[i];
+	private inline function hext( i:Int ):Item return h[i];
+	private inline function hset( i:Int, e:Item ):Item return h[i] = e;
 
 	// fast floor
 	// `Std.int` should be faster than `Math.floor`, although it only makes sense
 	// for positive `f`
-	private static inline function floor( f:Float ) return Std.int( f );
+	private inline function floor( f:Float ) return Std.int( f );
 
-	private static function emptyUrderlying( reserve ) {
+	private function emptyUrderlying( reserve ) {
 		var a = [];
 		if ( reserve > 0 )
 			a[reserve - 1] = null;
 		return a;
 	}
 
-	private static function underlying<T>( it:Iterable<Item<T>> ) {
+	private function underlying<Item>( it:Iterable<Item> ) {
 		return Lambda.array( it );
 	}
 

@@ -1,13 +1,8 @@
 package graph.adjLists;
 
 import def.*;
-import elebeta.ds.heap.DAryHeap;
-import elebeta.ds.heap.DAryHeapItem;
 
-class Vertex implements DAryHeapItem<Vertex> {
-
-	public var self( get, never ):Vertex;
-	private inline function get_self():Vertex return this;
+class Vertex {
 
 	// entity
 	public var node( default, null ):Node;
@@ -50,17 +45,5 @@ class Vertex implements DAryHeapItem<Vertex> {
 
 	public var est( default, null ):Float; // cost + ?heuristic
 	public var index( default, null ):Int;
-
-	public inline function checkPredicate( b:DAryHeapItem<Vertex> ):Bool {
-		return est < b.self.est;
-	}
-
-	public inline function getIndex( h:DAryHeap<Vertex> ):Int {
-		return index;
-	}
-
-	public inline function saveIndex( h:DAryHeap<Vertex>, i:Int ):Void {
-		index = i;
-	}
 
 }

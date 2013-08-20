@@ -1,7 +1,5 @@
 package graph.adjLists;
 
-import elebeta.ds.heap.DAryHeap;
-
 import def.*;
 
 /* 
@@ -176,7 +174,7 @@ class Digraph {
 		var _visArcs = 0;
 		#end
 
-		var Q = new DAryHeap( 4, 128 );
+		var Q = new Queue( 4, 128 );
 		Q.put( s );
 
 		while ( Q.notEmpty() ) {
@@ -184,7 +182,7 @@ class Digraph {
 			if ( Q.length > _maxQueue ) _maxQueue = Q.length;
 			#end
 
-			var v = Q.extract().self;
+			var v = Q.extract();
 			if ( v == t ) break;
 			for ( a in v.adjs ) {
 				#if ( debug || TRACES )
