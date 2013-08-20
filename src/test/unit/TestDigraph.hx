@@ -41,7 +41,7 @@ class TestDigraph extends TestCase {
 		// some links
 		var speed = function ( sval:Float ) {
 			var s = new Speed();
-			s.set( new VehicleClass( 1, 1, 1, "Auto" ), sval );
+			s.set( new VehicleClass( 0, 1, 1, 1, "Auto" ), sval );
 			return s;
 		};
 		var link1   = new Link( 0, node1, node2, 1., speed( .1 ), .5 );
@@ -173,7 +173,7 @@ class TestDigraph extends TestCase {
 		var node2 = new Node( 1, 1.5, -1.5 );
 
 		// some links
-		var auto = new VehicleClass( 1, 1, 1, "Auto" );
+		var auto = new VehicleClass( 0, 1, 1, 1, "Auto" );
 		var speed = function ( sval:Float ) {
 			var s = new Speed();
 			s.set( auto, sval );
@@ -232,7 +232,7 @@ class TestDigraph extends TestCase {
 		d.clearState();
 		d.setVertexInitialState( node1, 0., 0., 0., 0. );
 		assertEquals( null, d.getVertex( node2 ).parent );
-		checkRelax( d, link12, 3.14, new VehicleClass( 2, 2, 2, "Truck 2 axis" ), new UserCostModel( 2.72, .52, 1.1 ), null );
+		checkRelax( d, link12, 3.14, new VehicleClass( 1, 2, 2, 2, "Truck 2 axis" ), new UserCostModel( 2.72, .52, 1.1 ), null );
 		assertEquals( null, d.getVertex( node2 ).parent );
 	}
 
@@ -245,7 +245,7 @@ class TestDigraph extends TestCase {
 		// some links
 		var speed = function ( sval:Float ) {
 			var s = new Speed();
-			s.set( new VehicleClass( 1, 1, 1, "Auto" ), sval );
+			s.set( new VehicleClass( 0, 1, 1, 1, "Auto" ), sval );
 			return s;
 		};
 		var link1 = new Link( 0, node1, node2, 1., speed( .1 ), .5 );

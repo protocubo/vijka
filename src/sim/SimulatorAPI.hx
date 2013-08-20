@@ -374,19 +374,22 @@ class SimulatorAPI extends mcli.CommandLine {
 	// ADVANCED -----------------------------------------------------------------
 
 	/**
-		Assemble; creates the online network and graph; this is
+		Force network and graph assembly; this is
 		automaticallly called from --run
 	**/
-	public function assemble( ?force=true ) {
+	public function forceAssemble() assemble( true );
+	private function assemble( ?force=false ) {
 		if ( force ) {
 			println( "Forcing online network and graph assembly" );
 			printHL( "-" );
 		}
 		if ( sim.state.network == null || force ) {
+			println( "Assembling the network" );
 			sim.state.digraph = null;
 			var nk = sim.state.network = new OnlineNetwork( sim );
 		}
 		if ( sim.state.digraph == null || force ) {
+			println( "Assembling the (directed) graph" );
 			var dg = sim.state.digraph = new OnlineDigraph( sim );
 		}
 		if ( force ) {
@@ -441,7 +444,7 @@ class SimulatorAPI extends mcli.CommandLine {
 				d.addVertex( new def.Node( i, i, i ) );
 			var tel = haxe.Timer.stamp() - t0;
 			trace( 'added $v vertices in $tel' );
-			var auto = new def.VehicleClass( 1, 1, 1, "Auto" );
+			var auto = new def.VehicleClass( 0, 1, 1, 1, "Auto" );
 			var speed = new def.Speed();
 			speed.set( auto, 60 );
 			t0 = haxe.Timer.stamp();

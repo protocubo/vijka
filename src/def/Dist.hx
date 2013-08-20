@@ -4,7 +4,7 @@ import def.Speed;
 import def.Time;
 
 /* 
- * Distance.
+ * Distance in km.
  */
 typedef Dist = DistValue;
 

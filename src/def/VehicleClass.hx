@@ -5,9 +5,7 @@ package def;
  */
 class VehicleClass {
 
-	public var id( get, never ):VehicleClassId;
-	inline function get_id() return noAxis - 1; // this should be kept in the
-	                                            // range [0...small_number]
+	public var id:VehicleClassId;
 
 	public var noAxis:AxisCount;
 	
@@ -17,9 +15,10 @@ class VehicleClass {
 	
 	public var name:String;
 
-	public function new( _noAxis, _tollMulti, _equiv, _name ) {
-		if ( _noAxis <= 0 )
-			throw "#axis cannot be <= 0, for '#axis-1' is used for array indexing";
+	public function new( _id, _noAxis, _tollMulti, _equiv, _name ) {
+		if ( _id >= 16 )
+			trace( "Vehicle _id "+_id+" is large, this may impact space performance" );
+		id = _id;
 		noAxis = _noAxis;
 		tollMulti = _tollMulti;
 		equiv = _equiv;
