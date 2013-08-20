@@ -234,6 +234,9 @@ class SimulatorAPI extends mcli.CommandLine {
 		print( t != null ? " typeId="+t+" " : "all link types " );
 		println( v != null ? " vehicleId="+v+" " : "all vehicles:" );
 		printHL( "-" );
+		// TODO get typeId,vehicleId from the other collections and show missing values
+		if ( sim.state.speeds == null )
+			throw "No speeds";
 		var speeds = [ for ( s in sim.state.speeds ) s ];
 		speeds.sort( function (a,b) return 2*Reflect.compare(a.typeId,b.typeId)+Reflect.compare(a.vehicleId,b.vehicleId) );
 		for ( speed in speeds )
