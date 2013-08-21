@@ -1,21 +1,37 @@
 package sim;
 
+import sim.Algorithm;
+
 class Simulator {
 
 	public var inp:format.csv.Reader;
-	public var NL:String;
 
 	public var state:SimulatorState;
 	public var profiling:Null<String>;
 	public var log:Array<String>;
 
-	public function new( _inp:format.csv.Reader ) {
-		inp = _inp;
+	public var newline:String;
+	public var screenSize:Int;
+
+	public var underlyingInput:haxe.io.Input;
+
+	public var online:Bool;
+
+	public function new( _underlyingInput:haxe.io.Input, _newline, _screenSize ) {
+		newline = _newline;
+		screenSize = _screenSize;
+		underlyingInput = _underlyingInput;
+		prepareForInput();
+		online = false;
 		reset();
 	}
 
+	public function prepareForInput() {
+		inp = new format.csv.Reader( underlyingInput, newline, " ", "'" );
+	}
+
 	public function reset() {
-		state = new SimulatorState();
+		state = new SimulatorState( newline, ADijkstra );
 		log = [];
 	}
 
@@ -52,7 +68,9 @@ class Simulator {
 		                                 #end
 
 	public static function print( s:String, ?err=false ) {
-		( err ? stderr : stdout ).writeString( s );
+		var stream = err ? stderr : stdout;
+		stream.writeString( s );
+		stream.flush();
 	}
 	
 	public static function println( s:String, ?err=false ) {
@@ -60,7 +78,7 @@ class Simulator {
 	}
 	
 	public static function printHL( s:String, ?err=false ) {
-		println( StringTools.rpad( "", s, 80 ) );
+		println( StringTools.rpad( "", s, sim != null ? sim.screenSize : 80 ) );
 	}
 	
 	private static var stdin = Sys.stdin();
@@ -69,7 +87,7 @@ class Simulator {
 	
 	private static var stderr = Sys.stderr();
 
-	public function run( args:Array<String>, reading:Bool ):Void {
+	public function run( args:Array<String>, reading:Bool, time:Bool, hl:Bool ):Void {
 		try {
 			while ( args.remove( "" ) ) {}
 			if ( args.length != 0 ) {
@@ -81,21 +99,21 @@ class Simulator {
 				var dt = haxe.Timer.stamp() - t0;
 				sim.stopProfiling();
 				sim.log.push( args.join( " " ) );
-				println( "Done in "+dt+" seconds" );
-				printHL( "-" );
+				if ( time ) println( "Done in "+dt+" seconds" );
+				if ( hl ) printHL( "-" );
 			}
 		}
 		catch ( e:mcli.DispatchError ) {
 			sim.stopProfiling();
 			println( "Interface error: "+e );
-			printHL( "-" );
+			if ( hl ) printHL( "-" );
 		}
 		catch ( e:Dynamic ) {
 			sim.stopProfiling();
 			sim.log.push( args.join( " " ) );
 			print( "ERROR: "+e );
 			println( haxe.CallStack.toString( haxe.CallStack.exceptionStack() ) );
-			printHL( "-" );
+			if ( hl ) printHL( "-" );
 		}
 	}
 
@@ -103,30 +121,26 @@ class Simulator {
 	
 	private static function main() {
 
-		sim = new Simulator( new format.csv.Reader( stdin, "\n", " ", "'" ) );
+		var initialNewline = ( PLATFORM == "Java" && Sys.systemName() == "Windows" ) ? "\r\n" : "\n";
+		sim = new Simulator( stdin, initialNewline, 80 );
+
+		if ( Sys.args().length > 0 ) {
+			println( ":: "+Sys.args().join( " " ) );
+			sim.run( Sys.args(), true, false, false );
+		}
 
 		printHL( "=" );
 		println( "Welcome to the RodoTollSim!" );
 		println( "Type the desired options (and their arguments) bellow, or --help for usage information..." );
 		printHL( "=" );
 
-		if ( Sys.args().length > 0 ) {
-			printHL( "-" );
-			printHL( "-" );
-			println( "Running commands passed on instantiation" );
-			println( "" );
-			println( ":: "+Sys.args().join( " " ) );
-			sim.run( Sys.args(), true );
-			println( "" );
-			printHL( "-" );
-			printHL( "-" );
-		}
+		sim.online = true;
 
 		while ( true ) {
 			try {
 				print( "> " ); stdout.flush();
 				var r = sim.inp.readRecord();
-				sim.run( r, false );
+				sim.run( r, false, true, true );
 			}
 			catch ( e:haxe.io.Eof ) {
 				sim.stopProfiling();

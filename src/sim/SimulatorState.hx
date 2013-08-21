@@ -1,11 +1,13 @@
 package sim;
 
 import elebeta.ett.rodoTollSim.*;
-import graph.linkList.Digraph;
 
+import sim.Algorithm;
 import sim.col.*;
 
 class SimulatorState {
+
+	public var newline:String;
 
 	public var nodes:Null<Map<Int,Node>>;
 	public var linkTypes:Null<Map<Int,LinkType>>;
@@ -27,8 +29,9 @@ class SimulatorState {
 	public var network:Null<OnlineNetwork>;
 	public var digraph:Null<OnlineDigraph>; // TODO adapt to new TUI and Dijkstra/A*
 
-	public function new() {
-		algorithm = ADijkstra;
+	public function new( _newline, _algorithm ) {
+		newline = _newline;
+		algorithm = _algorithm;
 	}
 	
 	public function invalidate() {
@@ -41,10 +44,4 @@ class SimulatorState {
 		results = null;
 	}
 
-}
-
-enum Algorithm {
-	ADijkstra;
-	AAStar;
-	ABellmanFord;
 }

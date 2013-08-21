@@ -9,19 +9,17 @@ import haxe.io.Eof;
 import sys.io.FileInput;
 import sys.io.FileOutput;
 
+import Lambda.array;
+import Lambda.count;
+import Lambda.filter;
+import Lambda.has;
+import Lambda.list;
 import Std.parseFloat;
 import Std.parseInt;
 import Std.string;
-import Lambda.list;
-import Lambda.array;
-import Lambda.filter;
-import Lambda.has;
-import Lambda.count;
 
+import sim.Algorithm;
 import sim.col.*;
-import sim.OnlineNetwork;
-import sim.Simulator;
-import sim.SimulatorState;
 
 import sim.Simulator.print;
 import sim.Simulator.printHL;
@@ -43,9 +41,9 @@ class SimulatorAPI extends mcli.CommandLine {
 	// NODE I/O -----------------------------------------------------------------
 
 	/**
-		Read nodes (reentrant)
+		Read nodes from Node ETT in `path` (reentrant)
 	**/
-	public function readNodes( inputPath:String ) {
+	public function readNodes( path:String ) {
 		if ( sim.state.nodes == null ) {
 			println( "Reading nodes" );
 			sim.state.nodes = new Map();
@@ -55,7 +53,7 @@ class SimulatorAPI extends mcli.CommandLine {
 			println( "Existing nodes may have been changed, consider verifying link shapes" );
 		}
 		var nodes = sim.state.nodes; // just a shortcut
-		var einp = readEtt( inputPath );
+		var einp = readEtt( path );
 		sim.state.invalidate();
 		while ( true ) {
 			var node = try { einp.fastReadRecord( Node.makeEmpty() ); }
@@ -79,9 +77,9 @@ class SimulatorAPI extends mcli.CommandLine {
 	// LINK TYPE I/O ------------------------------------------------------------
 
 	/**
-		Read link types (reentrant)
+		Read link types from LinkType ETT in `path` (reentrant)
 	**/
-	public function readLinkTypes( inputPath:String ) {
+	public function readTypes( path:String ) {
 		if ( sim.state.linkTypes == null ) {
 			println( "Reading link types" );
 			sim.state.linkTypes = new Map();
@@ -90,7 +88,7 @@ class SimulatorAPI extends mcli.CommandLine {
 			println( "Reading additional link types" );
 		}
 		var linkTypes = sim.state.linkTypes; // just a shortcut
-		var einp = readEtt( inputPath );
+		var einp = readEtt( path );
 		while ( true ) {
 			var type = try { einp.fastReadRecord( LinkType.makeEmpty() ); }
 			           catch ( e:Eof ) { null; };
@@ -103,7 +101,7 @@ class SimulatorAPI extends mcli.CommandLine {
 	/**
 		Show link types
 	**/
-	public function showLinkTypes() {
+	public function showTypes() {
 		println( "Known types:" );
 		println( right("id",6)+"  |  name" );
 		printHL( "-" );
@@ -114,7 +112,7 @@ class SimulatorAPI extends mcli.CommandLine {
 	/**
 		Count link types
 	**/
-	public function countLinkTypes() {
+	public function countTypes() {
 		var cnt = sim.state.linkTypes != null ? count( sim.state.linkTypes ) : 0;
 		println( "Counted "+cnt+" link types" );
 	}
@@ -124,9 +122,10 @@ class SimulatorAPI extends mcli.CommandLine {
 	// LINK I/O -----------------------------------------------------------------
 
 	/**
-		Read links (reentrant); requires nodes and link types; link extensions in km
+		Read links from Link ETT in `path` (reentrant); requires nodes and link types;
+		extensions should be in km
 	**/
-	public function readLinks( inputPath:String ) {
+	public function readLinks( path:String ) {
 		if ( sim.state.links == null ) {
 			println( "Reading links" );
 			sim.state.links = new Map();
@@ -139,7 +138,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		var linkTypes = sim.state.linkTypes; // just a shortcut
 		if ( nodes == null ) throw "No nodes";
 		if ( linkTypes == null ) throw "No link types";
-		var einp = readEtt( inputPath );
+		var einp = readEtt( path );
 		sim.state.invalidate();
 		while ( true ) {
 			var link = try { einp.fastReadRecord( Link.makeEmpty() ); }
@@ -169,9 +168,9 @@ class SimulatorAPI extends mcli.CommandLine {
 	// VEHICLE I/O --------------------------------------------------------------
 
 	/**
-		Read vehicles (reentrant)
+		Read vehicles from Vehicle ETT in `path` (reentrant)
 	**/
-	public function readVehicles( inputPath:String ) {
+	public function readVehicles( path:String ) {
 		if ( sim.state.vehicles == null ) {
 			println( "Reading vehicles" );
 			sim.state.vehicles = new Map();
@@ -180,7 +179,7 @@ class SimulatorAPI extends mcli.CommandLine {
 			println( "Reading additional vehicles" );
 		}
 		var vehicles = sim.state.vehicles; // just a shortcut
-		var einp = readEtt( inputPath );
+		var einp = readEtt( path );
 		sim.state.invalidate(); // this might (and should) not be necessary in the future
 		while ( true ) {
 			var type = try { einp.fastReadRecord( Vehicle.makeEmpty() ); }
@@ -215,9 +214,10 @@ class SimulatorAPI extends mcli.CommandLine {
 	// LINK TYPE SPEED I/O ------------------------------------------------------
 
 	/**
-		Read link type speeds (reentrant); speeds in km/h
+		Read speeds for (link type,vehicle) pairs from LinkTypeSpeed ETT in `path`
+		(reentrant); requires link types and vehicles; speeds should be in km/h
 	**/
-	public function readSpeeds( inputPath:String ) {
+	public function readSpeeds( path:String ) {
 		if ( sim.state.speeds == null ) {
 			println( "Reading link type speeds" );
 			sim.state.speeds = new LinkTypeSpeedMap();
@@ -230,7 +230,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		if ( linkTypes == null ) throw "No link types";
 		if ( vehicles == null ) throw "No vehicles";
 		var speeds = sim.state.speeds; // just a shortcut
-		var einp = readEtt( inputPath );
+		var einp = readEtt( path );
 		sim.state.invalidate(); // this might (and should) not be necessary in the future
 		while ( true ) {
 			var speed = try { einp.fastReadRecord( LinkTypeSpeed.makeEmpty() ); }
@@ -246,12 +246,12 @@ class SimulatorAPI extends mcli.CommandLine {
 	}
 
 	/**
-		Show speeds for links with [typeId]  and [vehicleId]; for all types and/or
-		vehicles use '*'
+		Show speeds for type id `type-id` and vehicle id `vehicle-id`;
+		id set to "_" will be treated as non restrictive filters
 	**/
-	public function showSpeeds( typeId:String, vehicleId:String ) {
-		var t:Null<Int> = readInt( typeId );
-		var v:Null<Int> = readInt( vehicleId );
+	public function showSpeeds( tid:String, vid:String ) {
+		var t:Null<Int> = readInt( tid );
+		var v:Null<Int> = readInt( vid );
 		print( "Link speeds for " );
 		print( t != null ? " typeId="+t+" " : "all link types " );
 		println( v != null ? " vehicleId="+v+" " : "all vehicles:" );
@@ -273,22 +273,23 @@ class SimulatorAPI extends mcli.CommandLine {
 	// OD I/O -----------------------------------------------------------------
 
 	/**
-		Read od data (reentrant)
+		Read O/D data from OD ETT in `path` (reentrant); requires vehicles; costs
+		should be in $/km (distance multipliers) and and $/h (time multipliers)
 	**/
-	public function readOdData( inputPath:String ) {
+	public function readOd( path:String ) {
 		if ( sim.state.ods == null ) {
-			println( "Reading od data" );
+			println( "Reading O/D data" );
 			sim.state.ods = new Map();
 		}
 		else {
-			println( "Reading additional od data" );
+			println( "Reading additional O/D data" );
 			sim.state.activeOds = null;
 			sim.state.activeOdFilter = null;
 		}
 		var vehicles = sim.state.vehicles; // just a shortcut
 		var ods = sim.state.ods; // just a shortcut
 		if ( vehicles == null ) throw "No vehicles";
-		var einp = readEtt( inputPath );
+		var einp = readEtt( path );
 		while ( true ) {
 			var od = try { einp.fastReadRecord( OD.makeEmpty() ); }
 			         catch ( e:Eof ) { null; };
@@ -302,60 +303,23 @@ class SimulatorAPI extends mcli.CommandLine {
 	}
 
 	/**
-		Count ods
+		Count O/D data
 	**/
-	public function countOdData() {
+	public function countOd() {
 		var cnt = sim.state.ods != null ? count( sim.state.ods ) : 0;
-		println( "Counted "+cnt+" od records" );
+		println( "Total O/D records: "+cnt );
+		if ( sim.state.activeOds != null )
+			println( "Selected O/D records: "+sim.state.activeOds.length );
 	}
 
 
 
-	// RUNNING ------------------------------------------------------------------
+	// OD FILTERS ---------------------------------------------------------------
 
 	/**
-		Set a different algorithm; the avaliable ones are Dijkstra, A* and
-		Bellmand-Ford
-	**/
-	public function setAlgorithm( name:String ) {
-		var algo = switch ( name.toLowerCase() ) {
-		case "dijkstra", "ijk":
-			ADijkstra;
-		case "a*", "astar", "a-star", "star":
-			AAStar;
-		case "bellman-ford", "bford", "bell":
-			ABellmanFord;
-			throw "Bellman-Ford algorithm has been disabled";
-		case all:
-			throw "Unknown algorithm "+all;
-		};
-		if ( algo != sim.state.algorithm ) {
-			var old = algoName( sim.state.algorithm );
-			var newName = algoName( algo );
-			println( "Changing algorithm from "+old+" to "+newName );
-			sim.state.algorithm = algo;
-			sim.state.invalidate();
-			printHL( "-" );
-		}
-	}
-
-	/**
-		Show the current enabled algorithm
-	**/
-	public function showAlgorithm() {
-		println( "The current algithm is: "+algoName( sim.state.algorithm ) );
-	}
-	private function algoName( a:Algorithm ) {
-		return switch ( a ) {
-		case ADijkstra: "Dijkstra";
-		case AAStar: "A*";
-		case ABellmanFord: "Bellman-Ford";
-		};
-	}
-
-	/**
-		Filter O/D data (reentrant); type may be `id`, `lot`, `section`, `direction`,
-		`vehicleId` and `cargo`
+		Filter remaining O/D data (reentrant); supported filter `type`s are "id",
+		"lot", "section", "direction", "vehicle" (vehicle id) and "cargo"; `clause`
+		may be "_" (no filter), a value or a comma separated list of values
 	**/
 	public function filterOd( type:String, clause:String ) {
 		var c = readSet( clause );
@@ -370,7 +334,7 @@ class SimulatorAPI extends mcli.CommandLine {
 			var f = c.map( parseInt );
 			var exp = "`id` in ("+f.join(",")+")";
 			activeOdFilter.push( exp );
-			println( "Filtering OD data with clause: "+exp );
+			println( "Filtering OD data with clausetAlgorithmse: "+exp );
 			activeOds = filter( activeOds, function (od) return has(f,od.id) );
 		case "lot":
 			var f = c.map( parseInt );
@@ -409,7 +373,7 @@ class SimulatorAPI extends mcli.CommandLine {
 	}
 
 	/**
-		Show O/D query expression
+		Show O/D filter expression
 	**/
 	public function showOdFilter() {
 		if ( sim.state.activeOdFilter == null )
@@ -419,13 +383,60 @@ class SimulatorAPI extends mcli.CommandLine {
 	}
 
 	/**
-		Clear all O/D filters
+		Clear O/D filter; reselects all O/D records
 	**/
 	public function clearOdFilter() {
 		sim.state.activeOds = null;
 		sim.state.activeOdFilter = null;
 	}
 
+
+
+	// RUNNING ------------------------------------------------------------------
+
+	/**
+		Set the algorithm base to `name`; supported algorithms at the moment are
+		"Dijstra" and "A*"
+	**/
+	public function setAlgorithm( name:String ) {
+		var algo = switch ( name.toLowerCase() ) {
+		case "dijkstra", "ijk":
+			ADijkstra;
+		case "a*", "astar", "a-star", "star":
+			AAStar;
+		case "bellman-ford", "bford", "bell":
+			ABellmanFord;
+			throw "Bellman-Ford algorithm has been disabled";
+		case all:
+			throw "Unknown algorithm "+all;
+		};
+		if ( algo != sim.state.algorithm ) {
+			var old = algoName( sim.state.algorithm );
+			var newName = algoName( algo );
+			println( "Changing algorithm from "+old+" to "+newName );
+			sim.state.algorithm = algo;
+			sim.state.invalidate();
+			printHL( "-" );
+		}
+	}
+
+	/**
+		Show the current selected base algorithm
+	**/
+	public function showAlgorithm() {
+		println( "The current algithm is: "+algoName( sim.state.algorithm ) );
+	}
+	private function algoName( a:Algorithm ) {
+		return switch ( a ) {
+		case ADijkstra: "Dijkstra";
+		case AAStar: "A*";
+		case ABellmanFord: "Bellman-Ford";
+		};
+	}
+
+	/**
+		Execute/run saving `volumes` and/or `path`
+	**/
 	public function run( volumes:String, path:String ) {
 		var ods:Iterable<OD> = sim.state.activeOds != null ? sim.state.activeOds : sim.state.ods;
 		if ( ods == null ) throw "No O/D data";
@@ -449,7 +460,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		for ( od in ods ) {
 			G.run( od, saveVols, savePath );
 			i++;
-			if ( haxe.Timer.stamp() - lt > .2 ) {
+			if ( haxe.Timer.stamp() - lt > .5 ) {
 				lt = haxe.Timer.stamp();
 				print( "\r("+i+"/"+odCnt+") on id "+left(od.id,9) );
 			}
@@ -458,7 +469,7 @@ class SimulatorAPI extends mcli.CommandLine {
 	}
 
 	/**
-		Clear all result data from state
+		Clear all previous results
 	**/
 	public function clearResults() {
 		sim.state.clearResults();
@@ -468,34 +479,35 @@ class SimulatorAPI extends mcli.CommandLine {
 	// VOLUME I/O ---------------------------------------------------------------
 
 	/**
-		Write volumes to ETT
+		Write volumes to LinkVolume ETT in `path`; will overwrite existing files
 	**/
-	public function writeVolumes( outputPath:String ) {
+	public function writeVolumes( path:String ) {
 		println( "Writing volumes" );
 		var volumes = sim.state.volumes; // just a shortcut
 		if ( volumes == null )
 			throw "No volumes";
-		var eout = writeEtt( LinkVolume, LinkVolume.ettFields(), outputPath );
+		var eout = writeEtt( LinkVolume, LinkVolume.ettFields(), path );
 		for ( v in volumes )
 			eout.write( v );
 		eout.close();
 	}
 
 	/**
-		Write volumes to GeoJSON, using available link shape data
+		Write volumes to GeoJSON in `path` using available link shape data; will
+		overwrite existing files
 	**/
-	public function geojsonVolumes( outputPath:String ) {
+	public function geojsonVolumes( path:String ) {
 		println( "Mapping volumes in GeoJSON" );
 		var volumes = sim.state.volumes; // just a shortcut
 		if ( volumes == null ) throw "No volumes";
-		var fout = writeFile( outputPath, false );
-		fout.writeString( '{"type":"FeatureCollection","features":[\n' );
+		var fout = writeFile( path, false );
+		fout.writeString( '{"type":"FeatureCollection","features":['+sim.newline );
 		var first = true;
 		for ( v in volumes ) {
-			if ( first ) first = false; else fout.writeString( ",\n" );
+			if ( first ) first = false; else fout.writeString( ","+sim.newline );
 			fout.writeString( geojsonVolume( v ) );
 		}
-		fout.writeString( "\n] }\n" );
+		fout.writeString( sim.newline+"] }"+sim.newline );
 		fout.close();
 	}
 
@@ -503,14 +515,14 @@ class SimulatorAPI extends mcli.CommandLine {
 	// RESULTS I/O --------------------------------------------------------------
 
 	/**
-		Write results to ETT
+		Write results to ODResults ETT in `path`; will overwrite existing files
 	**/
-	public function writeResults( outputPath:String ) {
+	public function writeResults( path:String ) {
 		println( "Writing results" );
 		var results = sim.state.results; // just a shortcut
 		if ( results == null )
 			throw "No results";
-		var eout = writeEtt( ODResult, ODResult.ettFields(), outputPath );
+		var eout = writeEtt( ODResult, ODResult.ettFields(), path );
 		for ( v in results )
 			eout.write( v );
 		eout.close();
@@ -534,20 +546,20 @@ class SimulatorAPI extends mcli.CommandLine {
 	}
 
 	/**
-		Save the current command log (from the last reset) to [path]
+		Save the current command log (from the last reset) to `path`
 	**/
 	public function save( path:String ) {
 		print( "Saving the current command log" );
 		if ( !reading ) {
 			var fout = writeFile( path, false );
-			fout.writeString( sim.log.join( "\n" )+"\n" );
+			fout.writeString( sim.log.join( sim.newline )+sim.newline );
 			fout.close();
 		}
 		println( "\rSaving the current command log... Done" );
 	}
 
 	/**
-		Read a command log from [path]
+		Read a command log from `path`
 	**/
 	public function read( path:String ) {
 		if ( !reading ) {
@@ -558,15 +570,15 @@ class SimulatorAPI extends mcli.CommandLine {
 		if ( !reading )
 			println( "" );
 
-		var finp = sys.io.File.read( path, false );
-		var inp = new format.csv.Reader( finp, "\n", " ", "'" );
+		var finp = readFile( path, false );
+		var inp = new format.csv.Reader( finp, sim.newline, " ", "'" );
 		var eof = false;
 		while ( !eof ) {
 			try {
 				var r = inp.readRecord();
 				if ( r.length != 0 ) {
 					println( ":: "+r.join( " " ) );
-					sim.run( r, true );
+					sim.run( r, true, false, true );
 				}
 			}
 			catch ( e:haxe.io.Eof ) {
@@ -584,6 +596,9 @@ class SimulatorAPI extends mcli.CommandLine {
 		}
 	}
 
+	/**
+		Show the current command log
+	**/
 	public function showLog() {
 		println( "Showing the current log" );
 		printHL( "-" );
@@ -595,7 +610,40 @@ class SimulatorAPI extends mcli.CommandLine {
 	// ADVANCED -----------------------------------------------------------------
 
 	/**
-		[advanced] Force network and graph assembly; this is
+		[ADVANCED] Set the newline sequence for all file output
+	**/
+	public function setNewline( sequence:String ) {
+		switch ( sequence ) {
+		case "NL": sim.state.newline = "\n"; sim.prepareForInput();
+		case "CRNL": sim.state.newline = "\r\n"; sim.prepareForInput();
+		case "NLCR": sim.state.newline = "\n\r"; sim.prepareForInput();
+		case all: throw "Unrecognized newline sequence: "+all;
+		}
+	}
+
+	/**
+		[ADVANCED] Peek at the newline sequence for all file output
+	**/
+	public function showNewline() {
+		switch ( sim.state.newline ) {
+		case "\n": println( "Current newline sequence is NL" );
+		case "\r\n": println( "Current newline sequence is CRNL" );
+		case "\n\r": println( "Current newline sequence is NLCR" );
+		case all: throw "Something went wrong";
+		}
+	}
+
+	/**
+		[ADVANCED] Set console screen width
+	**/
+	public function setScreen( columns:Int ) {
+		if ( columns < 50 )
+			throw "Cannot set the number of columns on the screen to a value bellow 50";
+		sim.screenSize = columns;
+	}
+
+	/**
+		[ADVANCED] Force network and graph assembly; this is
 		automaticallly called from --run
 	**/
 	public function forceAssemble() assemble( true );
@@ -616,7 +664,8 @@ class SimulatorAPI extends mcli.CommandLine {
 	}
 
 	/**
-		[advanced] Run the unit tests.
+		[ADVANCED] Run the unit tests; these are relevant at the moment, since
+		they only test the previous graph implementation
 	**/
 	public function unitTests() {
 		println( "Running the unit tests" );
@@ -625,24 +674,27 @@ class SimulatorAPI extends mcli.CommandLine {
 		app.run();
 	}
 
+	#if cpp
 	/**
-		[advanced] Enable the code profiler; only available on C++ versions,
-		NOOP elsewhere.
+		[ADVANCED] Enable the HXCPP internal C++ profiler
 	**/
 	public function enableProfiling( basePath:String ) {
 		sim.profiling = basePath;
 	}
+	#end
 
+	#if cpp
 	/**
-		[advanced] Disable the code profiler; only available on C++ versions,
-		NOOP elsewhere.
+		[ADVANCED] Disable the HXCPP internal C++ profiler
 	**/
 	public function disableProfiling() {
 		sim.profiling = null;
 	}
+	#end
 
+	#if false
 	/**
-		[undocumented] Space for testing
+		[DO NOT USE] Space for testing
 	**/
 	@:access( graph.linkList.Digraph )
 	public function something() {
@@ -687,62 +739,69 @@ class SimulatorAPI extends mcli.CommandLine {
 			printHL( "-" );
 		}
 	}
+	#end
 
 	/**
-		[advanced] Dump ETT
+		[ADVANCED] Dump any table in its corresponding ETT; only works if the
+		table exists and has at least one record; will overwrite existing files
 	**/
-	public function dumpEtt( table:String, outputPath:String ) {
-		println( "Attempting to dump table "+table+" in '"+outputPath+"'" );
+	public function dumpEtt( table:String, path:String ) {
+		println( "Attempting to dump table "+table+" in '"+path+"'" );
 		var table:{ iterator:Void->Iterator<Dynamic> } = Reflect.field( sim.state, table );
 		if ( table == null )
 			throw "No table";
 		if ( !table.iterator().hasNext() )
 			throw "Cannot figure out the type of an EMPTY table";
 		var cl:Dynamic = Type.getClass( table.iterator().next() );
-		var eout = writeEtt( cl, cl.ettFields(), outputPath );
+		var eout = writeEtt( cl, cl.ettFields(), path );
 		for ( r in table )
 			eout.write( r );
 		eout.close();
 	}
 
 	/**
-		[undocumented] Windows hack for problems with stdin
+		[HACK] Windows hack for problems with newlines
 	**/
-	@:access( sim.Simulator )
 	public function windows() {
-		sim.inp = new format.csv.Reader( Simulator.stdin, "\r\n", " ", "'" );
+		sim.newline = "\r\n";
+		sim.prepareForInput();
 	}
 
 
 	// OTHERS -------------------------------------------------------------------
 
 	/**
-		Show simulator version.
+		Show simulator version
 	**/
 	public function version() {
 		println( "RodoTollSim version "+Simulator.VERSION );
 	}
 
 	/**
-		Show simulator version and platform information.
+		Show simulator version and platform information
 	**/
 	public function fullVersion() {
-		println( "RodoTollSim version "+Simulator.VERSION+" ("+Simulator.PLATFORM+")" );
+		println( "RodoTollSim version "+Simulator.VERSION+" ("+Simulator.PLATFORM
+		+" on "+Sys.systemName()+")" );
 	}
 
 	/**
-		Print usage.
+		Print usage
 	**/
 	public function help() {
 		println( "Usage:" );
 		printHL( "-" );
-		print( this.showUsage() );
+		print( mcli.Dispatch.showUsageOf( this.getArguments(), sim.screenSize ) );
 	}
 
 	/**
-		Quit.
+		Quit
 	**/
 	public function quit() {
+		if ( sim.online ) {
+			println( "Exiting gracefully" );
+			printHL( "=" );
+		}
 		Sys.exit( 0 );
 	}
 
@@ -777,20 +836,20 @@ class SimulatorAPI extends mcli.CommandLine {
 		return shp;
 	}
 
-	private static function readEtt( inputPath:String ):ETTReader {
+	private function readEtt( inputPath:String ):ETTReader {
 		return new ETTReader( readFile( inputPath, true ) );
 	}
 
-	private static function writeEtt( cl:Class<Dynamic>, fields:Array<ETTField>, outputPath:String ):ETTWriter {
+	private function writeEtt( cl:Class<Dynamic>, fields:Array<ETTField>, outputPath:String ):ETTWriter {
 		var fout = writeFile( outputPath, true );
-		var finfo = new format.ett.Data.FileInfo( "\n", ETTEncoding.UTF8, "\t", "\""
+		var finfo = new format.ett.Data.FileInfo( sim.newline, ETTEncoding.UTF8, "\t", "\""
 		, Type.getClassName( cl ), fields );
 		var w = new ETTWriter( finfo );
 		w.prepare( fout );
 		return w;
 	}
 
-	private static function readFile( inputPath:String, binary:Bool ):FileInput {
+	private function readFile( inputPath:String, binary:Bool ):FileInput {
 		if ( !sys.FileSystem.exists( inputPath ) )
 			throw "File '"+inputPath+"' does not exist";
 		if ( sys.FileSystem.isDirectory( inputPath ) )
@@ -798,7 +857,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		return sys.io.File.read( inputPath, binary );
 	}
 
-	private static function writeFile( outputPath:String, binary:Bool ):FileOutput {
+	private function writeFile( outputPath:String, binary:Bool ):FileOutput {
 		if ( sys.FileSystem.exists( outputPath ) )
 			if ( sys.FileSystem.isDirectory( outputPath ) )
 				throw "Cannot overwrite a folder with a file: '"+outputPath+"'";
@@ -807,22 +866,22 @@ class SimulatorAPI extends mcli.CommandLine {
 		return sys.io.File.write( outputPath, binary );
 	}
 
-	private static function right( data:Dynamic, len:Int, ?pad=" " ):String {
+	private function right( data:Dynamic, len:Int, ?pad=" " ):String {
 		return StringTools.lpad( string( data ), pad, len );
 	}
 
-	private static function left( data:Dynamic, len:Int, ?pad=" " ):String {
+	private function left( data:Dynamic, len:Int, ?pad=" " ):String {
 		return StringTools.rpad( string( data ), pad, len );
 	}
 
-	private static function readInt( s:String, ?nullable=true ):Null<Int> {
+	private function readInt( s:String, ?nullable=true ):Null<Int> {
 		return switch ( s.toLowerCase() ) {
 		case "", "_", "*", "a", "all": if ( nullable ) null; else throw "Invalid Int "+s;
 		case all: parseInt( s );
 		};
 	}
 
-	private static function readBool( s:String, ?nullable=true ):Null<Bool> {
+	private function readBool( s:String, ?nullable=true ):Null<Bool> {
 		return switch ( s.toLowerCase() ) {
 		case "", "_", "*", "a", "all": if ( nullable ) null; else throw "Invalid Bool "+s;
 		case "false", "no", "n", "0": false;
