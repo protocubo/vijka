@@ -18,10 +18,10 @@ class Digraph {
 	/* 
 	 * Directed graph constructor
 	 */
-	public function new() {
+	public function new( _heuristic:Bool ) {
 		as = new Map();
 		vs = new Map();
-		heuristic = true;
+		heuristic = _heuristic;
 	}
 
 	/* 
@@ -192,14 +192,18 @@ class Digraph {
 				var ttime = v.time + a.time;
 				var ttoll = v.toll + a.toll;
 				var tcost = ucost.userCost( tdist, ttime, ttoll );
+				// trace( [ tdist, ttime, ttoll, tcost ] );
 				if ( tcost < a.to.cost ) {
 					a.to.dist = tdist;
 					a.to.time = ttime;
 					a.to.toll = ttoll;
 					a.to.cost = tcost;
-					a.to.parent = a;
 					a.to.est = tcost + hf(v,t,ucost);
-					Q.update( a.to );
+					if ( a.to.parent == null )
+						Q.put( a.to );
+					else
+						Q.update( a.to );
+					a.to.parent = a;
 				}
 			}
 		}

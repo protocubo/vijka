@@ -16,6 +16,7 @@ import Lambda.list;
 import Lambda.array;
 import Lambda.filter;
 import Lambda.has;
+import Lambda.count;
 
 import sim.col.*;
 import sim.OnlineNetwork;
@@ -69,7 +70,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		Count nodes
 	**/
 	public function countNodes() {
-		var cnt = sim.state.nodes != null ? Lambda.count( sim.state.nodes ) : 0;
+		var cnt = sim.state.nodes != null ? count( sim.state.nodes ) : 0;
 		println( "Counted "+cnt+" nodes" );
 	}
 
@@ -114,7 +115,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		Count link types
 	**/
 	public function countLinkTypes() {
-		var cnt = sim.state.linkTypes != null ? Lambda.count( sim.state.linkTypes ) : 0;
+		var cnt = sim.state.linkTypes != null ? count( sim.state.linkTypes ) : 0;
 		println( "Counted "+cnt+" link types" );
 	}
 
@@ -159,7 +160,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		Count links
 	**/
 	public function countLinks() {
-		var cnt = sim.state.links != null ? Lambda.count( sim.state.links ) : 0;
+		var cnt = sim.state.links != null ? count( sim.state.links ) : 0;
 		println( "Counted "+cnt+" links" );
 	}
 
@@ -205,7 +206,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		Count vehicles
 	**/
 	public function countVehicles() {
-		var cnt = sim.state.vehicles != null ? Lambda.count( sim.state.vehicles ) : 0;
+		var cnt = sim.state.vehicles != null ? count( sim.state.vehicles ) : 0;
 		println( "Counted "+cnt+" vehicles" );
 	}
 
@@ -304,7 +305,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		Count ods
 	**/
 	public function countOdData() {
-		var cnt = sim.state.ods != null ? Lambda.count( sim.state.ods ) : 0;
+		var cnt = sim.state.ods != null ? count( sim.state.ods ) : 0;
 		println( "Counted "+cnt+" od records" );
 	}
 
@@ -426,25 +427,34 @@ class SimulatorAPI extends mcli.CommandLine {
 	}
 
 	public function run( volumes:String, path:String ) {
-		var ods = sim.state.activeOds != null ? sim.state.activeOds : array( sim.state.ods );
+		var ods:Iterable<OD> = sim.state.activeOds != null ? sim.state.activeOds : sim.state.ods;
 		if ( ods == null ) throw "No O/D data";
-		if ( ods.length == 0 ) {
+		var odCnt = count( ods );
+		if ( odCnt == 0 ) {
 			println( "No O/D records... Try to remove the filter with --clear-od-filter" );
 			return;
 		}
 		var saveVols = readBool( volumes, false );
 		var savePath = readBool( path, false );
 		assemble();
+		if ( sim.state.results == null ) sim.state.results = new Map();
+		if ( saveVols && sim.state.volumes == null ) sim.state.volumes = new Map();
 		var G = sim.state.digraph;
-		println( "Running "+ods.length+" records" );
+		println( "Running "+odCnt+" records" );
+		showAlgorithm();
 		printHL( "-" );
+		var lt = haxe.Timer.stamp();
 		var i = 0;
+		print( "\r("+i+"/"+odCnt+")" );
 		for ( od in ods ) {
-			if ( i++ % 10 == 0 ) {
-				print( "\rRunning O/D "+od.id+" ("+i+"/"+ods.length+")" );
-				G.run( od, saveVols, savePath );
+			G.run( od, saveVols, savePath );
+			i++;
+			if ( haxe.Timer.stamp() - lt > .2 ) {
+				lt = haxe.Timer.stamp();
+				print( "\r("+i+"/"+odCnt+") on id "+left(od.id,9) );
 			}
 		}
+		println( "\r("+i+"/"+odCnt+") "+left("done...",9+6) );
 	}
 
 	/**
@@ -686,6 +696,8 @@ class SimulatorAPI extends mcli.CommandLine {
 		var table:{ iterator:Void->Iterator<Dynamic> } = Reflect.field( sim.state, table );
 		if ( table == null )
 			throw "No table";
+		if ( !table.iterator().hasNext() )
+			throw "Cannot figure out the type of an EMPTY table";
 		var cl:Dynamic = Type.getClass( table.iterator().next() );
 		var eout = writeEtt( cl, cl.ettFields(), outputPath );
 		for ( r in table )

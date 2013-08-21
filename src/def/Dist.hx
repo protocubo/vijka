@@ -13,4 +13,5 @@ abstract DistValue( Float ) from Float to Float {
 	@:op( A/B ) public static function time( a:DistValue, b:SpeedValue ):TimeValue;
 
 	@:op( A+B ) public static function add( a:DistValue, b:DistValue ):DistValue;
+	@:op( A<B ) public static function lt( a:DistValue, b:DistValue ):Bool;
 }

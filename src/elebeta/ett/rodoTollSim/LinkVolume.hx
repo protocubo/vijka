@@ -10,11 +10,11 @@ class LinkVolume {
 	public var tolls:Float;
 	public var equivalentVehicles:Float;
 
-	public function sum( _vehicles, _axis, _tolls, _equivalentVehicles ):Void {
-		vehicles += _vehicles;
-		axis += _axis;
-		tolls += _tolls;
-		equivalentVehicles += _equivalentVehicles;
+	public function sum( v:LinkVolume ):Void {
+		vehicles += v.vehicles;
+		axis += v.axis;
+		tolls += v.tolls;
+		equivalentVehicles += v.equivalentVehicles;
 	}
 
 	public function jsonBody():String {
