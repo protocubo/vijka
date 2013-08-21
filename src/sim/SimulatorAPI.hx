@@ -451,21 +451,19 @@ class SimulatorAPI extends mcli.CommandLine {
 		if ( sim.state.results == null ) sim.state.results = new Map();
 		if ( saveVols && sim.state.volumes == null ) sim.state.volumes = new Map();
 		var G = sim.state.digraph;
-		println( "Running "+odCnt+" records" );
 		showAlgorithm();
-		printHL( "-" );
 		var lt = haxe.Timer.stamp();
 		var i = 0;
-		print( "\r("+i+"/"+odCnt+")" );
+		print( "\rRunning "+i+"/"+odCnt );
 		for ( od in ods ) {
 			G.run( od, saveVols, savePath );
 			i++;
 			if ( haxe.Timer.stamp() - lt > .5 ) {
 				lt = haxe.Timer.stamp();
-				print( "\r("+i+"/"+odCnt+") on id "+left(od.id,9) );
+				print( "\rRunning "+i+"/"+odCnt+" paths" );
 			}
 		}
-		println( "\r("+i+"/"+odCnt+") "+left("done...",9+6) );
+		println( "\rRunning "+i+"/"+odCnt+" paths... Done" );
 	}
 
 	/**
@@ -578,7 +576,7 @@ class SimulatorAPI extends mcli.CommandLine {
 				var r = inp.readRecord();
 				if ( r.length != 0 ) {
 					println( ":: "+r.join( " " ) );
-					sim.run( r, true, false, true );
+					sim.run( r, true, false, false );
 				}
 			}
 			catch ( e:haxe.io.Eof ) {
