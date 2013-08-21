@@ -67,28 +67,15 @@ class OnlineDigraph {
 	// RUNNING ------------------------------------------------------------------
 
 	private function findEntry( x:Float, y:Float ):def.Node {
-		var bestNode = null;
-		var minDist:def.Dist = Math.POSITIVE_INFINITY;
-		for ( v in dg.vertices() ) {
-			var tdist = dist( v.node.x - x, v.node.y - y );
-			if ( tdist < minDist ) {
-				bestNode = v.node;
-				minDist = tdist;
-			}
-		}
-		return bestNode;
-	}
-
-	private function dist( dx:Float, dy:Float ):def.Dist {
-		return 100*Math.sqrt( dx*dx + dy*dy );
+		return sim.state.network.findNearestNode( x, y );
 	}
 
 	// GENERATION ---------------------------------------------------------------
 
 	private function genDigraph() {
 		switch ( sim.state.algorithm ) {
-		case ADijkstra: dg = new Digraph( false );
-		case AAStar: dg = new Digraph( true );
+		case ADijkstra: dg = new Digraph( false, 2, 64 );
+		case AAStar: dg = new Digraph( true, 2, 32 );
 		case ABellmanFord: throw "Bellman Ford not working for now";
 		}
 		genVertices();

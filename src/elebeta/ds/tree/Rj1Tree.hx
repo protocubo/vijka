@@ -5,29 +5,22 @@ private class RevIntIterator {
 	var min:Int;
 	var max:Int;
 
-	public function new( max:Int, min:Int ) {
+	public inline function new( max:Int, min:Int ) {
 		this.min = min;
 		this.max = max;
 	}
 	
-	public function hasNext():Bool {
+	public inline function hasNext():Bool {
 		return min < max;
 	}
 	
-	public function next():Int {
+	public inline function next():Int {
 		return --max;
-	}
-	
-	static function main() {
-		for ( x in new RevIntIterator( 10, 0 ) )
-			trace( x );
-		for ( x in new RevIntIterator( 0, 0 ) )
-			trace( x );
 	}
 	
 }
 
-@:generic
+// @:generic
 private enum Entry<T> {
 	Node( child:Rj1Tree<T> );
 	LeafPoint( object:T, x:Float, y:Float );
@@ -35,11 +28,11 @@ private enum Entry<T> {
 	Empty;
 }
 
-@:generic
+// @:generic
 class Rj1Tree<T> {
 	
 	
-	// --- (sub) tree information and entries
+	// --- (sub) tree information and entries -----------------------------------
 	
 	// (sub) tree size
 	public var length(default,null):Int;
@@ -58,23 +51,17 @@ class Rj1Tree<T> {
 	
 	
 	// ---- (sub) tree bounding box
-	#if RJTREE_DEBUG
 	public var xMin(default,null):Float;
 	public var yMin(default,null):Float;
 	public var xMax(default,null):Float;
 	public var yMax(default,null):Float;
 	public var area(default,null):Float;
+	#if RJTREE_DEBUG
 	public var level(default,null):Int;
-	#else
-	var xMin:Float;
-	var yMin:Float;
-	var xMax:Float;
-	var yMax:Float;
-	var area:Float;
 	#end
 	
 	
-	// ---- construction
+	// ---- construction -----------------------------------
 	
 	public function new( ?bucketSize = 8, ?forcedReinsertion = true ) {
 		this.bucketSize = bucketSize;
@@ -96,8 +83,8 @@ class Rj1Tree<T> {
 		#end
 	}
 	
-	inline static function child<A>( parent:Rj1Tree<A> ):Rj1Tree<A> {
-		var r = new Rj1Tree<A>( parent.bucketSize, parent.forcedReinsertion );
+	inline function child( parent:Rj1Tree<T> ):Rj1Tree<T> {
+		var r = new Rj1Tree<T>( parent.bucketSize, parent.forcedReinsertion );
 		r.parent = parent;
 		#if RJTREE_DEBUG
 		r.level = parent.level + 1;
@@ -108,7 +95,7 @@ class Rj1Tree<T> {
 	
 	// --- querying
 
-	static inline function searchStep<A>( cache:List<A>, stack:List<Rj1Tree<A>>, minCacheSize:Int, xMin:Float, yMin:Float, xMax:Float, yMax:Float ):Void {
+	inline function searchStep( cache:List<T>, stack:List<Rj1Tree<T>>, minCacheSize:Int, xMin:Float, yMin:Float, xMax:Float, yMax:Float ):Void {
 		while ( minCacheSize > cache.length && !stack.isEmpty() ) {
 			var node = stack.pop();
 			if ( node.entries.length > 0 && node.rectangleOverlaps( xMin, yMin, xMax, yMax ) )
@@ -147,7 +134,7 @@ class Rj1Tree<T> {
 		};
 	}
 	
-	static inline function iteratorStep<A>( cache:List<A>, stack:List<Rj1Tree<A>>, minCacheSize:Int ):Void {
+	inline function iteratorStep( cache:List<T>, stack:List<Rj1Tree<T>>, minCacheSize:Int ):Void {
 		while ( minCacheSize > cache.length && !stack.isEmpty() )
 			for ( ent in stack.pop().entries )
 				switch ( ent ) {
@@ -427,19 +414,19 @@ class Rj1Tree<T> {
 	
 	// ---- rectangle helpers
 	
-	static inline function rectangleArea( _xMin:Float, _yMin:Float, _xMax:Float, _yMax:Float ):Float {
+	inline function rectangleArea( _xMin:Float, _yMin:Float, _xMax:Float, _yMax:Float ):Float {
 		return ( _xMax - _xMin ) * ( _yMax - _yMin );
 	}
 	
 	inline function boundingBoxArea():Float { return rectangleArea( xMin, yMin, xMax, yMax ); }
 	
-	static inline function pointOverlapsRectangle( x:Float, y:Float, _xMin:Float, _yMin:Float, _xMax:Float, _yMax:Float ):Bool {
+	inline function pointOverlapsRectangle( x:Float, y:Float, _xMin:Float, _yMin:Float, _xMax:Float, _yMax:Float ):Bool {
 		return x >= _xMin && x <= _xMax && y >= _yMin && y <= _yMax;
 	}	
 	
 	inline function pointOverlaps( x:Float, y:Float ):Bool { return pointOverlapsRectangle( x, y, xMin, yMin, xMax, yMax ); }
 	
-	static inline function rectangleOverlapsRectangle( xMin:Float, yMin:Float, xMax:Float, yMax:Float, _xMin:Float, _yMin:Float, _xMax:Float, _yMax:Float ):Bool {
+	inline function rectangleOverlapsRectangle( xMin:Float, yMin:Float, xMax:Float, yMax:Float, _xMin:Float, _yMin:Float, _xMax:Float, _yMax:Float ):Bool {
 		return xMax >= _xMin && _xMax >= xMin && yMax >= _yMin && _yMax >= yMin;
 	}
 	
@@ -524,9 +511,9 @@ class Rj1Tree<T> {
 	// ---- debug api
 	#if RJTREE_DEBUG
 	
-	public static inline var BUCKET_ENTRIES_CONTAINER = #if RJTREE_LISTS 'List' #else 'Array' #end;
+	public var BUCKET_ENTRIES_CONTAINER = #if RJTREE_LISTS 'List' #else 'Array' #end;
 	
-	static inline function bBoxIteratorStep<A>( cache:List<Rj1TreeBoundingBox>, stack:List<Rj1Tree<A>>, minCacheSize:Int ):Void {
+	inline function bBoxIteratorStep() cache:List<Rj1TreeBoundingBox>, stack:List<Rj1Tree<T>>, minCacheSize:Int ):Void {
 		while ( minCacheSize > cache.length && !stack.isEmpty() ) {
 			var node = stack.pop();
 			cache.add( new Rj1TreeBoundingBox( node.xMin, node.yMin, node.xMax, node.yMax, node.area, node.level ) );

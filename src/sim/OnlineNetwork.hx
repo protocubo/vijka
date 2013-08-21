@@ -25,10 +25,37 @@ class OnlineNetwork {
 		genLinks();
 	}
 
+	public function findNearestNode( x:Float, y:Float ):def.Node {
+		var dx = 1e-6*(nodeSpace.xMax - nodeSpace.xMin);
+		var dy = 1e-6*(nodeSpace.xMax - nodeSpace.xMin);
+		var list;
+		do {
+			list = new List();
+			for ( n in nodeSpace.search( x-.5*dx,y-.5*dy,dx,dy ) )
+				list.add( n );
+			dx *= 2.;
+			dy *= 2.;
+		} while ( list.isEmpty() );
+		var minDist:def.Dist = Math.POSITIVE_INFINITY;
+		var n:def.Node = null;
+		for ( c in list ) {
+			var d = dist( c.x-x, c.y-y );
+			if ( d < minDist ) {
+				minDist  = d;
+				n = c;
+			}
+		}
+		return n;
+	}
+
+	private function dist( dx:Float, dy:Float ):def.Dist {
+		return Math.sqrt( dx*dx + dy*dy );
+	}
+
 	private function genNodes() {
 		print( "\tNodes..." );
 		nodes = new Map();
-		nodeSpace = new Rj1Tree<def.Node>( 7, true );
+		nodeSpace = new Rj1Tree<def.Node>( 16, true );
 		var flatNodes = sim.state.nodes; // just a shortcut
 		if ( flatNodes == null ) throw "No nodes";
 		for ( flat in flatNodes ) {

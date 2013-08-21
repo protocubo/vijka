@@ -12,16 +12,21 @@ class Digraph {
 	private var vs:Map<Int,Vertex>;
 	
 	public var heuristic:Bool;
+	public var queueArity:Int;
+	public var queueReserve:Int;
+
 
 	// CONSTRUCTION, POPULATION AND BASIC QUERIES -------------------------------
 
 	/* 
 	 * Directed graph constructor
 	 */
-	public function new( _heuristic:Bool ) {
+	public function new( _heuristic:Bool, ?_queueArity=2, ?_queueReserve=32 ) {
 		as = new Map();
 		vs = new Map();
 		heuristic = _heuristic;
+		queueArity = _queueArity;
+		queueReserve = _queueReserve;
 	}
 
 	/* 
@@ -174,7 +179,7 @@ class Digraph {
 		var _visArcs = 0;
 		#end
 
-		var Q = new Queue( 4, 128 );
+		var Q = new Queue( queueArity, queueReserve );
 		Q.put( s );
 
 		while ( Q.notEmpty() ) {
