@@ -22,5 +22,5 @@ Simulator-cpp64-run: Simulator-cpp64
 Simulator-java:
 	haxe ${HXFLAGS} Simulator.java.hxml
 Simulator-java-run: Simulator-java
-	${JAVAFLAGS} exp/Simulator/java/Simulator ${ARGS}
+	java -jar ${JAVAFLAGS} exp/Simulator/java/Simulator ${ARGS}
 .PHONY: Simulator-java Simulator-java-run
