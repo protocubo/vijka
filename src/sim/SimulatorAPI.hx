@@ -19,7 +19,6 @@ import Lambda.has;
 
 import sim.col.*;
 import sim.OnlineNetwork;
-import sim.Runner;
 import sim.Simulator;
 import sim.SimulatorState;
 
@@ -282,6 +281,8 @@ class SimulatorAPI extends mcli.CommandLine {
 		}
 		else {
 			println( "Reading additional od data" );
+			sim.state.activeOds = null;
+			sim.state.activeOdFilter = null;
 		}
 		var vehicles = sim.state.vehicles; // just a shortcut
 		var ods = sim.state.ods; // just a shortcut
@@ -424,6 +425,28 @@ class SimulatorAPI extends mcli.CommandLine {
 		sim.state.activeOdFilter = null;
 	}
 
+	public function run( volumes:String, path:String ) {
+		var ods = sim.state.activeOds != null ? sim.state.activeOds : array( sim.state.ods );
+		if ( ods == null ) throw "No O/D data";
+		if ( ods.length == 0 ) {
+			println( "No O/D records... Try to remove the filter with --clear-od-filter" );
+			return;
+		}
+		var saveVols = readBool( volumes, false );
+		var savePath = readBool( path, false );
+		assemble();
+		var G = sim.state.digraph;
+		println( "Running "+ods.length+" records" );
+		printHL( "-" );
+		var i = 0;
+		for ( od in ods ) {
+			if ( i++ % 10 == 0 ) {
+				print( "\rRunning O/D "+od.id+" ("+i+"/"+ods.length+")" );
+				G.run( od, saveVols, savePath );
+			}
+		}
+	}
+
 	/**
 		Clear all result data from state
 	**/
@@ -531,10 +554,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		while ( !eof ) {
 			try {
 				var r = inp.readRecord();
-				if ( r.length == 0 ) {
-					eof = true;
-				}
-				else {
+				if ( r.length != 0 ) {
 					println( ":: "+r.join( " " ) );
 					sim.run( r, true );
 				}
@@ -775,25 +795,25 @@ class SimulatorAPI extends mcli.CommandLine {
 		return StringTools.rpad( string( data ), pad, len );
 	}
 
-	private static function readInt( s:String ):Null<Int> {
+	private static function readInt( s:String, ?nullable=true ):Null<Int> {
 		return switch ( s.toLowerCase() ) {
-		case "", "_", "*", "a", "all": null;
+		case "", "_", "*", "a", "all": if ( nullable ) null; else throw "Invalid Int "+s;
 		case all: parseInt( s );
 		};
 	}
 
-	private static function readBool( s:String ):Null<Bool> {
+	private static function readBool( s:String, ?nullable=true ):Null<Bool> {
 		return switch ( s.toLowerCase() ) {
-		case "", "_", "*", "a", "all": null;
+		case "", "_", "*", "a", "all": if ( nullable ) null; else throw "Invalid Bool "+s;
 		case "false", "no", "n", "0": false;
 		case "true", "yes", "y", "1": true;
 		case all: throw "Invalid Bool "+s;
 		};
 	}
 
-	private static function readSet( s:String ):Null<Array<String>> {
+	private static function readSet( s:String, ?nullable=true ):Null<Array<String>> {
 		return switch ( s.toLowerCase() ) {
-		case "", "_", "*": null;
+		case "", "_", "*": null; if ( nullable ) null; else throw "Invalid String "+s;
 		case all: s.split( "," );
 		};
 	}

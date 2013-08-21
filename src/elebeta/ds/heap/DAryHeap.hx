@@ -15,7 +15,7 @@ class DAryHeap<Item> {
 	// CONSTRUCTION -------------------------------------------------------------
 
 	private function new( _arity, _reserve ) {
-		if ( arity < 2 )
+		if ( _arity < 2 )
 			throw "D-ary heap are only possible for D >= 2";
 		arity = _arity;
 		length = 0;

@@ -210,6 +210,24 @@ class Digraph {
 		#end
 	}
 
+	/* 
+	 * Functional fold of the reverse path (or precedence list); if there is no
+	 * path (no vertex found with parent set to itself), this method returns
+	 * `first`
+	 */
+	@:generic
+	public function revPathFold<T>( destination:Node, f:Arc->T->T, first:T ):T {
+		var t = getVertex( destination ).parent;
+		while ( t != null ) {
+			first = f( t, first );
+			if ( t.isPseudo() )
+				return first;
+			else
+				t = t.from.parent;
+		}
+		return first;
+	}
+
 
 	// SHORTEST PATHS: INTERNALS ------------------------------------------------
 

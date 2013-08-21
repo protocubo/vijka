@@ -1,7 +1,8 @@
 package sim;
 
 import elebeta.ett.rodoTollSim.LinkVolume;
-import graph.linkList.Arc;
+import graph.adjLists.Arc;
+import graph.adjLists.Digraph;
 
 import sim.Simulator;
 
@@ -11,7 +12,7 @@ import sim.Simulator.println;
 
 class OnlineDigraph {
 
-	private var dg:graph.linkList.Digraph;
+	private var dg:Digraph;
 	private var sim:Simulator;
 
 	public function new( _sim:Simulator ) {
@@ -19,12 +20,13 @@ class OnlineDigraph {
 		genDigraph();
 	}
 
-	public function run( od:elebeta.ett.rodoTollSim.OD ) {
+	public function run( od:elebeta.ett.rodoTollSim.OD, volumes:Bool, path:Bool ) {
 		dg.clearState();
 
 		var origin = findEntry( od.origin.x, od.origin.y ); // find closest
 		var destination = findEntry( od.destination.x, od.destination.y ); // find closest
-		trace( destination );
+
+		// trace( destination );
 		if ( origin == destination ) {
 			println( "Skipping O/D "+od.id+": origin == destination ("+origin.id+")" );
 			return;
@@ -33,16 +35,7 @@ class OnlineDigraph {
 		var vehicle = sim.state.network.vehicles.get( od.vehicleId ); // from online network
 		var ucost = new def.UserCostModel( od.distWeight, od.timeSocialWeight, od.timeOperationalWeight ); // from flat od
 		
-		dg.simpleSSSPT( origin, vehicle.tollMulti, vehicle, ucost );
-	}
-
-	public function getMoreResults( od:elebeta.ett.rodoTollSim.OD, fexpMulti:Float, keepPath:Bool ) {
-		var destination = findEntry( od.destination.x, od.destination.y ); // find closest
-		var vehicle = sim.state.network.vehicles.get( od.vehicleId ); // from online network
-		var savers = new VolumeSaver( sim, fexpMulti, fexpMulti*vehicle.noAxis
-		, vehicle.tollMulti*fexpMulti, vehicle.equiv*fexpMulti, keepPath );
-		var cnt = dg.revPathFold( destination, savers.save, 0 );
-		// todo save path
+		dg.stpath( origin, destination, vehicle, ucost );
 	}
 
 	// RUNNING ------------------------------------------------------------------
@@ -71,7 +64,11 @@ class OnlineDigraph {
 	// GENERATION ---------------------------------------------------------------
 
 	private function genDigraph() {
-		dg = new graph.linkList.Digraph();
+		switch ( sim.state.algorithm ) {
+		case ADijkstra: dg = new Digraph();
+		case AAStar: dg = new Digraph(); dg.heuristic = false;
+		case ABellmanFord: throw "Bellman Ford not working for now";
+		}
 		genVertices();
 		genArcs();
 	}
