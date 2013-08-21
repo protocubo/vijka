@@ -31,7 +31,7 @@ class Simulator {
 	}
 
 	public function reset() {
-		state = new SimulatorState( newline, ADijkstra );
+		state = new SimulatorState( ( state!=null?state.newline:newline ), ADijkstra );
 		log = [];
 	}
 
