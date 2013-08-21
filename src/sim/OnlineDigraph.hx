@@ -87,8 +87,8 @@ class OnlineDigraph {
 
 	private function genDigraph() {
 		switch ( sim.state.algorithm ) {
-		case ADijkstra: dg = new Digraph( dg.heuristic );
-		case AAStar: dg = new Digraph( dg.heuristic );
+		case ADijkstra: dg = new Digraph( false );
+		case AAStar: dg = new Digraph( true );
 		case ABellmanFord: throw "Bellman Ford not working for now";
 		}
 		genVertices();

@@ -28,7 +28,7 @@ class SimulatorState {
 	public var digraph:Null<OnlineDigraph>; // TODO adapt to new TUI and Dijkstra/A*
 
 	public function new() {
-		algorithm = AAStar;
+		algorithm = ADijkstra;
 	}
 	
 	public function invalidate() {
