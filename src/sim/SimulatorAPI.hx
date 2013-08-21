@@ -576,7 +576,7 @@ class SimulatorAPI extends mcli.CommandLine {
 				var r = inp.readRecord();
 				if ( r.length != 0 ) {
 					println( ":: "+r.join( " " ) );
-					sim.run( r, true, false, false );
+					sim.run( r, true, true, false );
 				}
 			}
 			catch ( e:haxe.io.Eof ) {

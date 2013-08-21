@@ -23,8 +23,7 @@ class OnlineDigraph {
 	}
 
 	public function run( od:elebeta.ett.rodoTollSim.OD, volumes:Bool, path:Bool ) {
-		dg.clearState();
-
+		
 		var origin = findEntry( od.origin.x, od.origin.y ); // find closest
 		var destination = findEntry( od.destination.x, od.destination.y ); // find closest
 
