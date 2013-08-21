@@ -30,7 +30,7 @@ class OnlineDigraph {
 
 		// trace( destination );
 		if ( origin == destination ) {
-			sim.state.results.set( od.id, ODResult.make( od.id, false, false, 0, 0, 0, 0, null, null ) );
+			sim.state.results.set( od.id, ODResult.make( od.id, false, false, null, null, null, null, null, null ) );
 			return;
 		}
 
@@ -41,7 +41,7 @@ class OnlineDigraph {
 
 		var t = dg.getVertex( destination );
 		if ( t.parent == null ) {
-			sim.state.results.set( od.id, ODResult.make( od.id, true, false, 0, 0, 0, 0, null, null ) );
+			sim.state.results.set( od.id, ODResult.make( od.id, true, false, null, null, null, null, null, null ) );
 			return;
 		}
 
@@ -87,7 +87,7 @@ class OnlineDigraph {
 
 	private function genDigraph() {
 		switch ( sim.state.algorithm ) {
-		case ADijkstra: dg = new Digraph( dg.heuristic ); ;
+		case ADijkstra: dg = new Digraph( dg.heuristic );
 		case AAStar: dg = new Digraph( dg.heuristic );
 		case ABellmanFord: throw "Bellman Ford not working for now";
 		}
