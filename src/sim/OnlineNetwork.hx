@@ -1,5 +1,7 @@
 package sim;
 
+import elebeta.ds.tree.Rj1Tree;
+
 import sim.Simulator;
 
 import sim.Simulator.print;
@@ -9,6 +11,7 @@ import sim.Simulator.println;
 class OnlineNetwork {
 
 	public var nodes:Map<Int,def.Node>;
+	public var nodeSpace:Rj1Tree<def.Node>;
 	public var links:Map<Int,def.Link>;
 	public var vehicles:Map<Int,def.VehicleClass>;
 	public var speeds:Map<Int,def.Speed>; // indexed by typeId
@@ -25,11 +28,13 @@ class OnlineNetwork {
 	private function genNodes() {
 		print( "\tNodes..." );
 		nodes = new Map();
+		nodeSpace = new Rj1Tree<def.Node>( 7, true );
 		var flatNodes = sim.state.nodes; // just a shortcut
 		if ( flatNodes == null ) throw "No nodes";
 		for ( flat in flatNodes ) {
 			var n = new def.Node( flat.id, flat.point.x, flat.point.y );
 			nodes.set( n.id, n );
+			nodeSpace.insertPoint( n.x, n.y, n );
 		}
 		println( "\r\t"+Lambda.count( nodes )+" nodes..." );
 	}
