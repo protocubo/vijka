@@ -2,11 +2,15 @@ package sim;
 
 class Simulator {
 
+	public var inp:format.csv.Reader;
+	public var NL:String;
+
 	public var state:SimulatorState;
 	public var profiling:Null<String>;
 	public var log:Array<String>;
 
-	public function new() {
+	public function new( _inp:format.csv.Reader ) {
+		inp = _inp;
 		reset();
 	}
 
@@ -98,21 +102,30 @@ class Simulator {
 	public static var sim:Simulator;
 	
 	private static function main() {
-		if ( Sys.args().length > 0 )
-			throw "Cannot yet run in batch mode";
 
-		var inp = new format.csv.Reader( stdin, "\n", " ", "'" );
-		sim = new Simulator();
+		sim = new Simulator( new format.csv.Reader( stdin, "\n", " ", "'" ) );
 
 		printHL( "=" );
 		println( "Welcome to the RodoTollSim!" );
 		println( "Type the desired options (and their arguments) bellow, or --help for usage information..." );
 		printHL( "=" );
 
+		if ( Sys.args().length > 0 ) {
+			printHL( "-" );
+			printHL( "-" );
+			println( "Running commands passed on instantiation" );
+			println( "" );
+			println( ":: "+Sys.args().join( " " ) );
+			sim.run( Sys.args(), true );
+			println( "" );
+			printHL( "-" );
+			printHL( "-" );
+		}
+
 		while ( true ) {
 			try {
 				print( "> " ); stdout.flush();
-				var r = inp.readRecord();
+				var r = sim.inp.readRecord();
 				sim.run( r, false );
 			}
 			catch ( e:haxe.io.Eof ) {

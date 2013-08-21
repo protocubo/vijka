@@ -705,6 +705,14 @@ class SimulatorAPI extends mcli.CommandLine {
 		eout.close();
 	}
 
+	/**
+		[undocumented] Windows hack for problems with stdin
+	**/
+	@:access( sim.Simulator )
+	public function windows() {
+		sim.inp = new format.csv.Reader( Simulator.stdin, "\r\n", " ", "'" );
+	}
+
 
 	// OTHERS -------------------------------------------------------------------
 
