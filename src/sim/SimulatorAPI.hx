@@ -617,6 +617,18 @@ class SimulatorAPI extends mcli.CommandLine {
 
 
 
+	// EXPERIMENTAL -------------------------------------------------------------
+
+	/**
+		[EXPERIMENTAL] Set multi-threading with `workers` and `part-size`
+	**/
+	public function setMcpus( workers:Int, partSize:Int ) {
+		if ( sim.state.workers != workers || sim.state.workerPartSize != partSize )
+			sim.state.invalidate();
+		sim.state.workers = workers;
+		sim.state.workerPartSize = partSize;
+	}
+
 	// ADVANCED -----------------------------------------------------------------
 
 	/**
@@ -669,7 +681,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		}
 		if ( sim.state.digraph == null || force ) {
 			println( "Assembling the (directed) graph" );
-			var dg = sim.state.digraph = new OnlineDigraph( sim );
+			var dg = sim.state.digraph = new OnlineDigraph( sim, sim.state.workers, sim.state.workerPartSize );
 		}
 	}
 

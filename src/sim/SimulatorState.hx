@@ -32,15 +32,22 @@ class SimulatorState {
 	public var heapArity:Int;
 	public var heapReserve:Int;
 
+	public var workers:Int;
+	public var workerPartSize:Int;
+
 	public function new( _newline, _algorithm, _heapArity, _heapReserve ) {
 		newline = _newline;
 		algorithm = _algorithm;
 		heapArity = _heapArity;
 		heapReserve = _heapReserve;
+		workers = 1;
+		workerPartSize = 0;
 	}
 	
 	public function invalidate() {
 		network = null;
+		if ( digraph != null )
+			digraph.prepareForInvalidation();
 		digraph = null;
 	}
 

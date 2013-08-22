@@ -31,6 +31,8 @@ class Simulator {
 	}
 
 	public function reset() {
+		if ( state != null )
+			state.invalidate();
 		state = state != null ? new SimulatorState( state.newline
 		                                          , ADijkstra
 		                                          , sim.state.heapArity
