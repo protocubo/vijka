@@ -3,8 +3,8 @@ package graph.adjLists;
 @:access( graph.adjLists.Vertex )
 class Queue extends elebeta.ds.heap.DAryHeap<Vertex> {
 
-	public function new( ?arity=4, ?reserve=32 ) {
-		super( 4, 32 );
+	public function new( arity, reserve ) {
+		super( arity, reserve );
 	}
 
 	public function has( a:Vertex ) {

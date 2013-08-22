@@ -400,11 +400,11 @@ class SimulatorAPI extends mcli.CommandLine {
 	**/
 	public function setAlgorithm( name:String ) {
 		var algo = switch ( name.toLowerCase() ) {
-		case "dijkstra", "ijk":
+		case "dijkstra", "ijk", "dijk", "dijstras":
 			ADijkstra;
 		case "a*", "astar", "a-star", "star":
 			AAStar;
-		case "bellman-ford", "bford", "bell":
+		case "bellman-ford", "bford", "bell", "ford":
 			ABellmanFord;
 			throw "Bellman-Ford algorithm has been disabled";
 		case all:
@@ -424,7 +424,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		Show the current selected base algorithm
 	**/
 	public function showAlgorithm() {
-		println( "The current algithm is: "+algoName( sim.state.algorithm ) );
+		println( "Current algorithm: "+algoName(sim.state.algorithm) );
 	}
 	private function algoName( a:Algorithm ) {
 		return switch ( a ) {
@@ -452,6 +452,8 @@ class SimulatorAPI extends mcli.CommandLine {
 		if ( saveVols && sim.state.volumes == null ) sim.state.volumes = new Map();
 		var G = sim.state.digraph;
 		showAlgorithm();
+		println( "\tD-ary heap arity = "+G.heapArity );
+		println( "\tD-ary heap initial reserve = "+G.heapReserve );
 		var lt = haxe.Timer.stamp();
 		var i = 0;
 		print( "\rRunning "+i+"/"+odCnt );
@@ -601,6 +603,31 @@ class SimulatorAPI extends mcli.CommandLine {
 		println( "Showing the current log" );
 		printHL( "-" );
 		println( "\t// "+sim.log.join( "\n\t// " ) );
+	}
+
+
+
+	// TUNING -------------------------------------------------------------------
+
+	/**
+		[TUNING] Set heap arity for the internal priority queue used on Dijkstra and A*
+	**/
+	public function setHeapArity( no:Int ) {
+		sim.state.heapArity = no;
+		if ( sim.state.digraph != null )
+			sim.state.digraph.heapArity = sim.state.heapArity;
+		println( "Heap (Dijkstra/A* priority queue) arity set to "+no );
+	}
+
+	/**
+		[TUNING] Set heap initial reserve for the internal priority queue used on Dijkstra
+		and A*
+	**/
+	public function setHeapReserve( no:Int ) {
+		sim.state.heapReserve = no;
+		if ( sim.state.digraph != null )
+			sim.state.digraph.heapReserve = sim.state.heapReserve;
+		println( "Heap (Dijkstra/A* priority queue) initial reserve set to "+no );
 	}
 
 

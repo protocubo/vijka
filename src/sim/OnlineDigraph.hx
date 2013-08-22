@@ -14,6 +14,9 @@ import sim.Simulator.println;
 
 class OnlineDigraph {
 
+	public var heapArity(get,set):Int;
+	public var heapReserve(get,set):Int;
+
 	private var dg:Digraph;
 	private var sim:Simulator;
 
@@ -63,18 +66,28 @@ class OnlineDigraph {
 
 	}
 
+
+	// PROPERTIES ---------------------------------------------------------------
+
+	private function get_heapArity() return dg.queueArity;
+	private function set_heapArity( a:Int ) return dg.queueArity = a;
+	private function get_heapReserve() return dg.queueReserve;
+	private function set_heapReserve( a:Int ) return dg.queueReserve = a;
+
+
 	// RUNNING ------------------------------------------------------------------
 
 	private function findEntry( x:Float, y:Float ):def.Node {
 		return sim.state.network.findNearestNode( x, y );
 	}
 
+
 	// GENERATION ---------------------------------------------------------------
 
 	private function genDigraph() {
 		switch ( sim.state.algorithm ) {
-		case ADijkstra: dg = new Digraph( false, 2, 64 );
-		case AAStar: dg = new Digraph( true, 2, 32 );
+		case ADijkstra: dg = new Digraph( false, sim.state.heapArity, sim.state.heapReserve );
+		case AAStar: dg = new Digraph( true, sim.state.heapArity, sim.state.heapReserve );
 		case ABellmanFord: throw "Bellman Ford not working for now";
 		}
 		genVertices();

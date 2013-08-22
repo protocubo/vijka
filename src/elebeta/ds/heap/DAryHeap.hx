@@ -93,7 +93,7 @@ class DAryHeap<Item> {
 	// INTERNALS ----------------------------------------------------------------
 
 	private inline function heapify() {
-		var s = floor( parent( length - 1 ) );
+		var s = parent( length - 1 );
 		for ( i in 0...length )
 			saveIndex( h[i], i );
 		while ( 0 <= s )

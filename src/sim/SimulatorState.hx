@@ -29,9 +29,14 @@ class SimulatorState {
 	public var network:Null<OnlineNetwork>;
 	public var digraph:Null<OnlineDigraph>; // TODO adapt to new TUI and Dijkstra/A*
 
-	public function new( _newline, _algorithm ) {
+	public var heapArity:Int;
+	public var heapReserve:Int;
+
+	public function new( _newline, _algorithm, _heapArity, _heapReserve ) {
 		newline = _newline;
 		algorithm = _algorithm;
+		heapArity = _heapArity;
+		heapReserve = _heapReserve;
 	}
 	
 	public function invalidate() {

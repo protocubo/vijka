@@ -31,7 +31,16 @@ class Simulator {
 	}
 
 	public function reset() {
-		state = new SimulatorState( ( state!=null?state.newline:newline ), ADijkstra );
+		state = state != null ? new SimulatorState( state.newline
+		                                          , ADijkstra
+		                                          , sim.state.heapArity
+		                                          , sim.state.heapReserve )
+                            : new SimulatorState( newline
+		                                          , ADijkstra
+		                                          , 3 // optimal b*log(N,b)
+		                                          , 16 ); // reasonable considering
+                                                       // Array doublying with push 
+
 		log = [];
 	}
 
