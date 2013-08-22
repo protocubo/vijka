@@ -165,14 +165,14 @@ class Digraph {
 		var s = getVertex( source );
 		var t = getVertex( destination );
 
-		clearPath( keepCosts );
+		var label = new Label();
+
 		if ( !keepCosts ) {
 			s.parent = new PseudoArc( s );
 			s.dist = 0; s.time = 0; s.toll = 0; s.cost = 0;
 			s.est = s.cost + hf(s,t,ucost);
+			s.label = label;
 		}
-
-		weighting( vclass, ucost );
 
 		#if ( debug || TRACES )
 		var _maxQueue = 0;
@@ -193,11 +193,18 @@ class Digraph {
 				#if ( debug || TRACES )
 				_visArcs++;
 				#end
+				a.weight( vclass, ucost );
 				var tdist = v.dist + a.dist;
 				var ttime = v.time + a.time;
 				var ttoll = v.toll + a.toll;
 				var tcost = ucost.userCost( tdist, ttime, ttoll );
 				// trace( [ tdist, ttime, ttoll, tcost ] );
+				if ( a.to.label != label ) {
+					a.to.clearPath();
+					if ( !keepCosts )
+						a.to.clearCosts();
+					a.to.label = label;
+				}
 				if ( tcost < a.to.cost ) {
 					a.to.dist = tdist;
 					a.to.time = ttime;

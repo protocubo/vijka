@@ -16,6 +16,9 @@ class Vertex {
 	public var toll( default, null ):Toll;
 	public var cost( default, null ):Cost;
 
+	// run label
+	public var label:Label;
+
 	// relation
 	public var adjs:Array<Arc>;
 

@@ -458,7 +458,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		for ( od in ods ) {
 			G.run( od, saveVols, savePath );
 			i++;
-			if ( haxe.Timer.stamp() - lt > .5 ) {
+			if ( haxe.Timer.stamp() - lt > .2 ) {
 				lt = haxe.Timer.stamp();
 				print( "\rRunning "+i+"/"+odCnt+" paths" );
 			}

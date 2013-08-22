@@ -33,17 +33,17 @@ class DAryHeap<Item> {
 	 * This is equivalent of returning `true` if `a` <= `b` on a min heap and
 	 * `a` >= `b` on a max heap
 	 */
-	public function checkPredicate( a:Item, b:Item ):Bool { throw "checkPredicate not implemented"; }
+	function checkPredicate( a:Item, b:Item ):Bool { throw "checkPredicate not implemented"; }
 	
 	/* 
 	 * Method used by a DAryHeap for finding its position for this item
 	 */
-	public function getIndex( e:Item ):Int { throw "getIndex not implemented"; }
+	function getIndex( e:Item ):Int { throw "getIndex not implemented"; }
 
 	/* 
 	 * Method used by a DAryHeap for saving its position for this item
 	 */
-	public function saveIndex( e:Item, i:Int ):Void { throw "saveIndex not implemented"; }
+	function saveIndex( e:Item, i:Int ):Void { throw "saveIndex not implemented"; }
 
 
 	// QUEUING API --------------------------------------------------------------

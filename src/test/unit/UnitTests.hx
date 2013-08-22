@@ -17,7 +17,8 @@ class UnitTests {
 		
 		// actual simulator tests
 		runner.add( new TestUserCostModel() );
-		runner.add( new TestDigraph() );
+		runner.add( new TestNewDigraph() );
+		// runner.add( new TestDigraph() );
 	}
 
 	public function run() {
