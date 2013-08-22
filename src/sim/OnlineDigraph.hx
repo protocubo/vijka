@@ -6,6 +6,8 @@ import graph.adjLists.Digraph;
 
 import Lambda.array;
 
+import Lambda.count;
+
 import sim.Simulator;
 
 import sim.Simulator.print;
@@ -25,7 +27,25 @@ class OnlineDigraph {
 		genDigraph();
 	}
 
-	public function run( od:elebeta.ett.rodoTollSim.OD, volumes:Bool, path:Bool ) {
+	public function run( ods:Iterable<elebeta.ett.rodoTollSim.OD>, volumes:Bool, path:Bool ) {
+		var odCnt = count( ods );
+		println( "\tD-ary heap arity = "+heapArity );
+		println( "\tD-ary heap initial reserve = "+heapReserve );
+		var lt = haxe.Timer.stamp();
+		var i = 0;
+		print( "\rRunning "+i+"/"+odCnt );
+		for ( od in ods ) {
+			runEach( od, volumes, path );
+			i++;
+			if ( haxe.Timer.stamp() - lt > .2 ) {
+				lt = haxe.Timer.stamp();
+				print( "\rRunning "+i+"/"+odCnt+" paths" );
+			}
+		}
+		println( "\rRunning "+i+"/"+odCnt+" paths... Done" );
+	}
+
+	private function runEach( od:elebeta.ett.rodoTollSim.OD, volumes:Bool, path:Bool ) {
 		
 		var origin = findEntry( od.origin.x, od.origin.y ); // find closest
 		var destination = findEntry( od.destination.x, od.destination.y ); // find closest

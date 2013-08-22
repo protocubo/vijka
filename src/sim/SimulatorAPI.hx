@@ -440,8 +440,7 @@ class SimulatorAPI extends mcli.CommandLine {
 	public function run( volumes:String, path:String ) {
 		var ods:Iterable<OD> = sim.state.activeOds != null ? sim.state.activeOds : sim.state.ods;
 		if ( ods == null ) throw "No O/D data";
-		var odCnt = count( ods );
-		if ( odCnt == 0 ) {
+		if ( !ods.iterator().hasNext() ) {
 			println( "No O/D records... Try to remove the filter with --clear-od-filter" );
 			return;
 		}
@@ -450,22 +449,8 @@ class SimulatorAPI extends mcli.CommandLine {
 		assemble();
 		if ( sim.state.results == null ) sim.state.results = new Map();
 		if ( saveVols && sim.state.volumes == null ) sim.state.volumes = new Map();
-		var G = sim.state.digraph;
 		showAlgorithm();
-		println( "\tD-ary heap arity = "+G.heapArity );
-		println( "\tD-ary heap initial reserve = "+G.heapReserve );
-		var lt = haxe.Timer.stamp();
-		var i = 0;
-		print( "\rRunning "+i+"/"+odCnt );
-		for ( od in ods ) {
-			G.run( od, saveVols, savePath );
-			i++;
-			if ( haxe.Timer.stamp() - lt > .2 ) {
-				lt = haxe.Timer.stamp();
-				print( "\rRunning "+i+"/"+odCnt+" paths" );
-			}
-		}
-		println( "\rRunning "+i+"/"+odCnt+" paths... Done" );
+		sim.state.digraph.run( ods, saveVols, savePath );
 	}
 
 	/**
