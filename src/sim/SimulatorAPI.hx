@@ -9,6 +9,7 @@ import haxe.io.Eof;
 import sys.io.FileInput;
 import sys.io.FileOutput;
 
+import jonas.NumberPrinter.printDecimal;
 import Lambda.array;
 import Lambda.count;
 import Lambda.filter;
@@ -322,54 +323,14 @@ class SimulatorAPI extends mcli.CommandLine {
 		may be "_" (no filter), a value or a comma separated list of values
 	**/
 	public function filterOd( type:String, clause:String ) {
-		var c = readSet( clause );
-		if ( c == null )
-			return; // all selected
 		var ods = sim.state.ods;
 		if ( ods == null ) throw "No O/D data";
 		var activeOds = list( sim.state.activeOds != null ? sim.state.activeOds : sim.state.ods );
 		var activeOdFilter = sim.state.activeOdFilter; if ( activeOdFilter == null ) activeOdFilter = [];
-		switch ( type ) {
-		case "id":
-			var f = c.map( parseInt );
-			var exp = "`id` in ("+f.join(",")+")";
-			activeOdFilter.push( exp );
-			println( "Filtering OD data with clausetAlgorithmse: "+exp );
-			activeOds = filter( activeOds, function (od) return has(f,od.id) );
-		case "lot":
-			var f = c.map( parseInt );
-			var exp = "`lot` in ("+f.join(",")+")";
-			activeOdFilter.push( exp );
-			println( "Filtering OD data with clause: "+exp );
-			activeOds = filter( activeOds, function (od) return has(f,od.lot) );
-		case "section", "point", "pt":
-			var f = c.map( parseInt );
-			var exp = "`section` in ("+f.join(",")+")";
-			activeOdFilter.push( exp );
-			println( "Filtering OD data with clause: "+exp );
-			activeOds = filter( activeOds, function (od) return has(f,od.section) );
-		case "direction", "dir":
-			var f = c.map( parseInt );
-			var exp = "`direction` in ("+f.join(",")+")";
-			activeOdFilter.push( exp );
-			println( "Filtering OD data with clause: "+exp );
-			activeOds = filter( activeOds, function (od) return has(f,od.direction) );
-		case "vehicle", "vehicleId", "veh":
-			var f = c.map( parseInt );
-			var exp = "`vehicleId` in ("+f.join(",")+")";
-			activeOdFilter.push( exp );
-			println( "Filtering OD data with clause: "+exp );
-			activeOds = filter( activeOds, function (od) return has(f,od.vehicleId) );
-		case "cargo", "product", "prod":
-			var exp = "`cargo` in ('"+c.join("','")+"'')";
-			activeOdFilter.push( exp );
-			println( "Filtering OD data with clause: "+exp );
-			activeOds = filter( activeOds, function (od) return has(c,od.cargo) );
-		case all: throw "Unknown filter type '"+type+"'";
-		}
-		sim.state.activeOds = array( activeOds );
+		sim.state.activeOds = array( queryOd( activeOds, type, clause, activeOdFilter ) );
 		sim.state.activeOdFilter = activeOdFilter;
 		println( "Current selected records: "+activeOds.length );
+		showOdFilter();
 	}
 
 	/**
@@ -379,7 +340,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		if ( sim.state.activeOdFilter == null )
 			println( "No O/D filter at the moment... All available data selected" );
 		else
-			println( "Selected O/D records: where "+sim.state.activeOdFilter.join("\n\t&& ") );
+			println( "Selected O/D records where "+sim.state.activeOdFilter.join("\n\t&& ") );
 	}
 
 	/**
@@ -388,6 +349,54 @@ class SimulatorAPI extends mcli.CommandLine {
 	public function clearOdFilter() {
 		sim.state.activeOds = null;
 		sim.state.activeOdFilter = null;
+	}
+
+
+
+	// EXPANSION FACTORS --------------------------------------------------------
+
+	/**
+		Alter sample weights according to criteria `type` and `clause` by
+		setting them to `value`; any remaining volumes are lost
+	**/
+	public function setWeight( type:String, clause:String, value:Float ) {
+		sim.state.volumes = null;
+		if ( sim.state.ods == null )
+			throw "No O/D data";
+		var exp = sim.state.sampleWeights;
+		if ( exp == null )
+			exp = sim.state.sampleWeights = new Map();
+		var q = queryOd( sim.state.ods, type, clause );
+		sim.state.volumes = null;
+		for ( od in q )
+			exp.set( od.id, value );
+	}
+
+	/**
+		Alter sample weights according to criteria `type` and `clause` by
+		multiplying current values by `multi`; any remaining volumes are lost
+	**/
+	public function alterWeight( type:String, clause:String, multi:Float ) {
+		sim.state.volumes = null;
+		if ( sim.state.ods == null )
+			throw "No O/D data";
+		var exp = sim.state.sampleWeights;
+		if ( exp == null )
+			exp = sim.state.sampleWeights = new Map();
+		var q = queryOd( sim.state.ods, type, clause );
+		for ( od in q ) {
+			var previous = exp.exists( od.id ) ? exp.get( od.id ) : od.sampleWeight;
+			exp.set( od.id, od.sampleWeight*multi );
+		}
+	}
+
+	/**
+		Resets all sample weights to their value on the O/D record; any remaining
+		volumes are lost
+	**/
+	public function resetWeights( type:String, clause:String, multi:Float ) {
+		sim.state.volumes = null;
+		sim.state.sampleWeights = null;
 	}
 
 
@@ -512,6 +521,9 @@ class SimulatorAPI extends mcli.CommandLine {
 	}
 
 
+
+	
+
 	// RESULTS I/O --------------------------------------------------------------
 
 	/**
@@ -531,7 +543,123 @@ class SimulatorAPI extends mcli.CommandLine {
 
 	// RESULT ANALYSIS ----------------------------------------------------------
 
-	// TODO
+	/**
+		Analyze link with id `id`; `type` may be a comma separated list of
+		"volumes", "ods", "usage", "save-usage" or "_" (for everything);
+		requires results with saved paths and volumes (when applicable)
+	**/
+	public function analyze( id:Int, type:String ) {
+		if ( sim.state.links == null )
+			throw "No links";
+		var link = sim.state.links.get( id );
+		if ( link == null )
+			throw "No link '"+id+"'";
+
+		var azVol = false;
+		var azOds = false;
+		var azUsg = false;
+		var svUsg = false;
+
+		var types = readSet( type, true );
+		if ( types == null )
+			azVol = azOds = azUsg = svUsg = true;
+		else for ( t in types ) {
+			switch ( t.toLowerCase() ) {
+			case "volumes", "volume", "vol":
+				azVol = true;
+			case "ods", "pairs", "od":
+				azOds = true;
+			case "usage":
+				azUsg = true;
+			case "save-usage", "save", "toll":
+				svUsg = true;
+			case "users":
+				throw "No analysis type 'users'; did you mean 'usage' or 'ods'";
+			case all:
+				throw "No analysis type '"+all+"'";
+			}
+		}
+
+		azUsg = azUsg || svUsg;
+
+		var res = sim.state.results;
+		if ( res == null )
+			throw "No results";
+
+		println( "Analyzing link '"+link.id+"'" );
+
+		var resCnt = 0;
+		var users = null; // array of OD::id
+
+		if ( azUsg || azOds ) { // output O/D record ids
+			users = [];
+			for ( r in res )
+				if ( r.path != null ) {
+					resCnt++;
+					if ( has( r.path, link.id ) )
+						users.push( r.id );
+				}
+			users.sort( Reflect.compare );
+			if ( azOds )
+				println( "  * "+users.length+" O/D records using link: { "+users.join(", ")+" }" );
+		}
+
+		if ( azVol ) { // output volumes
+			var vols = sim.state.volumes;
+			if ( vols == null )
+				throw "No volumes";
+			var v = vols.exists( link.id ) ? vols.get( link.id ) : LinkVolume.make( 0, 0, 0, 0, 0 );
+			println( "  * link volumes:");
+			println( "        "+left(strnum(v.vehicles,2,0),9)+"  vehicles" );
+			println( "        "+left(strnum(v.equivalentVehicles,2,0),9)+"  equivalent vehicles" );
+			println( "        "+left(strnum(v.axis,2,0),9)+"  axis" );
+			println( "        "+left(strnum(v.tolls,2,0),9)+"  toll multipliers" );
+		}
+
+		if ( azUsg ) { // output usage (prob) and error
+			var n = resCnt;
+			var p = users.length/resCnt;
+			var exp = n*p;
+			var s2 = n*p*( 1. - p );
+			var s = Math.sqrt( s2 );
+			println( "  * result analysis:" );
+			println( "    "+left(n,5)+"  allocated O/D pairs" );
+			println( "    "+left(users.length,5)+"  pairs using this link" );
+			println( "    "+left(strnum(s,2,0),5)+"  standard deviation" );
+			println( "    error(+/-):        NPQ    Wald   Agresti-Coull" );
+			println( "        conf. 70%: "+strnum(pConf_NPQ(n,p,.30)*1e2,2,6)
+			+"% "+strnum(pConf_Wald(n,p,.30)*1e2,2,6)
+			+"% "+strnum(pConf_AgrestiCoull(n,p,.30)*1e2,2,14)+"%" );
+			println( "        conf. 85%: "+strnum(pConf_NPQ(n,p,.15)*1e2,2,6)
+			+"% "+strnum(pConf_Wald(n,p,.15)*1e2,2,6)
+			+"% "+strnum(pConf_AgrestiCoull(n,p,.15)*1e2,2,14)+"%" );
+			println( "        conf. 90%: "+strnum(pConf_NPQ(n,p,.10)*1e2,2,6)
+			+"% "+strnum(pConf_Wald(n,p,.10)*1e2,2,6)
+			+"% "+strnum(pConf_AgrestiCoull(n,p,.10)*1e2,2,14)+"%" );
+			println( "        conf. 95%: "+strnum(pConf_NPQ(n,p,.05)*1e2,2,6)
+			+"% "+strnum(pConf_Wald(n,p,.05)*1e2,2,6)
+			+"% "+strnum(pConf_AgrestiCoull(n,p,.05)*1e2,2,14)+"%" );
+		}
+
+		if ( svUsg ) { 
+			//
+		}
+	}
+	private function pConf_NPQ( sampleSize:Float, prob:Float, conf:Float ) {
+		return zscore( .5*conf )*Math.sqrt( sampleSize*prob*( 1. - prob ) )/sampleSize;
+	}
+	private function pConf_Wald( sampleSize:Float, prob:Float, conf:Float ) {
+		return zscore( .5*conf )*Math.sqrt( prob*( 1. - prob )/sampleSize );
+	}
+	private function pConf_AgrestiCoull( sampleSize:Float, prob:Float, conf:Float ) {
+		var _prob = ( sampleSize*prob + .5*zscore( .5*conf ) )
+		           /(   sampleSize   + zscore( .5*conf )*zscore( .5*conf ) );
+		return zscore( conf*.5 )*Math.sqrt( _prob*( 1. - _prob )/sampleSize );
+	}
+	private function zscore( conf:Float ) {
+		return stat.ZScore.forProbGreaterThan( 1.-conf );
+	}
+
 
 
 	// COMMAND HISTORY ----------------------------------------------------------
@@ -834,6 +962,41 @@ class SimulatorAPI extends mcli.CommandLine {
 
 	// HELPERS ------------------------------------------------------------------
 
+	private function queryOd( original:Iterable<OD>, type:String, clause:String
+	, ?originalFilter:Array<String> ):Null<Iterable<OD>> {
+		var c = readSet( clause );
+		if ( c == null )
+			return null; // all selected
+		var activeOds = original;
+		switch ( type ) {
+		case "id":
+			var f = c.map( parseInt );
+			if ( originalFilter != null ) originalFilter.push( "`id` in ("+f.join(",")+")" );
+			activeOds = filter( activeOds, function (od) return has(f,od.id) );
+		case "lot":
+			var f = c.map( parseInt );
+			if ( originalFilter != null ) originalFilter.push( "`lot` in ("+f.join(",")+")" );
+			activeOds = filter( activeOds, function (od) return has(f,od.lot) );
+		case "section", "point", "pt":
+			var f = c.map( parseInt );
+			if ( originalFilter != null ) originalFilter.push( "`section` in ("+f.join(",")+")" );
+			activeOds = filter( activeOds, function (od) return has(f,od.section) );
+		case "direction", "dir":
+			var f = c.map( parseInt );
+			if ( originalFilter != null ) originalFilter.push( "`direction` in ("+f.join(",")+")" );
+			activeOds = filter( activeOds, function (od) return has(f,od.direction) );
+		case "vehicle", "vehicleId", "veh":
+			var f = c.map( parseInt );
+			if ( originalFilter != null ) originalFilter.push( "`vehicleId` in ("+f.join(",")+")" );
+			activeOds = filter( activeOds, function (od) return has(f,od.vehicleId) );
+		case "cargo", "product", "prod":
+			if ( originalFilter != null ) originalFilter.push( "`cargo` in ('"+c.join("','")+"'')" );
+			activeOds = filter( activeOds, function (od) return has(c,od.cargo) );
+		case all: throw "Unknown filter type '"+type+"'";
+		}
+		return activeOds;
+	}
+
 	private function geojsonVolume( volume:LinkVolume ):String {
 		var link = sim.state.links.get( volume.linkId );
 		var linkProp = link.jsonBody();
@@ -897,6 +1060,10 @@ class SimulatorAPI extends mcli.CommandLine {
 
 	private function left( data:Dynamic, len:Int, ?pad=" " ):String {
 		return StringTools.rpad( string( data ), pad, len );
+	}
+
+	private function strnum( v:Float, p:Int, len:Int ):String {
+		return printDecimal( v, len, p );
 	}
 
 	private function readInt( s:String, ?nullable=true ):Null<Int> {
