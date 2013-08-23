@@ -21,6 +21,7 @@ import Std.string;
 
 import sim.Algorithm;
 import sim.col.*;
+import sim.Query;
 
 import sim.Simulator.print;
 import sim.Simulator.printHL;
