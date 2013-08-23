@@ -275,7 +275,8 @@ class SimulatorAPI extends mcli.CommandLine {
 
 	/**
 		Read O/D data from OD ETT in `path` (reentrant); requires vehicles; costs
-		should be in $/km (distance multipliers) and and $/h (time multipliers)
+		should be in $/km (distance multipliers) and and $/h (time multipliers);
+		when applicable, custom sample weights may be reset
 	**/
 	public function readOd( path:String ) {
 		if ( sim.state.ods == null ) {
@@ -289,6 +290,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		}
 		var vehicles = sim.state.vehicles; // just a shortcut
 		var ods = sim.state.ods; // just a shortcut
+		var wgts = sim.state.sampleWeights;
 		if ( vehicles == null ) throw "No vehicles";
 		var einp = readEtt( path );
 		while ( true ) {
@@ -299,6 +301,8 @@ class SimulatorAPI extends mcli.CommandLine {
 			if ( !vehicles.exists( od.vehicleId ) )
 				throw "Missing vehicle "+od.vehicleId;
 			ods.set( od.id, od );
+			if ( wgts != null )
+				wgts.remove( od.id );
 		}
 		einp.close();
 	}
