@@ -769,9 +769,9 @@ class SimulatorAPI extends mcli.CommandLine {
 	}
 
 	/**
-		Read a command log from `path`
+		Execute from a command log in `path`
 	**/
-	public function read( path:String ) {
+	public function restore( path:String ) {
 		if ( !reading ) {
 			printHL( "-" );
 			printHL( "-" );
