@@ -165,6 +165,35 @@ class SimulatorAPI extends mcli.CommandLine {
 		println( "Counted "+cnt+" links" );
 	}
 
+	/**
+		Write links to GeoJSON in `path` using available link shape data; accepts
+		(optionnally) a unified `filter` query; will overwrite existing files
+	**/
+	public function geojsonLinks( path:String, ?filter:String ) {
+		println( "Mapping volumes in GeoJSON" );
+		var links = sim.state.links; // just a shortcut
+		if ( links == null ) throw "No links";
+		var fout = writeFile( path, false );
+		fout.writeString( '{"type":"FeatureCollection","features":['+sim.newline );
+		var first = true;
+		if ( filter == null ) {
+			for ( k in links ) {
+				if ( first ) first = false; else fout.writeString( ","+sim.newline+"\t" );
+				fout.writeString( geojsonLink( k ) );
+			}
+		}
+		else {
+			var aliases = sim.state.aliases;
+			var q = Query.prepare( filter, "id" );
+			for ( k in q.execute( links, aliases ) ) {
+				if ( first ) first = false; else fout.writeString( ","+sim.newline+"\t" );
+				fout.writeString( geojsonLink( k ) );
+			}
+		}
+		fout.writeString( sim.newline+"] }"+sim.newline );
+		fout.close();
+	}
+
 
 
 	// LINK SHAPE I/O -----------------------------------------------------------
@@ -231,6 +260,41 @@ class SimulatorAPI extends mcli.CommandLine {
 			sim.state.shapes = null;
 		}
 	}
+
+
+
+	// LINK ALIASES -------------------------------------------------------------
+
+	/**
+		Read link aliases from LinkAlias ETT in `path` (reentrant); aliases for
+		unknown links are just ignored
+	**/
+	public function readAliases( path:String ) {
+		if ( sim.state.aliases == null ) {
+			println( "Reading link aliases" );
+			sim.state.aliases = new Map();
+		}
+		else {
+			println( "Reading additional link aliases; overwriting when necessary" );
+		}
+		var links = sim.state.links; // just a shortcut
+		if ( links == null || !links.iterator().hasNext() )
+			return; // no links
+		var aliases = sim.state.aliases; // just a shortcut
+		var einp = readEtt( path );
+		while ( true ) {
+			var alias = try { einp.fastReadRecord( LinkAlias.makeEmpty() ); }
+			           catch ( e:Eof ) { null; };
+			if ( alias == null ) break;
+			if ( links.exists( alias.linkId ) )
+				if ( aliases.exists( alias.name ) )
+					aliases.get( alias.name ).push( alias.linkId );
+				else
+					aliases.set( alias.name, [ alias.linkId ] );
+		}
+		einp.close();
+	}
+
 
 
 	// VEHICLE I/O --------------------------------------------------------------
@@ -1109,6 +1173,12 @@ class SimulatorAPI extends mcli.CommandLine {
 		case all: throw "Unknown filter type '"+type+"'";
 		}
 		return activeOds;
+	}
+
+	private function geojsonLink( link:Link ):String {
+		var linkProp = link.jsonBody();
+		var geom = getShape( link ).geojsonGeometry();
+		return '{"id":${link.id},"type":"Feature","geometry":$geom,"properties":{$linkProp}}';
 	}
 
 	private function geojsonVolume( volume:LinkVolume ):String {

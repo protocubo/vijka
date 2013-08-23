@@ -12,18 +12,18 @@ class Query {
 
 	private var idName:String;
 	private var exactAlias:Null<String>;
-	private var exactId:Null<Int>;
+	private var exactId:Null<Dynamic>;
 	private var ast:Expr;
 
 	private function new( _ast, _idName ) {
+		exactAlias = null;
+		exactId = null;
 		idName = _idName;
 		ast = remap( _ast );
 		// trace( _ast );
 		// trace( ast );
 		interp = new Interp();
 		registerCustomNames();
-		exactAlias = null;
-		exactId = null;
 	}
 
 	private function registerCustomNames() {
@@ -40,15 +40,18 @@ class Query {
 		return p.parseString( s );
 	}
 
-	public function execute( index:Map<Int,Dynamic>
-	, ?aliases:Map<String,Iterable<Int>> ):Iterable<Dynamic> {
+	public function execute( index:Map<Dynamic,Dynamic>
+	, ?aliases:Map<String,Dynamic> ):Iterable<Dynamic> {
 		var res = [];
 		// trace( exactId );
 		// trace( exactAlias );
 		if ( exactAlias != null ) {
 			if ( aliases == null )
 				throw "No alias available";
-			for ( rid in aliases.get( exactAlias ) ) {
+			var alias:Iterable<Int> = aliases.get( exactAlias );
+			if ( alias == null )
+				return [];
+			for ( rid in alias ) {
 				if ( !index.exists( rid ) )
 					throw "No object for id '"+rid+"' from alias '"+exactAlias+"'";
 				var r = index.get( rid );
@@ -68,8 +71,6 @@ class Query {
 		else {
 			for ( r in index ) {
 				interp.variables.set( "__record__", r );
-				// trace( r );
-				// trace( interp.execute( ast ) );
 				if ( interp.execute( ast ) == true )
 					res.push( r );
 			}
@@ -113,13 +114,13 @@ class Query {
 		case EBinop("==",EConst(ct), EIdent("alias")):
 			remapBinop( EBinop("==",EIdent("alias"),EConst(ct)) );
 		case EBinop("==",EIdent("alias"),EConst(ct)):
-			if ( exactAlias != null ) {
+			if ( exactAlias == null ) {
 				exactAlias = switch ( ct ) {
 				case CInt(v): Std.string( v );
 				case CFloat(v): Std.string( v );
 				case CString(v): v;
 				}
-				binop;
+				EBinop("==",EIdent("true"),EIdent("true"));
 			}
 			else {
 				throw "`alias` can only be used (once) to match a constant";
