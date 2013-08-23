@@ -25,14 +25,14 @@ class OnlineDigraph {
 		genDigraph();
 	}
 
-	public function run( od:elebeta.ett.rodoTollSim.OD, volumes:Bool, path:Bool ) {
+	public function run( od:elebeta.ett.rodoTollSim.OD, weight:Float, volumes:Bool, path:Bool ) {
 		
 		var origin = findEntry( od.origin.x, od.origin.y ); // find closest
 		var destination = findEntry( od.destination.x, od.destination.y ); // find closest
 
 		// trace( destination );
 		if ( origin == destination ) {
-			sim.state.results.set( od.id, ODResult.make( od.id, false, false, null, null, null, null, null, null ) );
+			sim.state.results.set( od.id, ODResult.make( od.id, weight, false, false, null, null, null, null, null, null ) );
 			return;
 		}
 
@@ -43,13 +43,13 @@ class OnlineDigraph {
 
 		var t = dg.getVertex( destination );
 		if ( t.parent == null ) {
-			sim.state.results.set( od.id, ODResult.make( od.id, true, false, null, null, null, null, null, null ) );
+			sim.state.results.set( od.id, ODResult.make( od.id, weight, true, false, null, null, null, null, null, null ) );
 			return;
 		}
 
-		var res = ODResult.make( od.id, true, true, t.dist, t.time, t.toll, t.cost, null, null );
+		var res = ODResult.make( od.id, weight, true, true, t.dist, t.time, t.toll, t.cost, null, null );
 		if ( volumes || path ) {
-			var traversor = new Traversor( volumes, path, vehicle );
+			var traversor = new Traversor( weight, vehicle, volumes, path );
 			dg.revPathFold( destination, traversor.traverse, 0 );
 			if ( traversor.volumes != null ) {
 				for ( v in traversor.volumes )
@@ -120,21 +120,23 @@ class OnlineDigraph {
 private class Traversor {
 
 	private var v:def.VehicleClass;
+	private var w:Float;
 	public var volumes:Array<LinkVolume>;
 	public var path:List<Int>;
 
-	public function new( saveVolumes, savePath, vclass:def.VehicleClass ) {
+	public function new( weight:Float, vclass:def.VehicleClass, saveVolumes, savePath ) {
+		w = weight;
+		v = vclass;
 		if ( saveVolumes )
 			volumes = [];
 		if ( savePath )
 			path = new List();
-		v = vclass;
 	}
 
 	public inline function traverse( a:Arc, pre:Int ):Int {
 		if ( !a.isPseudo() ) {
 			if ( volumes != null )
-				volumes.push( LinkVolume.make( a.link.id, 1, v.noAxis, v.tollMulti, v.equiv ) );
+				volumes.push( LinkVolume.make( a.link.id, w, v.noAxis*w, v.tollMulti*w, v.equiv*w ) );
 			if ( path != null )
 				path.push( a.link.id );
 			return pre + 1;

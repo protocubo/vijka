@@ -454,6 +454,7 @@ class SimulatorAPI extends mcli.CommandLine {
 			println( "No O/D records... Try to remove the filter with --clear-od-filter" );
 			return;
 		}
+		var wgts = sim.state.sampleWeights != null ? sim.state.sampleWeights : null;
 		var saveVols = readBool( volumes, false );
 		var savePath = readBool( path, false );
 		assemble();
@@ -467,7 +468,10 @@ class SimulatorAPI extends mcli.CommandLine {
 		var i = 0;
 		print( "\rRunning "+i+"/"+odCnt );
 		for ( od in ods ) {
-			G.run( od, saveVols, savePath );
+			var w = od.sampleWeight;
+			if ( wgts != null && wgts.exists( od.id ) )
+				w = wgts.get( od.id );
+			G.run( od, w, saveVols, savePath );
 			i++;
 			if ( haxe.Timer.stamp() - lt > .2 ) {
 				lt = haxe.Timer.stamp();
@@ -593,12 +597,20 @@ class SimulatorAPI extends mcli.CommandLine {
 
 		if ( azUsg || azOds ) { // output O/D record ids
 			users = [];
-			for ( r in res )
+			for ( r in res ) {
 				if ( r.path != null ) {
+					if ( svUsg )
+						r.escaped = true;
 					resCnt++;
-					if ( has( r.path, link.id ) )
+					if ( has( r.path, link.id ) ) {
 						users.push( r.id );
+						if ( svUsg )
+							r.escaped = false;
+					}
 				}
+				else if ( svUsg )
+					r.escaped = null;
+			}
 			users.sort( Reflect.compare );
 			if ( azOds )
 				println( "  * "+users.length+" O/D records using link: { "+users.join(", ")+" }" );
@@ -641,9 +653,6 @@ class SimulatorAPI extends mcli.CommandLine {
 			+"% "+strnum(pConf_AgrestiCoull(n,p,.05)*1e2,2,14)+"%" );
 		}
 
-		if ( svUsg ) { 
-			//
-		}
 	}
 	private function pConf_NPQ( sampleSize:Float, prob:Float, conf:Float ) {
 		return zscore( .5*conf )*Math.sqrt( sampleSize*prob*( 1. - prob ) )/sampleSize;
