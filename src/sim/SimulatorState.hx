@@ -9,6 +9,20 @@ class SimulatorState {
 
 	public var newline:String;
 
+	// all internal data will be on this encoding
+	// default: UTF8 on Linux, ISO on Windows
+	public var internalEncoding:Encoding;
+	// all screen i/o will be on this encoding
+	// also, all data with explicit encoding (such as ETT)  will be assumed
+	// to be on this encoding
+	// default: UTF8 on Linux, ISO on Windows...
+	public var screenEncoding:Encoding;
+	// all regular output will be on this encoding
+	// this excludes the output of --save
+	// default: UTF8 on Linux, ISO on Windows
+	public var outputEncoding:Encoding;
+	// Node: on Windows, by default, the prompt and Excel do NOT share the same encoding
+
 	public var nodes:Null<Map<Int,Node>>;
 	public var linkTypes:Null<Map<Int,LinkType>>;
 	public var links:Null<Map<Int,Link>>;
