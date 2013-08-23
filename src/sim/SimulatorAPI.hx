@@ -123,8 +123,8 @@ class SimulatorAPI extends mcli.CommandLine {
 	// LINK I/O -----------------------------------------------------------------
 
 	/**
-		Read links from Link ETT in `path` (reentrant); requires nodes and link types;
-		extensions should be in km
+		Read links from Link ETT in `path` (reentrant); requires nodes and link
+		types; extensions should be in km
 	**/
 	public function readLinks( path:String ) {
 		if ( sim.state.links == null ) {
@@ -164,6 +164,72 @@ class SimulatorAPI extends mcli.CommandLine {
 		println( "Counted "+cnt+" links" );
 	}
 
+
+
+	// LINK SHAPE I/O -----------------------------------------------------------
+
+	/**
+		Read link shape from LinkShape ETT in `path` (reentrant); shapes for
+		unknown links are just ignored
+	**/
+	public function readShapes( path:String ) {
+		if ( sim.state.shapes == null ) {
+			println( "Reading link shapes" );
+			sim.state.shapes = new Map();
+		}
+		else {
+			println( "Reading additional link shapes; overwriting when necessary" );
+		}
+		var links = sim.state.links; // just a shortcut
+		if ( links == null || !links.iterator().hasNext() )
+			return; // no links
+		var shapes = sim.state.shapes; // just a shortcut
+		var einp = readEtt( path );
+		while ( true ) {
+			var shape = try { einp.fastReadRecord( LinkShape.makeEmpty() ); }
+			           catch ( e:Eof ) { null; };
+			if ( shape == null ) break;
+			if ( links.exists( shape.id ) )
+				shapes.set( shape.id, shape );
+		}
+		einp.close();
+	}
+
+	/**
+		Count links with custom shapes
+	**/
+	public function countShapes() {
+		var cnt = sim.state.shapes != null ? count( sim.state.shapes ) : 0;
+		println( "Counted "+cnt+" links with custom shapes" );
+	}
+
+	/**
+		Compress link shapes; removes all shapes redundant with the default ones
+		(that are based on start and finish nodes)
+	**/
+	public function compressShapes() {
+		var oldShapes = sim.state.shapes; // just a shortcut
+		if ( oldShapes == null )
+			return;
+		println( "Compressing link shape data" );
+		var shapes = new Map();
+		for ( s in oldShapes )
+			if ( s.shape.length > 2 )
+				shapes.set( s.id, s );
+		sim.state.shapes = shapes;
+		println( "All shapes with only 2 points have been removed" );
+	}
+
+	/**
+		Clear link shapes; when necessary the default ones (that are based on
+		start and finish nodes)
+	**/
+	public function clearShapes() {
+		if ( sim.state.shapes != null ) {
+			println( "Clearing link shape data; default shapes will be used" );
+			sim.state.shapes = null;
+		}
+	}
 
 
 	// VEHICLE I/O --------------------------------------------------------------
