@@ -17,7 +17,7 @@ import sim.SimulatorState;
 
 private typedef Thread = #if ( neko )                             neko.vm.Thread;
                          #elseif ( cpp && HXCPP_MULTI_THREADED )   cpp.vm.Thread;
-                         #elseif ( java )                              Null<Int>;
+                         #elseif ( java )                         java.vm.Thread;
                          #else                                         Null<Int>;
                          #end
 
@@ -267,7 +267,7 @@ class OnlineDigraph {
 		#elseif ( cpp && HXCPP_MULTI_THREADED )
 		Thread.create( main );
 		#elseif ( java )
-		throw "Threads not avaibable in this build";
+		Thread.create( main );
 		#else
 		throw "Threads not avaibable in this build";
 		#end
@@ -279,7 +279,7 @@ class OnlineDigraph {
 		#elseif ( cpp && HXCPP_MULTI_THREADED )
 		Thread.readMessage( block );
 		#elseif ( java )
-		throw "Threads not avaibable in this build";
+		Thread.readMessage( block );
 		#else
 		throw "Threads not avaibable in this build";
 		#end
@@ -291,7 +291,7 @@ class OnlineDigraph {
 		#elseif ( cpp && HXCPP_MULTI_THREADED )
 		thread.sendMessage( new Message( from, data ) );
 		#elseif ( java )
-		throw "Threads not avaibable in this build";
+		thread.sendMessage( new Message( from, data ) );
 		#else
 		throw "Threads not avaibable in this build";
 		#end
@@ -303,7 +303,7 @@ class OnlineDigraph {
 		#elseif ( cpp && HXCPP_MULTI_THREADED )
 		Thread.current();
 		#elseif ( java )
-		throw "Threads not avaibable in this build";
+		Thread.current();
 		#else
 		throw "Threads not avaibable in this build";
 		#end
