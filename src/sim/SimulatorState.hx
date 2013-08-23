@@ -21,13 +21,15 @@ class SimulatorState {
 	public var activeOds:Null<Array<OD>>;
 	public var activeOdFilter:Null<Array<String>>;
 
+	public var sampleWeights:Null<Map<Int,Float>>; // maps OD::id to Float expansion factor
+
 	public var volumes:Null<Map<Int,LinkVolume>>;
-	public var results:Null<Map<Int,ODResult>>; // TODO implement
+	public var results:Null<Map<Int,ODResult>>;
 
 	public var algorithm:Algorithm;
 
 	public var network:Null<OnlineNetwork>;
-	public var digraph:Null<OnlineDigraph>; // TODO adapt to new TUI and Dijkstra/A*
+	public var digraph:Null<OnlineDigraph>;
 
 	public var heapArity:Int;
 	public var heapReserve:Int;

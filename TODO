@@ -10,31 +10,31 @@ Main implementation:
     ✔ O/D survey @done (13-07-26)
   ☐ Shortest paths:
     ✔ Basic: Bellman-Ford @done (13-07-26)
-    ☐ Bellman-Ford optimization:
-      ☐ Early exit
+    ✔ Bellman-Ford optimization: @done (13-08-20)
+      ✔ Early exit @done (13-08-18)
       ☐ Full optimization @comment (implement an actual queue of arcs yet to be relaxed)
-    ☐ Improved/faster: Dijkstra @comment (really only depends on a good D-ary heap)
-    ☐ Are there any heuristics that can be used? @comment (it's hard to find a valid estimate function for A*)
-  ☐ General structures, algorithms and formats:
+    ✔ Improved/faster: Dijkstra @comment (really only depends on a good D-ary heap) @done (13-08-21 18:35)
+    ✔ Are there any heuristics that can be used? @done (13-08-21)
+  ✔ General structures, algorithms and formats: @done (13-08-21)
     ✔ CSV input @comment (port/optimize from jonasmalacofilho/jonas-haxe) @done (13-08-05)
-    ☐ D-ary heap @comment (port/optimize from jonasmalacofilho/jonas-haxe)
-    ☐ R-Tree (RjTree and Sqlite R-Tree) @comment (port/optimize from jonasmalacofilho/jonas-haxe)
+    ✔ D-ary heap @comment (port/optimize from jonasmalacofilho/jonas-haxe) @done (13-08-21)
+    ✔ R-Tree (RjTree) @comment (port from jonasmalacofilho/jonas-haxe) @done (13-08-21)
   ✔ Generic Elebeta Text Table (ETT) @done (13-08-07)
-  ☐ Network formats:
-    ☐ Node
-    ☐ Link
-  ☐ O/D survey data format
-  ☐ Simulator application:
-    ☐ Settings
-    ☐ Input
-    ☐ Run
-    ☐ Output
-  ☐ Volume output mode assignment
+  ✔ Network formats: @done (13-08-20)
+    ✔ Node @done (13-08-18)
+    ✔ Link @done (13-08-18)
+  ✔ O/D survey data format @done (13-08-20)
+  ✔ Simulator application: @done (13-08-21)
+    ✔ Settings @done (13-08-21)
+    ✔ Input @done (13-08-21)
+    ✔ Run @done (13-08-21)
+    ✔ Output @done (13-08-21)
+  ✔ Volume output mode assignment @done (13-08-21)
 
 Additional (optional) improvements:
   ☐ Compute error estimes during the assignments
   ☐ Compute debug/auxiliary graphs during the assignments
-  ☐ Build maps of the network and/or of the assignment volumes during/after the assignments
+  ✔ Build maps of the network and/or of the assignment volumes during/after the assignments @done (13-08-20)
 
 Unit testing:
   ✔ Digraph construction @done (13-07-29)
@@ -42,10 +42,10 @@ Unit testing:
   ✔ Volume output assignment @comment (the fold function can be used for this) @done (13-07-30)
 
 Performance testing:
-  ☐ Bellman-Ford performance with full network and all O/D surveys
+  ✔ Bellman-Ford performance with full network and all O/D surveys @done (13-08-20)
 
 Production testing:
-  ☐ Full O/D assignment:
-    ☐ Dist costs only
-    ☐ Time costs only
-    ☐ Dist+time costs
+  ✔ Full O/D assignment: @done (13-08-21)
+    ✔ Dist costs only @done (13-08-21)
+    ✔ Time costs only @done (13-08-21)
+    ✔ Dist+time costs @done (13-08-21)
