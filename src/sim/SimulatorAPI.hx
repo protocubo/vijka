@@ -340,7 +340,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		if ( sim.state.activeOdFilter == null )
 			println( "No O/D filter at the moment... All available data selected" );
 		else
-			println( "Selected O/D records where "+sim.state.activeOdFilter.join("\n\t&& ") );
+			println( "Selected O/D records where "+sim.state.activeOdFilter.join("\n    && ") );
 	}
 
 	/**
@@ -462,8 +462,8 @@ class SimulatorAPI extends mcli.CommandLine {
 		if ( saveVols && sim.state.volumes == null ) sim.state.volumes = new Map();
 		var G = sim.state.digraph;
 		showAlgorithm();
-		println( "\tD-ary heap arity = "+G.heapArity );
-		println( "\tD-ary heap initial reserve = "+G.heapReserve );
+		println( "    D-ary heap arity = "+G.heapArity );
+		println( "    D-ary heap initial reserve = "+G.heapReserve );
 		var lt = haxe.Timer.stamp();
 		var i = 0;
 		print( "\rRunning "+i+"/"+odCnt );
@@ -517,7 +517,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		fout.writeString( '{"type":"FeatureCollection","features":['+sim.newline );
 		var first = true;
 		for ( v in volumes ) {
-			if ( first ) first = false; else fout.writeString( ","+sim.newline );
+			if ( first ) first = false; else fout.writeString( ","+sim.newline+"\t" );
 			fout.writeString( geojsonVolume( v ) );
 		}
 		fout.writeString( sim.newline+"] }"+sim.newline );
@@ -739,7 +739,7 @@ class SimulatorAPI extends mcli.CommandLine {
 	public function showLog() {
 		println( "Showing the current log" );
 		printHL( "-" );
-		println( "\t// "+sim.log.join( "\n\t// " ) );
+		println( "    :: "+sim.log.join( "\n    :: " ) );
 	}
 
 
