@@ -489,6 +489,7 @@ class SimulatorAPI extends mcli.CommandLine {
 	}
 
 
+
 	// VOLUME I/O ---------------------------------------------------------------
 
 	/**
@@ -524,8 +525,6 @@ class SimulatorAPI extends mcli.CommandLine {
 		fout.close();
 	}
 
-
-
 	
 
 	// RESULTS I/O --------------------------------------------------------------
@@ -543,6 +542,7 @@ class SimulatorAPI extends mcli.CommandLine {
 			eout.write( v );
 		eout.close();
 	}
+
 
 
 	// RESULT ANALYSIS ----------------------------------------------------------
