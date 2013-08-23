@@ -2,12 +2,17 @@ package elebeta.ett.rodoTollSim;
 
 import format.ett.Data;
 
-class Vehicle {
+class Vehicle  {
 	public var id:Int;
 	public var noAxis:Int;
 	public var tollMulti:Float;
 	public var eqNo:Float;
 	public var name:Null<String>;
+
+	public function toString() {
+		return 'Vehicle id: $id\n  # axis: $noAxis\n  # tolls: $tollMulti\n'
+		+'  # equivalent vehicles: $eqNo\n  name: $name';
+	}
 
 	public static function ettFields():Array<Field> {
 		return [

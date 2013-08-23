@@ -20,7 +20,7 @@ import Std.parseInt;
 import Std.string;
 
 import sim.Algorithm;
-import sim.col.*;
+import sim.col.LinkTypeSpeedMap;
 import sim.Query;
 
 import sim.Simulator.print;
@@ -676,7 +676,7 @@ class SimulatorAPI extends mcli.CommandLine {
 						r.escaped = true;
 					resCnt++;
 					if ( has( r.path, link.id ) ) {
-						users.push( r.id );
+						users.push( r.odId );
 						if ( svUsg )
 							r.escaped = false;
 					}
@@ -992,6 +992,38 @@ class SimulatorAPI extends mcli.CommandLine {
 		for ( r in table )
 			eout.write( r );
 		eout.close();
+	}
+
+	/**
+		[ADVANCED] Query any table of objects, optionally specifying another
+		suitable alias table
+	**/
+	public function justQuery( table:String, type:String, expression:String, ?aliases:String ) {
+		var idName = switch ( table ) {
+		case "volumes": "linkId";
+		case "results": "odId";
+		case "speeds": "key";
+		case all: "id";
+		}
+		println( "Attempting to query table "+table+" with '"+expression+"'" );
+		var index:Map<Int,Dynamic> = Reflect.field( sim.state, table );
+		if ( table == null )
+			throw "No table";
+		var alias:Map<String,Iterable<Int>> = aliases != null ? Reflect.field( sim.state, aliases ) : null;
+		var q = Query.prepare( expression, idName );
+		switch ( type.toLowerCase() ) {
+		case "show", "list":
+			for ( v in q.execute( index, alias ) )
+				println( Std.string( v ) );
+		case "head":
+			var cnt = 0;
+			for ( v in q.execute( index, alias ) )
+				if ( cnt++ < 20 )
+					println( Std.string( v ) );
+		case "count":
+			println( "Counted "+count( q.execute( index, alias ) )+" records" );
+		}
+
 	}
 
 	/**

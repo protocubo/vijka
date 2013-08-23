@@ -4,6 +4,7 @@ import format.ett.Data;
 import sim.col.LinkTypeSpeedMap;
 
 class LinkTypeSpeed implements LinkTypeSpeedMapKey {
+	public var key:String;
 	public var typeId:Int;
 	public var vehicleId:Int;
 	public var speed:Float;

@@ -5,7 +5,7 @@ import format.ett.Geometry;
 
 class ODResult {
 
-	public var id:Int;
+	public var odId:Int;
 	public var weight:Float;
 	public var ran:Bool;
 	public var reached:Bool;
@@ -22,7 +22,7 @@ class ODResult {
 
 	public static function ettFields():Array<Field> {
 		return [
-			new Field( "id", TInt ),
+			new Field( "odId", TInt ),
 			new Field( "weight", TFloat ),
 			new Field( "ran", TBool ),
 			new Field( "reached", TBool ),
@@ -35,9 +35,9 @@ class ODResult {
 		];
 	}
 
-	public static function make( id, weight, ran, reached, ?dist, ?time, ?toll, ?cost, ?escaped, ?path ):ODResult {
+	public static function make( odId, weight, ran, reached, ?dist, ?time, ?toll, ?cost, ?escaped, ?path ):ODResult {
 		var res = new ODResult();
-		res.id = id;
+		res.odId = odId;
 		res.weight = weight;
 		res.ran = ran;
 		res.reached = reached;

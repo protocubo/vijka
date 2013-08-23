@@ -8,6 +8,10 @@ class Node {
 	public var id:Int;
 	public var point:Point;
 
+	public function toString() {
+		return 'Node id: $id';
+	}
+
 	public static function ettFields():Array<Field> {
 		return [
 			new Field( "id", TInt ),

@@ -11,28 +11,32 @@ class LinkTypeSpeedMap {
 	}
 
 	public function set( k:LinkTypeSpeedMapKey, v:LinkTypeSpeed ):Void {
-		inner.set( reKey(k), v );
+		var key = rekey(k);
+		if ( k.key != key )
+			k.key = key;
+		inner.set( k.key, v );
 	}
 
 	public function get( k:LinkTypeSpeedMapKey ):Null<LinkTypeSpeed> {
-		return inner.get( reKey(k) );
+		return inner.get( rekey(k) );
 	}
 
 	public function exists( k:LinkTypeSpeedMapKey ):Bool {
-		return inner.exists( reKey(k) );
+		return inner.exists( rekey(k) );
 	}
 
 	public function iterator():Iterator<LinkTypeSpeed> {
 		return inner.iterator();
 	}
 
-	private static function reKey( k:LinkTypeSpeedMapKey ):String {
-		return k.typeId+":"+k.vehicleId;
+	public static function rekey( k:LinkTypeSpeedMapKey ):String {
+		return k.typeId+","+k.vehicleId;
 	}
 
 }
 
 class TypeNVehicle implements LinkTypeSpeedMapKey {
+	public var key:String;
 	public var typeId:Int;
 	public var vehicleId:Int;
 	public function new( _typeId, _vehicleId ) {
@@ -42,6 +46,7 @@ class TypeNVehicle implements LinkTypeSpeedMapKey {
 }
 
 interface LinkTypeSpeedMapKey {
+	public var key:String;
 	public var typeId:Int;
 	public var vehicleId:Int;
 }
