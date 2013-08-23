@@ -450,7 +450,7 @@ class SimulatorAPI extends mcli.CommandLine {
 	/**
 		Execute/run saving `volumes` and/or `path`
 	**/
-	public function run( volumes:String, path:String ) {
+	public function run( ?volumes:String, ?path:String ) {
 		var ods:Iterable<OD> = sim.state.activeOds != null ? sim.state.activeOds : sim.state.ods;
 		if ( ods == null ) throw "No O/D data";
 		var odCnt = count( ods );
@@ -459,12 +459,14 @@ class SimulatorAPI extends mcli.CommandLine {
 			return;
 		}
 		var wgts = sim.state.sampleWeights != null ? sim.state.sampleWeights : null;
-		var saveVols = readBool( volumes, false );
-		var savePath = readBool( path, false );
+		var saveVols = readBool( volumes, true ) != false;
+		var savePath = readBool( path, true ) != false;
 		assemble();
 		if ( sim.state.results == null ) sim.state.results = new Map();
 		if ( saveVols && sim.state.volumes == null ) sim.state.volumes = new Map();
 		var G = sim.state.digraph;
+		if ( saveVols ) println( "Saving link volumes" );
+		if ( savePath ) println( "Saving selected paths" );
 		showAlgorithm();
 		println( "    D-ary heap arity = "+G.heapArity );
 		println( "    D-ary heap initial reserve = "+G.heapReserve );
@@ -499,7 +501,7 @@ class SimulatorAPI extends mcli.CommandLine {
 	/**
 		Write volumes to LinkVolume ETT in `path`; will overwrite existing files
 	**/
-	public function writeVolumes( path:String ) {
+	public function ettVolumes( path:String ) {
 		println( "Writing volumes" );
 		var volumes = sim.state.volumes; // just a shortcut
 		if ( volumes == null )
@@ -1086,13 +1088,17 @@ class SimulatorAPI extends mcli.CommandLine {
 		};
 	}
 
-	private function readBool( s:String, ?nullable=true ):Null<Bool> {
-		return switch ( s.toLowerCase() ) {
-		case "", "_", "*", "a", "all": if ( nullable ) null; else throw "Invalid Bool "+s;
-		case "false", "no", "n", "0": false;
-		case "true", "yes", "y", "1": true;
-		case all: throw "Invalid Bool "+s;
-		};
+	private function readBool( s:Null<String>, ?nullable=true ):Null<Bool> {
+		if ( s == null )
+			if ( nullable ) return true;
+			else throw "Boll cannot be null";
+		else
+			return switch ( s.toLowerCase() ) {
+			case "", "_", "*", "a", "all": if ( nullable ) null; else throw "Invalid Bool "+s;
+			case "false", "no", "n", "0": false;
+			case "true", "yes", "y", "1": true;
+			case all: throw "Invalid Bool "+s;
+			};
 	}
 
 	private static function readSet( s:String, ?nullable=true ):Null<Array<String>> {
