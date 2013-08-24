@@ -9,7 +9,7 @@ class Node {
 	public var point:Point;
 
 	public function toString() {
-		return 'Node id: $id';
+		return 'Node id: $id\n  => [lon lat]: [${point.rawString()}]';
 	}
 
 	public static function ettFields():Array<Field> {

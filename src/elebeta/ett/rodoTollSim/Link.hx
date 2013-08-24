@@ -12,8 +12,8 @@ class Link {
 	public var toll:Float;
 
 	public function toString() {
-		return 'Link id:$id\n  start node: $startNodeId\n  finish node: $finishNodeId\n  '
-		+'extension: $extension\n  type: $typeId\n  toll: $toll';
+		return 'Link \'$id\', from node \'$startNodeId\' to node \'$finishNodeId\'\n'
+		+'  => extension: $extension, type: $typeId, toll: $toll';
 	}
 
 	public function jsonBody():String {

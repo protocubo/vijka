@@ -16,6 +16,14 @@ class ODResult {
 	public var escaped:Null<Bool>;
 	public var path:Null<Array<Int>>; // array of link ids
 
+	public function toString() {
+		var strPath = path != null ? "["+(path.length>3?"...":path.join(","))+"]" : "null";
+		return 'OD result for record \'$odId\'\n'
+		+'  => weight: $weight, ran?: $ran, reached?: $reached\n'
+		+'     distance: $dist, time: $time, toll: $toll, total cost: $cost\n'
+		+'     ?escaped: $escaped, path: $strPath';
+	}
+
 	public static function makeEmpty():ODResult {
 		return new ODResult();
 	}

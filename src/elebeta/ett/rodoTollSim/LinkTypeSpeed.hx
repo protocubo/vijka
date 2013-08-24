@@ -9,6 +9,10 @@ class LinkTypeSpeed implements LinkTypeSpeedMapKey {
 	public var vehicleId:Int;
 	public var speed:Float;
 
+	public function toString() {
+		return 'Type \'$typeId\' and vehicle \'$vehicleId\'\n  => speed: $speed';
+	}
+
 	public static function ettFields():Array<Field> {
 		return [
 			new Field( "typeId", TInt ),

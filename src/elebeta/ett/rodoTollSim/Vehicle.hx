@@ -10,8 +10,9 @@ class Vehicle  {
 	public var name:Null<String>;
 
 	public function toString() {
-		return 'Vehicle id: $id\n  # axis: $noAxis\n  # tolls: $tollMulti\n'
-		+'  # equivalent vehicles: $eqNo\n  name: $name';
+		return 'Vehicle \'$id\'\n  '
+		+'  => #axis: $noAxis, #tolls: $tollMulti, #equivalent vehicles: $eqNo,\n'
+		+'  => name: "$name"';
 	}
 
 	public static function ettFields():Array<Field> {

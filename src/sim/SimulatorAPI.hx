@@ -295,6 +295,29 @@ class SimulatorAPI extends mcli.CommandLine {
 		einp.close();
 	}
 
+	/**
+		Clear all aliases
+	**/
+	public function clearAliases() {
+		sim.state.aliases = null;
+	}
+
+	/**
+		Show aliases
+	**/
+	public function showAliases() {
+		if ( sim.state.aliases == null )
+			println( "No aliases" );
+		var aliases = sim.state.aliases;
+		var names = [ for ( name in aliases.keys() ) name ];
+		names.sort( Reflect.compare );
+		println( "Showing aliases:" );
+		for ( name in names ) {
+			var cnt = count( aliases.get( name ) );
+			println( "  '"+name+"': "+cnt+" links" );
+		}
+	}
+
 
 
 	// VEHICLE I/O --------------------------------------------------------------

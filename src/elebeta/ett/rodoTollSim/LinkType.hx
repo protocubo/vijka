@@ -7,7 +7,7 @@ class LinkType {
 	public var name:Null<String>;
 
 	public function toString() {
-		return 'Link type id: $id\n  name: $name';
+		return 'Link type \'$id\'\n  => name: "$name"';
 	}
 
 	public static function ettFields():Array<Field> {

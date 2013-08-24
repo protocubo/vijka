@@ -8,7 +8,7 @@ class LinkAlias {
 	public var linkId:Int;
 
 	public function toString() {
-		return 'Name \'$name\' => Link id $linkId';
+		return 'Alias \'$name\'\n  => link id $linkId';
 	}
 
 	public static function ettFields():Array<Field> {

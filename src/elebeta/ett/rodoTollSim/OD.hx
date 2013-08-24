@@ -18,6 +18,13 @@ class OD {
 	public var origin:Point;
 	public var destination:Point;
 
+	public function toString() {
+		return 'OD record \'$id\', of lot \'$lot\', on section \'$section\', on direction \'$direction\'\n'
+		+'  => vehicle: $vehicleId, cargo: "$cargo", sample weight: $sampleWeight\n'
+		+'     cdist: $distWeight, ctime_o: $timeOperationalWeight, ctime_s: $timeSocialWeight\n'
+		+'     origin [lon lat]: [${origin.rawString()}], destination [lon lat]: [${destination.rawString()}]';
+	}
+
 	public static function makeEmpty():OD {
 		return new OD();
 	}
