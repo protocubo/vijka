@@ -10,7 +10,7 @@ class Vehicle  {
 	public var name:Null<String>;
 
 	public function toString() {
-		return 'Vehicle \'$id\'\n  '
+		return 'Vehicle \'$id\'\n'
 		+'  => #axis: $noAxis, #tolls: $tollMulti, #equivalent vehicles: $eqNo,\n'
 		+'  => name: "$name"';
 	}
