@@ -378,7 +378,10 @@ class OnlineDigraph {
 			actual.results.set( r.odId, r );
 		if ( actual.volumes != null )
 			for ( r in pseudo.volumes )
-				actual.volumes.set( r.linkId, r );
+				if ( actual.volumes.exists( r.linkId ) )
+					actual.volumes.get( r.linkId ).sum( r );
+				else
+					actual.volumes.set( r.linkId, r );
 	}
 
 	private function genStubDigraph() {
