@@ -132,7 +132,7 @@ class Query {
 			if ( name == idName ) {
 				if ( exactId != null )
 					exactId = v;
-				EBinop("==",remap(EIdent("id")),EConst(CInt(v)));
+				EBinop("==",remap(EIdent(name)),EConst(CInt(v)));
 			}
 			else
 				EBinop("==",remap(EIdent(name)),EConst(CInt(v)));

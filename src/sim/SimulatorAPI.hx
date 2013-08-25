@@ -822,6 +822,30 @@ class SimulatorAPI extends mcli.CommandLine {
 	// VOLUME I/O ---------------------------------------------------------------
 
 	/**
+		Show link volumes with optional `filter` expression and output `type`;
+		`type` can be "show", "head" or "count" (default)
+	**/
+	public function queryVolumes( ?filter="true==true", ?type="count" ) {
+		if ( sim.state.volumes == null )
+			throw "No volumes";
+		println( "Showing link volumes matching '"+filter+"'" );
+		var q = Query.prepare( filter, "linkId" );
+		switch ( type.toLowerCase() ) {
+		case "show", "list":
+			for ( v in q.execute( sim.state.volumes, sim.state.aliases ) )
+				println( Std.string( v ) );
+		case "head":
+			var cnt = 0;
+			for ( v in q.execute( sim.state.volumes, sim.state.aliases ) )
+				if ( cnt++ < 20 )
+					println( Std.string( v ) );
+		case "count":
+			println( "Counted "+count( q.execute( sim.state.volumes, sim.state.aliases ) )+" records" );
+			println( "Pass \"show\" or \"head\" in the optional parameter `type` for more information" );
+		}
+	}
+
+	/**
 		Write volumes to LinkVolume ETT in `path`; will overwrite existing files
 	**/
 	public function ettVolumes( path:String ) {
@@ -857,6 +881,31 @@ class SimulatorAPI extends mcli.CommandLine {
 	
 
 	// RESULTS I/O --------------------------------------------------------------
+
+	/**
+		Show results with optional `filter` expression and output `type`;
+		`type` can be "show", "head" or "count" (default)
+	**/
+	public function queryResults( ?filter="true==true", ?type="count" ) {
+		if ( sim.state.results == null )
+			throw "No results";
+		println( "Showing results matching '"+filter+"'" );
+		var q = Query.prepare( filter, "odId" );
+		switch ( type.toLowerCase() ) {
+		case "show", "list":
+			for ( v in q.execute( sim.state.results, sim.state.aliases ) )
+				println( Std.string( v ) );
+		case "head":
+			var cnt = 0;
+			for ( v in q.execute( sim.state.results, sim.state.aliases ) )
+				if ( cnt++ < 20 )
+					println( Std.string( v ) );
+		case "count":
+			println( "Counted "+count( q.execute( sim.state.results, sim.state.aliases ) )+" records" );
+			println( "Pass \"show\" or \"head\" in the optional parameter `type` for more information" );
+		}
+	}
+
 
 	/**
 		Write results to ODResults ETT in `path`; will overwrite existing files
