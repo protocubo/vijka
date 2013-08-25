@@ -635,15 +635,18 @@ class SimulatorAPI extends mcli.CommandLine {
 
 	/**
 		Save results in cold storage for later output or visualization under `key`;
-		defaults to saving link volumes and discarting paths
+		defaults to saving link volumes and paths; this effectively removes these
+		results from the active simulator state, so they are _no_ longer available
+		to regular analysis and export tools
 	**/
 	public function storeResults( key:String, ?saveVolumes:String, ?savePaths:String ) {
 		if ( sim.state.results == null )
 			throw "No results";
 
 		var vols = readBool( saveVolumes );
+		if ( vols == null ) vols = true;
 		var paths = readBool( savePaths );
-		if ( paths == null ) paths = false;
+		if ( paths == null ) paths = true;
 
 		if ( vols && sim.state.volumes == null )
 			throw "No volumes";
@@ -660,6 +663,43 @@ class SimulatorAPI extends mcli.CommandLine {
 		var box = new StorageBox( key, rs, vs, !paths );
 
 		st.set( box.key, box );
+
+		sim.state.results = null;
+		sim.state.volumes = null;
+	}
+
+	/**
+		Restore cold stored results; this removes then from cold storage and puts
+		them in the active simulator state, so they are available for regular
+		analysis and export tools such as --analyze, --ett-results and
+		--geojson-volumes
+	**/
+	public function restoreResults( key:String ) {
+		if ( sim.state.coldStorage == null )
+			throw "No cold storage";
+
+		var box = sim.state.coldStorage.get( key );
+		if ( box == null )
+			throw "No box for \""+key+"\"";
+
+		var res = new Map();
+		for ( r in box.results() )
+			res.set( r.odId, r );
+		if ( sim.state.results != null )
+			println( "Replacing active results" );
+		sim.state.results == res;
+
+		var bvols = box.volumes();
+		if ( bvols != null ) {
+			var vols = new Map();
+			for ( v in bvols )
+				vols.set( v.linkId, v );
+			if ( sim.state.volumes != null )
+				println( "Replacing active results" );
+			sim.state.volumes = vols;
+		}
+
+		sim.state.coldStorage.remove( key );
 	}
 
 	/**
@@ -876,6 +916,9 @@ class SimulatorAPI extends mcli.CommandLine {
 			if ( azOds )
 				println( "  * "+users.length+" O/D records using links ["
 				+linkIds.join(", ")+"]: "+users.join(", ") );
+			if ( resCnt == 0 )
+				println( "    WARNING: no OD results with path information;"
+				+" maybe this was lost during lossy cold storage (--store-results) or this was never saved in --run" );
 		}
 
 		if ( azVol ) { // output volumes
@@ -892,27 +935,31 @@ class SimulatorAPI extends mcli.CommandLine {
 			}
 		}
 
-		if ( azUsg ) { // output usage (prob) and error
+		if ( azUsg && resCnt > 0 ) { // output usage (prob) and error
 			println( "  * result analysis:" );
 			var n = resCnt;
-			var p = users.length/resCnt;
-			var s = Math.sqrt( n*p*( 1. - p ) );
 			println( "    "+left(n,5)+"  allocated O/D pairs" );
+			var p = users.length/resCnt;
 			println( "    "+left(users.length,5)+"  pairs using ("+strnum(p*100,1,1)+"%)" );
-			println( "    "+left(strnum(s,2,0),5)+"  standard deviation ("+strnum(s/n*100,1,1)+"%)" );
-			println( "    error(+/-):        NPQ    Wald   Agresti-Coull" );
-			printError( resCnt, p, .7 );
-			printError( resCnt, p, .9 );
-			printError( resCnt, p, .95 );
-			var P = userWeight/totalWeight;
-			var S = Math.sqrt( totalWeight*P*(1.-P) );
+			if ( p > 0 ) {
+				var s = Math.sqrt( n*p*( 1. - p ) );
+				println( "    "+left(strnum(s,2,0),5)+"  standard deviation ("+strnum(s/n*100,1,1)+"%)" );
+				println( "    error(+/-):        NPQ    Wald   Agresti-Coull" );
+				printError( resCnt, p, .7 );
+				printError( resCnt, p, .9 );
+				printError( resCnt, p, .95 );
+			}
 			println( "    "+left(strnum(totalWeight,1,0),5)+"  potential toll fares" );
+			var P = userWeight/totalWeight;
 			println( "    "+left(strnum(userWeight,1,0),5)+"  actual toll fares ("+strnum(P*100,1,1)+"%)" );
-			println( "    "+left(strnum(S,2,0),5)+"  standard deviation ("+strnum(S/totalWeight*100,1,1)+"%)" );
-			println( "    error(+/-):        NPQ    Wald   Agresti-Coull" );
-			printError( totalWeight, P, .7 );
-			printError( totalWeight, P, .9 );
-			printError( totalWeight, P, .95 );
+			if ( P > 0 ) {
+				var S = Math.sqrt( totalWeight*P*(1.-P) );
+				println( "    "+left(strnum(S,2,0),5)+"  standard deviation ("+strnum(S/totalWeight*100,1,1)+"%)" );
+				println( "    error(+/-):        NPQ    Wald   Agresti-Coull" );
+				printError( totalWeight, P, .7 );
+				printError( totalWeight, P, .9 );
+				printError( totalWeight, P, .95 );
+			}
 		}
 
 	}

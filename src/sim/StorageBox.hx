@@ -7,7 +7,7 @@ import Lambda.array;
 class StorageBox {
 	
 	private var rs:Array<ODResult>;
-	private var vs:Array<LinkVolume>;
+	private var vs:Null<Array<LinkVolume>>;
 
 	public function new( _key, _results:Iterable<ODResult>
 	, _volumes:Iterable<LinkVolume>, deletePaths:Bool ) {
@@ -19,7 +19,7 @@ class StorageBox {
 				r.path = null;
 			rs.push( r );
 		}
-		vs = _volumes != null ? array( _volumes ) : [];
+		vs = _volumes != null ? array( _volumes ) : null;
 	}
 
 	public var key(default,null):String;
@@ -28,7 +28,7 @@ class StorageBox {
 		return rs;
 	}
 
-	public function volumes():Iterable<LinkVolume> {
+	public function volumes():Null<Iterable<LinkVolume>> {
 		return vs;
 	}
 
