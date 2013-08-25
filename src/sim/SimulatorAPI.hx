@@ -806,6 +806,9 @@ class SimulatorAPI extends mcli.CommandLine {
 			throw "No links matching query '"+query+"'";
 		var linkIds = links.map( function (x) return x.id );
 
+		var ods = sim.state.ods;
+		var vehicles = sim.state.vehicles;
+
 		var azVol = false;
 		var azOds = false;
 		var azUsg = false;
@@ -841,6 +844,8 @@ class SimulatorAPI extends mcli.CommandLine {
 
 		var resCnt = 0;
 		var users = null; // array of OD::id
+		var totalWeight = 0.;
+		var userWeight = 0.;
 
 		if ( azUsg || azOds ) { // output O/D record ids
 			users = [];
@@ -850,8 +855,11 @@ class SimulatorAPI extends mcli.CommandLine {
 						r.escaped = true;
 					resCnt++;
 					for ( link in links ) {
+						var tolls = r.weight*vehicles.get(ods.get(r.odId).vehicleId).tollMulti;
+						totalWeight += tolls;
 						if ( has( r.path, link.id ) ) {
 							users.push( r.odId );
+							userWeight += tolls;
 							if ( svUsg )
 								r.escaped = false;
 						}
@@ -881,44 +889,47 @@ class SimulatorAPI extends mcli.CommandLine {
 		}
 
 		if ( azUsg ) { // output usage (prob) and error
+			println( "  * result analysis:" );
 			var n = resCnt;
 			var p = users.length/resCnt;
-			var exp = n*p;
-			var s2 = n*p*( 1. - p );
-			var s = Math.sqrt( s2 );
-			println( "  * result analysis:" );
+			var s = Math.sqrt( n*p*( 1. - p ) );
 			println( "    "+left(n,5)+"  allocated O/D pairs" );
-			println( "    "+left(users.length,5)+"  pairs using this link ("+strnum(p*100,1,1)+"%)" );
+			println( "    "+left(users.length,5)+"  pairs using ("+strnum(p*100,1,1)+"%)" );
 			println( "    "+left(strnum(s,2,0),5)+"  standard deviation ("+strnum(s/n*100,1,1)+"%)" );
 			println( "    error(+/-):        NPQ    Wald   Agresti-Coull" );
-			println( "        conf. 70%: "+strnum(pConf_NPQ(n,p,.30)*1e2,2,6)
-			+"% "+strnum(pConf_Wald(n,p,.30)*1e2,2,6)
-			+"% "+strnum(pConf_AgrestiCoull(n,p,.30)*1e2,2,14)+"%" );
-			println( "        conf. 85%: "+strnum(pConf_NPQ(n,p,.15)*1e2,2,6)
-			+"% "+strnum(pConf_Wald(n,p,.15)*1e2,2,6)
-			+"% "+strnum(pConf_AgrestiCoull(n,p,.15)*1e2,2,14)+"%" );
-			println( "        conf. 90%: "+strnum(pConf_NPQ(n,p,.10)*1e2,2,6)
-			+"% "+strnum(pConf_Wald(n,p,.10)*1e2,2,6)
-			+"% "+strnum(pConf_AgrestiCoull(n,p,.10)*1e2,2,14)+"%" );
-			println( "        conf. 95%: "+strnum(pConf_NPQ(n,p,.05)*1e2,2,6)
-			+"% "+strnum(pConf_Wald(n,p,.05)*1e2,2,6)
-			+"% "+strnum(pConf_AgrestiCoull(n,p,.05)*1e2,2,14)+"%" );
+			printError( resCnt, p, .7 );
+			printError( resCnt, p, .9 );
+			printError( resCnt, p, .95 );
+			var P = userWeight/totalWeight;
+			var S = Math.sqrt( totalWeight*P*(1.-P) );
+			println( "    "+left(strnum(totalWeight,1,0),5)+"  potential toll fares" );
+			println( "    "+left(strnum(userWeight,1,0),5)+"  actual toll fares ("+strnum(P*100,1,1)+"%)" );
+			println( "    "+left(strnum(S,2,0),5)+"  standard deviation ("+strnum(S/totalWeight*100,1,1)+"%)" );
+			println( "    error(+/-):        NPQ    Wald   Agresti-Coull" );
+			printError( totalWeight, P, .7 );
+			printError( totalWeight, P, .9 );
+			printError( totalWeight, P, .95 );
 		}
 
 	}
-	private function pConf_NPQ( sampleSize:Float, prob:Float, conf:Float ) {
-		return zscore( .5*conf )*Math.sqrt( sampleSize*prob*( 1. - prob ) )/sampleSize;
+	private function pConf_NPQ( sampleSize:Float, prob:Float, a:Float ) {
+		return zscore( .5*a )*Math.sqrt( sampleSize*prob*( 1. - prob ) )/sampleSize;
 	}
-	private function pConf_Wald( sampleSize:Float, prob:Float, conf:Float ) {
-		return zscore( .5*conf )*Math.sqrt( prob*( 1. - prob )/sampleSize );
+	private function pConf_Wald( sampleSize:Float, prob:Float, a:Float ) {
+		return zscore( .5*a )*Math.sqrt( prob*( 1. - prob )/sampleSize );
 	}
-	private function pConf_AgrestiCoull( sampleSize:Float, prob:Float, conf:Float ) {
-		var _prob = ( sampleSize*prob + .5*zscore( .5*conf ) )
-		           /(   sampleSize   + zscore( .5*conf )*zscore( .5*conf ) );
-		return zscore( conf*.5 )*Math.sqrt( _prob*( 1. - _prob )/sampleSize );
+	private function pConf_AgrestiCoull( sampleSize:Float, prob:Float, a:Float ) {
+		var _prob = ( sampleSize*prob + .5*zscore( .5*a ) )
+		           /(   sampleSize   + zscore( .5*a )*zscore( .5*a ) );
+		return zscore( a*.5 )*Math.sqrt( _prob*( 1. - _prob )/sampleSize );
 	}
-	private function zscore( conf:Float ) {
-		return stat.ZScore.forProbGreaterThan( 1.-conf );
+	private function zscore( a:Float ) {
+		return stat.ZScore.forProbGreaterThan( 1.-a );
+	}
+	private function printError( sampleSize:Float, prob:Float, conf:Float ) {
+		println( "        conf. "+strnum(conf,0,1)+"%: "+strnum(pConf_NPQ(sampleSize,prob,(1-conf))*1e2,2,6)
+		+"% "+strnum(pConf_Wald(sampleSize,prob,(1-conf))*1e2,2,6)
+		+"% "+strnum(pConf_AgrestiCoull(sampleSize,prob,(1-conf))*1e2,2,14)+"%" );
 	}
 
 
