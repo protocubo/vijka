@@ -853,16 +853,20 @@ class SimulatorAPI extends mcli.CommandLine {
 				if ( r.path != null ) {
 					if ( svUsg && r.escaped == null )
 						r.escaped = true;
-					resCnt++;
+					var isUser = false;
 					for ( link in links ) {
-						var tolls = r.weight*vehicles.get(ods.get(r.odId).vehicleId).tollMulti;
-						totalWeight += tolls;
 						if ( has( r.path, link.id ) ) {
-							users.push( r.odId );
-							userWeight += tolls;
-							if ( svUsg )
-								r.escaped = false;
+							isUser = true;
+							break;
 						}
+					}
+					resCnt++;
+					var tolls = r.weight*vehicles.get(ods.get(r.odId).vehicleId).tollMulti;
+					totalWeight += tolls;
+					if ( isUser ) {
+						users.push( r.odId );
+						userWeight += tolls;
+						if ( svUsg ) r.escaped = false;
 					}
 				}
 				else if ( svUsg )
