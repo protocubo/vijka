@@ -708,9 +708,10 @@ class SimulatorAPI extends mcli.CommandLine {
 	// RESULT ANALYSIS ----------------------------------------------------------
 
 	/**
-		Analyze link with id `id`; `type` may be a comma separated list of
-		"volumes", "ods", "usage", "save-usage" or "_" (for everything);
-		requires results with saved paths and volumes (when applicable)
+		Analyze links matching `query`, optionally `type` may be used to limit
+		the analysis; it can be a comma separated list of "volumes", "ods",
+		"usage", "save-usage" or "_" (for everything, the default); requires
+		results with saved paths and volumes (when applicable)
 	**/
 	public function analyze( query:String, ?type:String ) {
 		if ( sim.state.links == null )
