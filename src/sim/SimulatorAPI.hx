@@ -673,7 +673,7 @@ class SimulatorAPI extends mcli.CommandLine {
 	/**
 		Write results to ODResults ETT in `path`; will overwrite existing files
 	**/
-	public function writeResults( path:String ) {
+	public function ettResults( path:String ) {
 		println( "Writing results" );
 		var results = sim.state.results; // just a shortcut
 		if ( results == null )
@@ -938,9 +938,9 @@ class SimulatorAPI extends mcli.CommandLine {
 	**/
 	public function setNewline( sequence:String ) {
 		switch ( sequence ) {
-		case "NL": sim.state.newline = "\n"; sim.prepareForInput();
-		case "CRNL": sim.state.newline = "\r\n"; sim.prepareForInput();
-		case "NLCR": sim.state.newline = "\n\r"; sim.prepareForInput();
+		case "NL": sim.state.newline = "\n";
+		case "CRNL": sim.state.newline = "\r\n";
+		case "NLCR": sim.state.newline = "\n\r";
 		case all: throw "Unrecognized newline sequence: "+all;
 		}
 	}
@@ -1120,7 +1120,6 @@ class SimulatorAPI extends mcli.CommandLine {
 	**/
 	public function windows() {
 		sim.newline = "\r\n";
-		sim.prepareForInput();
 	}
 
 

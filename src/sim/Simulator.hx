@@ -1,10 +1,9 @@
 package sim;
 
+import haxe.io.StringInput;
 import sim.Algorithm;
 
 class Simulator {
-
-	public var inp:format.csv.Reader;
 
 	public var state:SimulatorState;
 	public var profiling:Null<String>;
@@ -17,17 +16,12 @@ class Simulator {
 
 	public var online:Bool;
 
-	public function new( _underlyingInput:haxe.io.Input, _newline, _screenSize ) {
+	private function new( _underlyingInput:haxe.io.Input, _newline, _screenSize ) {
 		newline = _newline;
 		screenSize = _screenSize;
 		underlyingInput = _underlyingInput;
-		prepareForInput();
 		online = false;
 		reset();
-	}
-
-	public function prepareForInput() {
-		inp = new format.csv.Reader( underlyingInput, newline, " ", "'" );
 	}
 
 	public function reset() {
@@ -91,6 +85,11 @@ class Simulator {
 	public static function printHL( s:String, ?err=false ) {
 		println( StringTools.rpad( "", s, sim != null ? sim.screenSize : 80 ) );
 	}
+
+	private function readRecord():Array<String> {
+		var line = new StringInput( stdin.readLine() );
+		return new format.csv.Reader( line, newline, " ", "'" ).readRecord();
+	}
 	
 	private static var stdin = Sys.stdin();
 	
@@ -150,7 +149,7 @@ class Simulator {
 		while ( true ) {
 			try {
 				print( "> " ); stdout.flush();
-				var r = sim.inp.readRecord();
+				var r = sim.readRecord();
 				sim.run( r, false, true, true );
 			}
 			catch ( e:haxe.io.Eof ) {
