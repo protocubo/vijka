@@ -1099,6 +1099,8 @@ class SimulatorAPI extends mcli.CommandLine {
 		}
 		if ( sim.state.digraph == null || force ) {
 			println( "Assembling the (directed) graph" );
+			if ( sim.state.digraph != null )
+				sim.state.digraph.prepareForInvalidation();
 			var dg = sim.state.digraph = new OnlineDigraph( sim, sim.state.workers, sim.state.workerPartSize );
 		}
 	}
