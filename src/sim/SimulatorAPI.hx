@@ -631,6 +631,108 @@ class SimulatorAPI extends mcli.CommandLine {
 
 
 
+	// RESULT STORAGE AND STORAGE I/O -------------------------------------------
+
+	/**
+		Save results in cold storage for later output or visualization under `key`;
+		defaults to saving link volumes and discarting paths
+	**/
+	public function storeResults( key:String, ?saveVolumes:String, ?savePaths:String ) {
+		if ( sim.state.results == null )
+			throw "No results";
+
+		var vols = readBool( saveVolumes );
+		var paths = readBool( savePaths );
+		if ( paths == null ) paths = false;
+
+		if ( vols && sim.state.volumes == null )
+			throw "No volumes";
+
+		if ( sim.state.coldStorage == null )
+			sim.state.coldStorage = new Map();
+		else if ( sim.state.coldStorage.exists( key ) )
+			println( "This results will overwrite the previous ones for key \""+key+"\"" );
+
+		var rs = sim.state.results;
+		var vs = vols ? sim.state.volumes : null;
+		var st = sim.state.coldStorage;
+
+		var box = new StorageBox( key, rs, vs, !paths );
+
+		st.set( box.key, box );
+	}
+
+	/**
+		Show cold storage simplified manifest: key and number of results/volumes
+		stored for it
+	**/
+	public function showStorage() {
+		if ( sim.state.coldStorage == null )
+			throw "No cold storage";
+
+		var st = sim.state.coldStorage;
+		var keys = [ for ( k in st.keys() ) k ];
+		if ( keys.length == 0 ) {
+			println( "Cold storage is empty" );
+			return;
+		}
+
+		println( "Cold storage contents:" );
+		keys.sort( Reflect.compare );
+		for ( k in keys ) {
+			var box = st.get( k );
+			println( "  * Box labeled \""+k+"\": "+box.countResults()
+			+" results and "+box.countVolumes()+" volumes" );
+		}
+	}
+
+	/**
+		Write aggregated ETT for all results in cold storage; output to ODResult
+		ETT in `path`
+	**/
+	public function ettStorage( path:String ) {
+		println( "Writing cold stored results" );
+		var st = sim.state.coldStorage; // just a shortcut
+		if ( st == null ) throw "No cold storage";
+		var eout = writeEtt( ODResult, ODResult.ettFields(), path );
+		for ( box in st )
+			for ( v in box.results() )
+				eout.write( v );
+		eout.close();
+	}
+
+	/**
+		Write aggregated GeoJSON for all volumes in cold storage; output to
+		GeoJSON file in `path`
+	**/
+	public function geojsonStorage( path:String ) {
+		println( "Mapping cold stored volumes in GeoJSON" );
+		var st = sim.state.coldStorage; // just a shortcut
+		if ( st == null ) throw "No cold storage";
+		var fout = writeFile( path, false );
+		fout.writeString( '{"type":"FeatureCollection","features":['+sim.newline );
+		var first = true;
+		for ( box in st )
+			for ( v in box.volumes() ) {
+				if ( first ) first = false; else fout.writeString( ","+sim.newline+"\t" );
+				fout.writeString( geojsonVolume( v, '"key":"${box.key}"' ) );
+			}
+		fout.writeString( sim.newline+"] }"+sim.newline );
+		fout.close();
+	}
+
+	/**
+		Discart all results in cold storage
+	**/
+	public function clearStorage() {
+		if ( sim.state.coldStorage != null ) {
+			sim.state.coldStorage = null;
+			println( "Discarted results in cold storage" );
+		}
+	}
+
+
+
 	// VOLUME I/O ---------------------------------------------------------------
 
 	/**
@@ -660,7 +762,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		var first = true;
 		for ( v in volumes ) {
 			if ( first ) first = false; else fout.writeString( ","+sim.newline+"\t" );
-			fout.writeString( geojsonVolume( v ) );
+			fout.writeString( geojsonVolume( v, null ) );
 		}
 		fout.writeString( sim.newline+"] }"+sim.newline );
 		fout.close();
@@ -1205,12 +1307,15 @@ class SimulatorAPI extends mcli.CommandLine {
 		return '{"id":${link.id},"type":"Feature","geometry":$geom,"properties":{$linkProp}}';
 	}
 
-	private function geojsonVolume( volume:LinkVolume ):String {
+	private function geojsonVolume( volume:LinkVolume, moreProperties:Null<String> ):String {
 		var link = sim.state.links.get( volume.linkId );
 		var linkProp = link.jsonBody();
 		var linkVolume = volume.jsonBody();
 		var geom = getShape( link ).geojsonGeometry();
-		return '{"id":${link.id},"type":"Feature","geometry":$geom,"properties":{$linkProp,$linkVolume}}';
+		if ( moreProperties != null )
+			return '{"id":${link.id},"type":"Feature","geometry":$geom,"properties":{$linkProp,$linkVolume,$moreProperties}}';
+		else
+			return '{"id":${link.id},"type":"Feature","geometry":$geom,"properties":{$linkProp,$linkVolume}}';
 	}
 
 	private function getShape( link:Link):LinkShape {

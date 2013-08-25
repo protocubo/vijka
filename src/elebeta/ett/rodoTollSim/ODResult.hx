@@ -4,7 +4,7 @@ import format.ett.Data;
 import format.ett.Geometry;
 
 class ODResult {
-
+	public var key:Null<String>;
 	public var odId:Int;
 	public var weight:Float;
 	public var ran:Bool;
@@ -30,6 +30,7 @@ class ODResult {
 
 	public static function ettFields():Array<Field> {
 		return [
+			new Field( "key", TNull(TString) ),
 			new Field( "odId", TInt ),
 			new Field( "weight", TFloat ),
 			new Field( "ran", TBool ),
