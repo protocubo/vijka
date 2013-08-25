@@ -55,7 +55,7 @@ class SimulatorAPI extends mcli.CommandLine {
 			println( "Existing nodes may have been changed, consider verifying link shapes" );
 		}
 		var nodes = sim.state.nodes; // just a shortcut
-		var einp = readEtt( path );
+		var einp = _readEtt( path );
 		sim.state.invalidate();
 		while ( true ) {
 			var node = try { einp.fastReadRecord( Node.makeEmpty() ); }
@@ -90,7 +90,7 @@ class SimulatorAPI extends mcli.CommandLine {
 			println( "Reading additional link types" );
 		}
 		var linkTypes = sim.state.linkTypes; // just a shortcut
-		var einp = readEtt( path );
+		var einp = _readEtt( path );
 		while ( true ) {
 			var type = try { einp.fastReadRecord( LinkType.makeEmpty() ); }
 			           catch ( e:Eof ) { null; };
@@ -105,10 +105,10 @@ class SimulatorAPI extends mcli.CommandLine {
 	**/
 	public function showTypes() {
 		println( "Known types:" );
-		println( right("id",6)+"  |  name" );
+		println( _right("id",6)+"  |  name" );
 		printHL( "-" );
 		for ( type in sim.state.linkTypes )
-			println( right(type.id,6)+"  |  "+type.name );
+			println( _right(type.id,6)+"  |  "+type.name );
 	}
 
 	/**
@@ -140,7 +140,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		var linkTypes = sim.state.linkTypes; // just a shortcut
 		if ( nodes == null ) throw "No nodes";
 		if ( linkTypes == null ) throw "No link types";
-		var einp = readEtt( path );
+		var einp = _readEtt( path );
 		sim.state.invalidate();
 		while ( true ) {
 			var link = try { einp.fastReadRecord( Link.makeEmpty() ); }
@@ -173,13 +173,13 @@ class SimulatorAPI extends mcli.CommandLine {
 		println( "Mapping volumes in GeoJSON" );
 		var links = sim.state.links; // just a shortcut
 		if ( links == null ) throw "No links";
-		var fout = writeFile( path, false );
+		var fout = _writeFile( path, false );
 		fout.writeString( '{"type":"FeatureCollection","features":['+sim.newline );
 		var first = true;
 		if ( filter == null ) {
 			for ( k in links ) {
 				if ( first ) first = false; else fout.writeString( ","+sim.newline+"\t" );
-				fout.writeString( geojsonLink( k ) );
+				fout.writeString( _geojsonLink( k ) );
 			}
 		}
 		else {
@@ -187,7 +187,7 @@ class SimulatorAPI extends mcli.CommandLine {
 			var q = Query.prepare( filter, "id" );
 			for ( k in q.execute( links, aliases ) ) {
 				if ( first ) first = false; else fout.writeString( ","+sim.newline+"\t" );
-				fout.writeString( geojsonLink( k ) );
+				fout.writeString( _geojsonLink( k ) );
 			}
 		}
 		fout.writeString( sim.newline+"] }"+sim.newline );
@@ -238,7 +238,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		if ( links == null || !links.iterator().hasNext() )
 			return; // no links
 		var shapes = sim.state.shapes; // just a shortcut
-		var einp = readEtt( path );
+		var einp = _readEtt( path );
 		while ( true ) {
 			var shape = try { einp.fastReadRecord( LinkShape.makeEmpty() ); }
 			           catch ( e:Eof ) { null; };
@@ -305,7 +305,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		if ( links == null || !links.iterator().hasNext() )
 			return; // no links
 		var aliases = sim.state.aliases; // just a shortcut
-		var einp = readEtt( path );
+		var einp = _readEtt( path );
 		while ( true ) {
 			var alias = try { einp.fastReadRecord( LinkAlias.makeEmpty() ); }
 			           catch ( e:Eof ) { null; };
@@ -358,7 +358,7 @@ class SimulatorAPI extends mcli.CommandLine {
 			println( "Reading additional vehicles" );
 		}
 		var vehicles = sim.state.vehicles; // just a shortcut
-		var einp = readEtt( path );
+		var einp = _readEtt( path );
 		sim.state.invalidate(); // this might (and should) not be necessary in the future
 		while ( true ) {
 			var type = try { einp.fastReadRecord( Vehicle.makeEmpty() ); }
@@ -374,10 +374,10 @@ class SimulatorAPI extends mcli.CommandLine {
 	**/
 	public function showVehicles() {
 		println( "Known types:" );
-		println( right("id",6)+"  |  name" );
+		println( _right("id",6)+"  |  name" );
 		printHL( "-" );
 		for ( type in sim.state.vehicles )
-			println( right(type.id,6)+"  |  "+type.name );
+			println( _right(type.id,6)+"  |  "+type.name );
 	}
 
 	/**
@@ -409,7 +409,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		if ( linkTypes == null ) throw "No link types";
 		if ( vehicles == null ) throw "No vehicles";
 		var speeds = sim.state.speeds; // just a shortcut
-		var einp = readEtt( path );
+		var einp = _readEtt( path );
 		sim.state.invalidate(); // this might (and should) not be necessary in the future
 		while ( true ) {
 			var speed = try { einp.fastReadRecord( LinkTypeSpeed.makeEmpty() ); }
@@ -429,12 +429,12 @@ class SimulatorAPI extends mcli.CommandLine {
 		id set to "_" will be treated as non restrictive filters
 	**/
 	public function showSpeeds( tid:String, vid:String ) {
-		var t:Null<Int> = readInt( tid );
-		var v:Null<Int> = readInt( vid );
+		var t:Null<Int> = _readInt( tid );
+		var v:Null<Int> = _readInt( vid );
 		print( "Link speeds for " );
 		print( t != null ? " typeId="+t+" " : "all link types " );
 		println( v != null ? " vehicleId="+v+" " : "all vehicles:" );
-		println( right("type",6)+"  |  "+right("vehicle",8)+"  |  speed (km/h" );
+		println( _right("type",6)+"  |  "+_right("vehicle",8)+"  |  speed (km/h" );
 		printHL( "-" );
 		// TODO get typeId,vehicleId from the other collections and show missing values
 		if ( sim.state.speeds == null )
@@ -444,7 +444,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		for ( speed in speeds )
 			if ( ( t == null || speed.typeId == t )
 			&& ( v == null || speed.vehicleId == v ) )
-				println( right(speed.typeId,6)+"  |  "+right(speed.vehicleId,8)+"  |  "+speed.speed );
+				println( _right(speed.typeId,6)+"  |  "+_right(speed.vehicleId,8)+"  |  "+speed.speed );
 	}
 
 
@@ -470,7 +470,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		var ods = sim.state.ods; // just a shortcut
 		var wgts = sim.state.sampleWeights;
 		if ( vehicles == null ) throw "No vehicles";
-		var einp = readEtt( path );
+		var einp = _readEtt( path );
 		while ( true ) {
 			var od = try { einp.fastReadRecord( OD.makeEmpty() ); }
 			         catch ( e:Eof ) { null; };
@@ -533,7 +533,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		if ( ods == null ) throw "No O/D data";
 		var activeOds = list( sim.state.activeOds != null ? sim.state.activeOds : sim.state.ods );
 		var activeOdFilter = sim.state.activeOdFilter; if ( activeOdFilter == null ) activeOdFilter = [];
-		sim.state.activeOds = array( innerOdQuery( activeOds, type, clause, activeOdFilter ) );
+		sim.state.activeOds = array( _innerOdQuery( activeOds, type, clause, activeOdFilter ) );
 		sim.state.activeOdFilter = activeOdFilter;
 		println( "Current selected records: "+activeOds.length );
 		showOdFilter();
@@ -572,7 +572,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		var exp = sim.state.sampleWeights;
 		if ( exp == null )
 			exp = sim.state.sampleWeights = new Map();
-		var q = innerOdQuery( sim.state.ods, type, clause );
+		var q = _innerOdQuery( sim.state.ods, type, clause );
 		sim.state.volumes = null;
 		for ( od in q )
 			exp.set( od.id, value );
@@ -589,7 +589,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		var exp = sim.state.sampleWeights;
 		if ( exp == null )
 			exp = sim.state.sampleWeights = new Map();
-		var q = innerOdQuery( sim.state.ods, type, clause );
+		var q = _innerOdQuery( sim.state.ods, type, clause );
 		for ( od in q ) {
 			var previous = exp.exists( od.id ) ? exp.get( od.id ) : od.sampleWeight;
 			exp.set( od.id, od.sampleWeight*multi );
@@ -659,8 +659,8 @@ class SimulatorAPI extends mcli.CommandLine {
 			println( "No O/D records... Try to remove the filter with --clear-od-filter" );
 			return;
 		}
-		var saveVols = readBool( volumes, true );
-		var savePath = readBool( path, true );
+		var saveVols = _readBool( volumes, true );
+		var savePath = _readBool( path, true );
 		assemble();
 		if ( sim.state.results == null ) sim.state.results = new Map();
 		if ( saveVols && sim.state.volumes == null ) sim.state.volumes = new Map();
@@ -691,9 +691,9 @@ class SimulatorAPI extends mcli.CommandLine {
 		if ( sim.state.results == null )
 			throw "No results";
 
-		var vols = readBool( saveVolumes );
+		var vols = _readBool( saveVolumes );
 		if ( vols == null ) vols = true;
-		var paths = readBool( savePaths );
+		var paths = _readBool( savePaths );
 		if ( paths == null ) paths = true;
 
 		if ( vols && sim.state.volumes == null )
@@ -782,7 +782,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		println( "Writing cold stored results" );
 		var st = sim.state.coldStorage; // just a shortcut
 		if ( st == null ) throw "No cold storage";
-		var eout = writeEtt( ODResult, ODResult.ettFields(), path );
+		var eout = _writeEtt( ODResult, ODResult.ettFields(), path );
 		for ( box in st )
 			for ( v in box.results() )
 				eout.write( v );
@@ -797,13 +797,13 @@ class SimulatorAPI extends mcli.CommandLine {
 		println( "Mapping cold stored volumes in GeoJSON" );
 		var st = sim.state.coldStorage; // just a shortcut
 		if ( st == null ) throw "No cold storage";
-		var fout = writeFile( path, false );
+		var fout = _writeFile( path, false );
 		fout.writeString( '{"type":"FeatureCollection","features":['+sim.newline );
 		var first = true;
 		for ( box in st )
 			for ( v in box.volumes() ) {
 				if ( first ) first = false; else fout.writeString( ","+sim.newline+"\t" );
-				fout.writeString( geojsonVolume( v, '"key":"${box.key}"' ) );
+				fout.writeString( _geojsonVolume( v, '"key":"${box.key}"' ) );
 			}
 		fout.writeString( sim.newline+"] }"+sim.newline );
 		fout.close();
@@ -853,7 +853,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		var volumes = sim.state.volumes; // just a shortcut
 		if ( volumes == null )
 			throw "No volumes";
-		var eout = writeEtt( LinkVolume, LinkVolume.ettFields(), path );
+		var eout = _writeEtt( LinkVolume, LinkVolume.ettFields(), path );
 		for ( v in volumes )
 			eout.write( v );
 		eout.close();
@@ -867,12 +867,12 @@ class SimulatorAPI extends mcli.CommandLine {
 		println( "Mapping volumes in GeoJSON" );
 		var volumes = sim.state.volumes; // just a shortcut
 		if ( volumes == null ) throw "No volumes";
-		var fout = writeFile( path, false );
+		var fout = _writeFile( path, false );
 		fout.writeString( '{"type":"FeatureCollection","features":['+sim.newline );
 		var first = true;
 		for ( v in volumes ) {
 			if ( first ) first = false; else fout.writeString( ","+sim.newline+"\t" );
-			fout.writeString( geojsonVolume( v, null ) );
+			fout.writeString( _geojsonVolume( v, null ) );
 		}
 		fout.writeString( sim.newline+"] }"+sim.newline );
 		fout.close();
@@ -915,7 +915,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		var results = sim.state.results; // just a shortcut
 		if ( results == null )
 			throw "No results";
-		var eout = writeEtt( ODResult, ODResult.ettFields(), path );
+		var eout = _writeEtt( ODResult, ODResult.ettFields(), path );
 		for ( v in results )
 			eout.write( v );
 		eout.close();
@@ -949,7 +949,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		var azUsg = false;
 		var svUsg = false;
 
-		var types = readSet( type, true );
+		var types = _readSet( type, true );
 		if ( types == null )
 			azVol = azOds = azUsg = svUsg = true;
 		else for ( t in types ) {
@@ -1023,33 +1023,33 @@ class SimulatorAPI extends mcli.CommandLine {
 			for ( link in links ) {
 				var v = vols.exists( link.id ) ? vols.get( link.id ) : LinkVolume.make( 0, 0, 0, 0, 0 );
 				println( "  * link volumes for link '"+link.id+"':");
-				println( "        "+left(strnum(v.vehicles,2,0),9)+"  vehicles" );
-				println( "        "+left(strnum(v.equivalentVehicles,2,0),9)+"  equivalent vehicles" );
-				println( "        "+left(strnum(v.axis,2,0),9)+"  axis" );
-				println( "        "+left(strnum(v.tolls,2,0),9)+"  toll multipliers" );
+				println( "        "+_left(_strnum(v.vehicles,2,0),9)+"  vehicles" );
+				println( "        "+_left(_strnum(v.equivalentVehicles,2,0),9)+"  equivalent vehicles" );
+				println( "        "+_left(_strnum(v.axis,2,0),9)+"  axis" );
+				println( "        "+_left(_strnum(v.tolls,2,0),9)+"  toll multipliers" );
 			}
 		}
 
 		if ( azUsg && resCnt > 0 ) { // output usage (prob) and error
 			println( "  * result analysis:" );
 			var n = resCnt;
-			println( "    "+left(n,5)+"  allocated O/D pairs" );
+			println( "    "+_left(n,5)+"  allocated O/D pairs" );
 			var p = users.length/resCnt;
-			println( "    "+left(users.length,5)+"  pairs using ("+strnum(p*100,1,1)+"%)" );
+			println( "    "+_left(users.length,5)+"  pairs using ("+_strnum(p*100,1,1)+"%)" );
 			if ( p > 0 ) {
 				var s = Math.sqrt( n*p*( 1. - p ) );
-				println( "    "+left(strnum(s,2,0),5)+"  standard deviation ("+strnum(s/n*100,1,1)+"%)" );
+				println( "    "+_left(_strnum(s,2,0),5)+"  standard deviation ("+_strnum(s/n*100,1,1)+"%)" );
 				println( "    error(+/-):        NPQ    Wald   Agresti-Coull" );
 				printError( resCnt, p, .7 );
 				printError( resCnt, p, .9 );
 				printError( resCnt, p, .95 );
 			}
-			println( "    "+left(strnum(totalWeight,1,0),5)+"  potential toll fares" );
+			println( "    "+_left(_strnum(totalWeight,1,0),5)+"  potential toll fares" );
 			var P = userWeight/totalWeight;
-			println( "    "+left(strnum(userWeight,1,0),5)+"  actual toll fares ("+strnum(P*100,1,1)+"%)" );
+			println( "    "+_left(_strnum(userWeight,1,0),5)+"  actual toll fares ("+_strnum(P*100,1,1)+"%)" );
 			if ( P > 0 ) {
 				var S = Math.sqrt( totalWeight*P*(1.-P) );
-				println( "    "+left(strnum(S,2,0),5)+"  standard deviation ("+strnum(S/totalWeight*100,1,1)+"%)" );
+				println( "    "+_left(_strnum(S,2,0),5)+"  standard deviation ("+_strnum(S/totalWeight*100,1,1)+"%)" );
 				println( "    error(+/-):        NPQ    Wald   Agresti-Coull" );
 				printError( totalWeight, P, .7 );
 				printError( totalWeight, P, .9 );
@@ -1073,9 +1073,9 @@ class SimulatorAPI extends mcli.CommandLine {
 		return stat.ZScore.forProbGreaterThan( 1.-a );
 	}
 	private function printError( sampleSize:Float, prob:Float, conf:Float ) {
-		println( "        conf. "+strnum(conf,0,1)+"%: "+strnum(pConf_NPQ(sampleSize,prob,(1-conf))*1e2,2,6)
-		+"% "+strnum(pConf_Wald(sampleSize,prob,(1-conf))*1e2,2,6)
-		+"% "+strnum(pConf_AgrestiCoull(sampleSize,prob,(1-conf))*1e2,2,14)+"%" );
+		println( "        conf. "+_strnum(conf,0,1)+"%: "+_strnum(pConf_NPQ(sampleSize,prob,(1-conf))*1e2,2,6)
+		+"% "+_strnum(pConf_Wald(sampleSize,prob,(1-conf))*1e2,2,6)
+		+"% "+_strnum(pConf_AgrestiCoull(sampleSize,prob,(1-conf))*1e2,2,14)+"%" );
 	}
 
 
@@ -1097,7 +1097,7 @@ class SimulatorAPI extends mcli.CommandLine {
 	public function save( path:String ) {
 		print( "Saving the current command log" );
 		if ( !reading ) {
-			var fout = writeFile( path, false );
+			var fout = _writeFile( path, false );
 			fout.writeString( sim.log.join( sim.newline )+sim.newline );
 			fout.close();
 		}
@@ -1116,7 +1116,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		if ( !reading )
 			println( "" );
 
-		var finp = readFile( path, false );
+		var finp = _readFile( path, false );
 		var eof = false;
 		while ( !eof ) {
 			try {
@@ -1288,7 +1288,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		if ( !table.iterator().hasNext() )
 			throw "Cannot figure out the type of an EMPTY table";
 		var cl:Dynamic = Type.getClass( table.iterator().next() );
-		var eout = writeEtt( cl, cl.ettFields(), path );
+		var eout = _writeEtt( cl, cl.ettFields(), path );
 		for ( r in table )
 			eout.write( r );
 		eout.close();
@@ -1374,9 +1374,9 @@ class SimulatorAPI extends mcli.CommandLine {
 
 	// HELPERS ------------------------------------------------------------------
 
-	private function innerOdQuery( original:Iterable<OD>, type:String, clause:String
+	private function _innerOdQuery( original:Iterable<OD>, type:String, clause:String
 	, ?originalFilter:Array<String> ):Null<Iterable<OD>> {
-		var c = readSet( clause );
+		var c = _readSet( clause );
 		if ( c == null )
 			return null; // all selected
 		var activeOds = original;
@@ -1409,34 +1409,34 @@ class SimulatorAPI extends mcli.CommandLine {
 		return activeOds;
 	}
 
-	private function geojsonLink( link:Link ):String {
+	private function _geojsonLink( link:Link ):String {
 		var linkProp = link.jsonBody();
-		var geom = getShape( link ).geojsonGeometry();
+		var geom = _getShape( link ).geojsonGeometry();
 		return '{"id":${link.id},"type":"Feature","geometry":$geom,"properties":{$linkProp}}';
 	}
 
-	private function geojsonVolume( volume:LinkVolume, moreProperties:Null<String> ):String {
+	private function _geojsonVolume( volume:LinkVolume, moreProperties:Null<String> ):String {
 		var link = sim.state.links.get( volume.linkId );
 		var linkProp = link.jsonBody();
 		var linkVolume = volume.jsonBody();
-		var geom = getShape( link ).geojsonGeometry();
+		var geom = _getShape( link ).geojsonGeometry();
 		if ( moreProperties != null )
 			return '{"id":${link.id},"type":"Feature","geometry":$geom,"properties":{$linkProp,$linkVolume,$moreProperties}}';
 		else
 			return '{"id":${link.id},"type":"Feature","geometry":$geom,"properties":{$linkProp,$linkVolume}}';
 	}
 
-	private function getShape( link:Link):LinkShape {
+	private function _getShape( link:Link):LinkShape {
 		var shapes = sim.state.shapes;
 		if ( shapes == null )
 			sim.state.shapes = shapes = new Map();
 		var shp = shapes.get( link.id );
 		if ( shp == null )
-			shp = autoLinkShape( link );
+			shp = _autoLinkShape( link );
 		return shp;
 	}
 
-	private function autoLinkShape( link:Link ):LinkShape {
+	private function _autoLinkShape( link:Link ):LinkShape {
 		var nodes = sim.state.nodes;
 		if ( nodes == null ) throw "No nodes";
 		var pts = [ nodes.get( link.startNodeId ).point, nodes.get( link.finishNodeId ).point ];
@@ -1445,12 +1445,12 @@ class SimulatorAPI extends mcli.CommandLine {
 		return shp;
 	}
 
-	private function readEtt( inputPath:String ):ETTReader {
-		return new ETTReader( readFile( inputPath, true ) );
+	private function _readEtt( inputPath:String ):ETTReader {
+		return new ETTReader( _readFile( inputPath, true ) );
 	}
 
-	private function writeEtt( cl:Class<Dynamic>, fields:Array<ETTField>, outputPath:String ):ETTWriter {
-		var fout = writeFile( outputPath, true );
+	private function _writeEtt( cl:Class<Dynamic>, fields:Array<ETTField>, outputPath:String ):ETTWriter {
+		var fout = _writeFile( outputPath, true );
 		var finfo = new format.ett.Data.FileInfo( sim.newline, ETTEncoding.UTF8, "\t", "\""
 		, Type.getClassName( cl ), fields );
 		var w = new ETTWriter( finfo );
@@ -1458,7 +1458,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		return w;
 	}
 
-	private function readFile( inputPath:String, binary:Bool ):FileInput {
+	private function _readFile( inputPath:String, binary:Bool ):FileInput {
 		if ( !sys.FileSystem.exists( inputPath ) )
 			throw "File \""+inputPath+"\" does not exist";
 		if ( sys.FileSystem.isDirectory( inputPath ) )
@@ -1466,7 +1466,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		return sys.io.File.read( inputPath, binary );
 	}
 
-	private function writeFile( outputPath:String, binary:Bool ):FileOutput {
+	private function _writeFile( outputPath:String, binary:Bool ):FileOutput {
 		if ( sys.FileSystem.exists( outputPath ) )
 			if ( sys.FileSystem.isDirectory( outputPath ) )
 				throw "Cannot overwrite a folder with a file: \""+outputPath+"\"";
@@ -1475,26 +1475,26 @@ class SimulatorAPI extends mcli.CommandLine {
 		return sys.io.File.write( outputPath, binary );
 	}
 
-	private function right( data:Dynamic, len:Int, ?pad=" " ):String {
+	private function _right( data:Dynamic, len:Int, ?pad=" " ):String {
 		return StringTools.lpad( string( data ), pad, len );
 	}
 
-	private function left( data:Dynamic, len:Int, ?pad=" " ):String {
+	private function _left( data:Dynamic, len:Int, ?pad=" " ):String {
 		return StringTools.rpad( string( data ), pad, len );
 	}
 
-	private function strnum( v:Float, p:Int, len:Int ):String {
+	private function _strnum( v:Float, p:Int, len:Int ):String {
 		return printDecimal( v, len, p );
 	}
 
-	private function readInt( s:String, ?nullable=true ):Null<Int> {
+	private function _readInt( s:String, ?nullable=true ):Null<Int> {
 		return switch ( s.toLowerCase() ) {
 		case "", "_", "*", "a", "all": if ( nullable ) null; else throw "Invalid Int "+s;
 		case all: parseInt( s );
 		};
 	}
 
-	private function readBool( s:Null<String>, ?nullable=true ):Null<Bool> {
+	private function _readBool( s:Null<String>, ?nullable=true ):Null<Bool> {
 		if ( s == null )
 			if ( nullable ) return true;
 			else throw "Boll cannot be null";
@@ -1507,7 +1507,7 @@ class SimulatorAPI extends mcli.CommandLine {
 			};
 	}
 
-	private static function readSet( s:Null<String>, ?nullable=true ):Null<Array<String>> {
+	private static function _readSet( s:Null<String>, ?nullable=true ):Null<Array<String>> {
 		if ( s == null )
 			if ( nullable ) return null;
 			else throw "Set cannot be null";
