@@ -960,13 +960,12 @@ class SimulatorAPI extends mcli.CommandLine {
 			println( "" );
 
 		var finp = readFile( path, false );
-		var inp = new format.csv.Reader( finp, sim.newline, " ", "'" );
 		var eof = false;
 		while ( !eof ) {
 			try {
-				var r = inp.readRecord();
+				var r = sim.getArgs( finp );
 				if ( r.length != 0 ) {
-					println( ":: "+r.join( " " ) );
+					print( ":: "+sim.strArgs(r) );
 					sim.run( r, true, true, false );
 				}
 			}
@@ -974,7 +973,7 @@ class SimulatorAPI extends mcli.CommandLine {
 				eof = true;
 			}
 		}
-		inp.close();
+		finp.close();
 		
 		if ( !reading )
 			println( "" );
@@ -991,7 +990,7 @@ class SimulatorAPI extends mcli.CommandLine {
 	public function showLog() {
 		println( "Showing the current log" );
 		printHL( "-" );
-		println( "    :: "+sim.log.join( "\n    :: " ) );
+		println( "    :: "+sim.log.join( "    :: " ) ); // log already has newlines
 	}
 
 

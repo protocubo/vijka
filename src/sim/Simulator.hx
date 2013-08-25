@@ -1,5 +1,7 @@
 package sim;
 
+import haxe.io.Input;
+import haxe.io.Output;
 import haxe.io.StringInput;
 
 import sim.Algorithm;
@@ -87,9 +89,18 @@ class Simulator {
 		println( StringTools.rpad( "", s, sim != null ? sim.screenSize : 80 ) );
 	}
 
-	private function readRecord():Array<String> {
-		var line = new StringInput( stdin.readLine() );
-		return new format.csv.Reader( line, newline, " ", "'" ).readRecord();
+	public function getArgs( inp:Input ):Array<String> {
+		var args = new format.csv.Reader( inp, newline, " ", "'" ).readRecord();
+		if ( args.length>0 && args[0].length>0 && args[0].charCodeAt(0)=="#".code )
+			return [];
+		else
+			return args;
+	}
+
+	public function strArgs( args:Array<String> ):String {
+		var buf = new haxe.io.BytesOutput();
+		new format.csv.Writer( buf, newline, " ", "'" ).writeRecord( args );
+		return buf.getBytes().toString();
 	}
 	
 	private static var stdin = Sys.stdin();
@@ -109,7 +120,7 @@ class Simulator {
 				d.dispatch( a, false );
 				var dt = haxe.Timer.stamp() - t0;
 				sim.stopProfiling();
-				sim.log.push( args.join( " " ) );
+				sim.log.push( strArgs( args ) );
 				if ( time ) println( "Done in "+dt+" seconds" );
 				if ( hl ) printHL( "-" );
 			}
@@ -150,7 +161,7 @@ class Simulator {
 		while ( true ) {
 			try {
 				print( "> " ); stdout.flush();
-				var r = sim.readRecord();
+				var r = sim.getArgs( stdin );
 				sim.run( r, false, true, true );
 			}
 			catch ( e:haxe.io.Eof ) {
