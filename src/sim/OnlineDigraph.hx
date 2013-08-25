@@ -92,25 +92,41 @@ class OnlineDigraph {
 				sendMsg( w, -1, MPing );
 			var sent = 0;
 			var recv = 0;
+			var sendMore:Thread = null;
+			var store:SimulatorState = null;
 			var i = 0;
 			print( "\rRunning "+i+"/"+ods.length );
 			while ( i < ods.length ) {
 				var nextEnd = i + partSize;
 				if ( nextEnd >= ods.length )
 					nextEnd = ods.length;
+				if ( sendMore != null ) {
+					sendMsg( sendMore, -1, MRun( ods, i, nextEnd, volumes, path ) );
+					sent += nextEnd - i;
+					i = nextEnd;
+					sendMore = null;
+					continue;
+				}
+				if ( store != null ) {
+					incorporatePseudoState( sim.state, store );
+					print( "\rRunning "+recv+"/"+ods.length+" paths" );
+				}
 				var msg = readMsg( true );
 				switch ( msg.data ) {
 				case MAlive:
 					sendMsg( ws[msg.from], -1, MRun( ods, i, nextEnd, volumes, path ) );
 					sent += nextEnd - i;
 					i = nextEnd;
+					sendMore = ws[msg.from];
 				case MDone( ps, cnt ):
 					recv += cnt;
-					print( "\rRunning "+recv+"/"+ods.length+" paths" );
+					// print( "\rRunning "+recv+"/"+ods.length+" paths" );
 					sendMsg( ws[msg.from], -1, MRun( ods, i, nextEnd, volumes, path ) );
 					sent += nextEnd - i;
 					i = nextEnd;
-					incorporatePseudoState( sim.state, ps );
+					store = ps;
+					sendMore = ws[msg.from];
+					// incorporatePseudoState( sim.state, ps );
 				case all:
 					throw all;
 				}
@@ -447,7 +463,8 @@ private enum MessageData {
 	MReady;
 
 	// main -> worker
-	MRun( ods:Array<elebeta.ett.rodoTollSim.OD>, begin:Int, end:Int, volumes:Bool, path:Bool );
+	MRun( ods:Array<elebeta.ett.rodoTollSim.OD>, begin:Int, end:Int
+	, volumes:Bool, path:Bool );
 	MDone( pseudoState:SimulatorState, cnt:Int );
 
 	// main -> worker
