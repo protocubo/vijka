@@ -712,12 +712,15 @@ class SimulatorAPI extends mcli.CommandLine {
 		"volumes", "ods", "usage", "save-usage" or "_" (for everything);
 		requires results with saved paths and volumes (when applicable)
 	**/
-	public function analyze( id:Int, type:String ) {
+	public function analyze( query:String, ?type:String ) {
 		if ( sim.state.links == null )
 			throw "No links";
-		var link = sim.state.links.get( id );
-		if ( link == null )
-			throw "No link '"+id+"'";
+
+		var q = Query.prepare( query, "id" );
+		var links = array( q.execute( sim.state.links, sim.state.aliases ) );
+		if ( links.length == 0 )
+			throw "No links matching '"+query+"'";
+		var linkIds = links.map( function (x) return x.id );
 
 		var azVol = false;
 		var azOds = false;
@@ -750,7 +753,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		if ( res == null )
 			throw "No results";
 
-		println( "Analyzing link '"+link.id+"'" );
+		println( "Analyzing links ["+linkIds.join(", ")+"]" );
 
 		var resCnt = 0;
 		var users = null; // array of OD::id
@@ -759,13 +762,15 @@ class SimulatorAPI extends mcli.CommandLine {
 			users = [];
 			for ( r in res ) {
 				if ( r.path != null ) {
-					if ( svUsg )
+					if ( svUsg && r.escaped == null )
 						r.escaped = true;
 					resCnt++;
-					if ( has( r.path, link.id ) ) {
-						users.push( r.odId );
-						if ( svUsg )
-							r.escaped = false;
+					for ( link in links ) {
+						if ( has( r.path, link.id ) ) {
+							users.push( r.odId );
+							if ( svUsg )
+								r.escaped = false;
+						}
 					}
 				}
 				else if ( svUsg )
@@ -773,19 +778,22 @@ class SimulatorAPI extends mcli.CommandLine {
 			}
 			users.sort( Reflect.compare );
 			if ( azOds )
-				println( "  * "+users.length+" O/D records using link: { "+users.join(", ")+" }" );
+				println( "  * "+users.length+" O/D records using links ["
+				+linkIds.join(", ")+"]: "+users.join(", ") );
 		}
 
 		if ( azVol ) { // output volumes
 			var vols = sim.state.volumes;
 			if ( vols == null )
 				throw "No volumes";
-			var v = vols.exists( link.id ) ? vols.get( link.id ) : LinkVolume.make( 0, 0, 0, 0, 0 );
-			println( "  * link volumes:");
-			println( "        "+left(strnum(v.vehicles,2,0),9)+"  vehicles" );
-			println( "        "+left(strnum(v.equivalentVehicles,2,0),9)+"  equivalent vehicles" );
-			println( "        "+left(strnum(v.axis,2,0),9)+"  axis" );
-			println( "        "+left(strnum(v.tolls,2,0),9)+"  toll multipliers" );
+			for ( link in links ) {
+				var v = vols.exists( link.id ) ? vols.get( link.id ) : LinkVolume.make( 0, 0, 0, 0, 0 );
+				println( "  * link volumes for link '"+link.id+"':");
+				println( "        "+left(strnum(v.vehicles,2,0),9)+"  vehicles" );
+				println( "        "+left(strnum(v.equivalentVehicles,2,0),9)+"  equivalent vehicles" );
+				println( "        "+left(strnum(v.axis,2,0),9)+"  axis" );
+				println( "        "+left(strnum(v.tolls,2,0),9)+"  toll multipliers" );
+			}
 		}
 
 		if ( azUsg ) { // output usage (prob) and error
@@ -796,8 +804,8 @@ class SimulatorAPI extends mcli.CommandLine {
 			var s = Math.sqrt( s2 );
 			println( "  * result analysis:" );
 			println( "    "+left(n,5)+"  allocated O/D pairs" );
-			println( "    "+left(users.length,5)+"  pairs using this link" );
-			println( "    "+left(strnum(s,2,0),5)+"  standard deviation" );
+			println( "    "+left(users.length,5)+"  pairs using this link ("+strnum(p*100,1,1)+"%)" );
+			println( "    "+left(strnum(s,2,0),5)+"  standard deviation ("+strnum(s/n*100,1,1)+"%)" );
 			println( "    error(+/-):        NPQ    Wald   Agresti-Coull" );
 			println( "        conf. 70%: "+strnum(pConf_NPQ(n,p,.30)*1e2,2,6)
 			+"% "+strnum(pConf_Wald(n,p,.30)*1e2,2,6)
@@ -1293,11 +1301,15 @@ class SimulatorAPI extends mcli.CommandLine {
 			};
 	}
 
-	private static function readSet( s:String, ?nullable=true ):Null<Array<String>> {
-		return switch ( s.toLowerCase() ) {
-		case "", "_", "*": null; if ( nullable ) null; else throw "Invalid String "+s;
-		case all: s.split( "," );
-		};
+	private static function readSet( s:Null<String>, ?nullable=true ):Null<Array<String>> {
+		if ( s == null )
+			if ( nullable ) return null;
+			else throw "Set cannot be null";
+		else
+			return switch ( s.toLowerCase() ) {
+			case "", "_", "*": null; if ( nullable ) null; else throw "Invalid String "+s;
+			case all: s.split( "," );
+			};
 	}
 
 }

@@ -27,7 +27,7 @@ class Query {
 	}
 
 	private function registerCustomNames() {
-		interp.variables.set( "in", function (x,it) return has(it,x) );
+		interp.variables.set( "in", function (x:Dynamic,it:Iterable<Dynamic>) return has(it,x) );
 	}
 
 	public static function prepare( s:String, id:String ):Query {
@@ -90,6 +90,7 @@ class Query {
 		// case EField(e,f): EField(remap(e),f);
 		case EBinop(op,e1,e2): remapBinop(ast);
 		// case EUnop(op,preffix,e): EUnop(op,preffix,remap(e));
+		case ECall(EIdent("in"),params): ECall(EIdent("in"),params.map(remap));
 		// case ECall(e,params): ECall(remap(e),params.map(remap));
 		// case EIf(cond,e1,e2): EIf(remap(cond),remap(e1),remap(e2));
 		// case EWhile(cond,e): EWhile(remap(cond),remap(e));
@@ -99,7 +100,7 @@ class Query {
 		// case EFunction(args,e,name,ret): EFunction(args,remap(e),name,ret);
 		// case EReturn(e): EReturn(remap(e));
 		case EArray(e,index): EArray(remap(e),remap(index));
-		// case EArrayDecl(e): EArrayDecl(e.map(remap));
+		case EArrayDecl(e): EArrayDecl(e.map(remap));
 		// case ENew(cl,params): ENew(cl,params.map(remap));
 		// case EThrow(e): EThrow(remap(e));
 		// case ETry(e,v,t,ecatch): ETry(remap(e),v,t,remap(ecatch));
