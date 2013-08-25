@@ -19,8 +19,8 @@ class ODResult {
 	public function toString() {
 		var strPath = path != null ? "["+(path.length>3?"...":path.join(","))+"]" : "null";
 		return 'OD result for record \'$odId\'\n'
-		+'  => weight: $weight, ran?: $ran, reached?: $reached\n'
-		+'     distance: $dist, time: $time, toll: $toll, total cost: $cost\n'
+		+'  => weight: $weight, ran?: $ran, reached?: $reached,\n'
+		+'     distance: $dist, time: $time, toll: $toll, total cost: $cost,\n'
 		+'     ?escaped: $escaped, path: $strPath';
 	}
 

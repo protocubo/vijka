@@ -24,9 +24,10 @@ class OD {
 		var o = originName != null ? originName : "?";
 		var d = destinationName != null ? destinationName : "?";
 		return 'OD record \'$id\', of lot \'$lot\', on section \'$section\', on direction \'$direction\'\n'
-		+'  => vehicle: $vehicleId, cargo: "$cargo", sample weight: $sampleWeight\n'
-		+'     cdist: $distWeight, ctime_o: $timeOperationalWeight, ctime_s: $timeSocialWeight\n'
-		+'     origin [lon lat ?name]: [${origin.rawString()} "$o"], destination [lon lat ?name]: [${destination.rawString()} "$d"]';
+		+'  => vehicle: $vehicleId, cargo: "$cargo", sample weight: $sampleWeight,\n'
+		+'     cdist: $distWeight, ctime_o: $timeOperationalWeight, ctime_s: $timeSocialWeight,\n'
+		+'     origin [lon lat ?name]: [${origin.rawString()} "$o"],\n'
+		+'     destination [lon lat ?name]: [${destination.rawString()} "$d"]';
 	}
 
 	public static function makeEmpty():OD {

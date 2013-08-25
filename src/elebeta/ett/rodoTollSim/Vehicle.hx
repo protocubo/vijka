@@ -12,7 +12,7 @@ class Vehicle  {
 	public function toString() {
 		return 'Vehicle \'$id\'\n'
 		+'  => #axis: $noAxis, #tolls: $tollMulti, #equivalent vehicles: $eqNo,\n'
-		+'  => name: "$name"';
+		+'     name: "$name"';
 	}
 
 	public static function ettFields():Array<Field> {
