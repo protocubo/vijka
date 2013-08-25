@@ -1,4 +1,4 @@
-package sim;
+package sim.uq;
 
 import hscript.Expr;
 import hscript.Interp;
@@ -6,7 +6,7 @@ import hscript.Parser;
 
 import Lambda.has;
 
-class Query {
+class Search {
 
 	private var interp:Interp;
 
@@ -30,9 +30,9 @@ class Query {
 		interp.variables.set( "in", function (x:Dynamic,it:Iterable<Dynamic>) return has(it,x) );
 	}
 
-	public static function prepare( s:String, id:String ):Query {
+	public static function prepare( s:String, id:String ):Search {
 		var ast = parse( s );
-		return new Query( ast, id );
+		return new Search( ast, id );
 	}
 
 	private static function parse( s:String ):Expr {

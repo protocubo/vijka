@@ -21,7 +21,8 @@ import Std.string;
 
 import sim.Algorithm;
 import sim.col.LinkTypeSpeedMap;
-import sim.Query;
+import sim.uq.Search;
+import sim.uq.Update;
 
 import sim.Simulator.print;
 import sim.Simulator.printHL;
@@ -184,7 +185,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		}
 		else {
 			var aliases = sim.state.aliases;
-			var q = Query.prepare( filter, "id" );
+			var q = Search.prepare( filter, "id" );
 			for ( k in q.execute( links, aliases ) ) {
 				if ( first ) first = false; else fout.writeString( ","+sim.newline+"\t" );
 				fout.writeString( _geojsonLink( k ) );
@@ -202,7 +203,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		if ( sim.state.links == null )
 			throw "No links";
 		println( "Showing links matching '"+filter+"'" );
-		var q = Query.prepare( filter, "id" );
+		var q = Search.prepare( filter, "id" );
 		switch ( type.toLowerCase() ) {
 		case "show", "list":
 			for ( v in q.execute( sim.state.links, sim.state.aliases ) )
@@ -449,7 +450,25 @@ class SimulatorAPI extends mcli.CommandLine {
 
 
 
-	// OD I/O -----------------------------------------------------------------
+	// ONLINE NETWORK UPDATES ---------------------------------------------------
+
+	/**
+		Update link properties (`extension`, `typedId` or `toll`)
+	**/
+	public function updateLinks( filter:String, update:String ) {
+		println( "Updating links mathcing '"+filter+"' with '"+update+"'" );
+		var links = sim.state.links;
+		if ( links == null )
+			throw "No links";
+		var aliases = sim.state.aliases;
+		var q = Search.prepare( filter, "id" );
+		var set = array( q.execute( links, aliases ) );
+		var u = Update.prepare( update, ["extension", "typeId", "toll"] );
+		u.execute( set );
+	}
+
+
+	// OD I/O -------------------------------------------------------------------
 
 	/**
 		Read O/D data from OD ETT in `path` (reentrant); requires vehicles; costs
@@ -503,7 +522,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		if ( sim.state.ods == null )
 			throw "No OD records";
 		println( "Showing OD records matching '"+filter+"'" );
-		var q = Query.prepare( filter, "id" );
+		var q = Search.prepare( filter, "id" );
 		switch ( type.toLowerCase() ) {
 		case "show", "list":
 			for ( v in q.execute( sim.state.ods, sim.state.aliases ) )
@@ -829,7 +848,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		if ( sim.state.volumes == null )
 			throw "No volumes";
 		println( "Showing link volumes matching '"+filter+"'" );
-		var q = Query.prepare( filter, "linkId" );
+		var q = Search.prepare( filter, "linkId" );
 		switch ( type.toLowerCase() ) {
 		case "show", "list":
 			for ( v in q.execute( sim.state.volumes, sim.state.aliases ) )
@@ -890,7 +909,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		if ( sim.state.results == null )
 			throw "No results";
 		println( "Showing results matching '"+filter+"'" );
-		var q = Query.prepare( filter, "odId" );
+		var q = Search.prepare( filter, "odId" );
 		switch ( type.toLowerCase() ) {
 		case "show", "list":
 			for ( v in q.execute( sim.state.results, sim.state.aliases ) )
@@ -935,7 +954,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		if ( sim.state.links == null )
 			throw "No links";
 
-		var q = Query.prepare( query, "id" );
+		var q = Search.prepare( query, "id" );
 		var links = array( q.execute( sim.state.links, sim.state.aliases ) );
 		if ( links.length == 0 )
 			throw "No links matching query '"+query+"'";
@@ -1310,7 +1329,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		if ( table == null )
 			throw "No table";
 		var alias:Map<String,Iterable<Int>> = aliases != null ? Reflect.field( sim.state, aliases ) : null;
-		var q = Query.prepare( expression, idName );
+		var q = Search.prepare( expression, idName );
 		switch ( type.toLowerCase() ) {
 		case "show", "list":
 			for ( v in q.execute( index, alias ) )
