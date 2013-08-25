@@ -3,6 +3,7 @@
 -cp src
 -lib elebeta-format
 -lib mcli
+-lib hscript
 
 # -D dump
 

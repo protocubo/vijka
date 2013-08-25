@@ -375,7 +375,7 @@ class OnlineDigraph {
 	private static function incorporatePseudoState( actual:SimulatorState
 	, pseudo:SimulatorState ) {
 		for ( r in pseudo.results )
-			actual.results.set( r.id, r );
+			actual.results.set( r.odId, r );
 		if ( actual.volumes != null )
 			for ( r in pseudo.volumes )
 				actual.volumes.set( r.linkId, r );

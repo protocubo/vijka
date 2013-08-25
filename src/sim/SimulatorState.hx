@@ -15,6 +15,8 @@ class SimulatorState {
 	public var vehicles:Null<Map<Int,Vehicle>>;
 	public var speeds:Null<LinkTypeSpeedMap>;
 
+	public var aliases:Null<Map<String,Array<Int>>>;
+
 	public var shapes:Null<Map<Int,LinkShape>>;
 
 	public var ods:Null<Map<Int,OD>>;

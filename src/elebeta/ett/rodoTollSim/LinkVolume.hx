@@ -17,6 +17,11 @@ class LinkVolume {
 		equivalentVehicles += v.equivalentVehicles;
 	}
 
+	public function toString() {
+		return 'Volume for link \'$linkId\'\n  '
+		+'  => vehicles: $vehicles, axis: $axis, tolls: $tolls, equivalent vehicles: $equivalentVehicles';
+	}
+
 	public function jsonBody():String {
 		return '"vehicles":$vehicles,"axis":$axis,"tolls":$tolls,"equivalentVehicles":$equivalentVehicles';
 	}

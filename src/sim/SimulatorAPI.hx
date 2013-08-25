@@ -20,7 +20,8 @@ import Std.parseInt;
 import Std.string;
 
 import sim.Algorithm;
-import sim.col.*;
+import sim.col.LinkTypeSpeedMap;
+import sim.Query;
 
 import sim.Simulator.print;
 import sim.Simulator.printHL;
@@ -123,8 +124,8 @@ class SimulatorAPI extends mcli.CommandLine {
 	// LINK I/O -----------------------------------------------------------------
 
 	/**
-		Read links from Link ETT in `path` (reentrant); requires nodes and link types;
-		extensions should be in km
+		Read links from Link ETT in `path` (reentrant); requires nodes and link
+		types; extensions should be in km
 	**/
 	public function readLinks( path:String ) {
 		if ( sim.state.links == null ) {
@@ -162,6 +163,159 @@ class SimulatorAPI extends mcli.CommandLine {
 	public function countLinks() {
 		var cnt = sim.state.links != null ? count( sim.state.links ) : 0;
 		println( "Counted "+cnt+" links" );
+	}
+
+	/**
+		Write links to GeoJSON in `path` using available link shape data; accepts
+		(optionnally) a unified `filter` query; will overwrite existing files
+	**/
+	public function geojsonLinks( path:String, ?filter:String ) {
+		println( "Mapping volumes in GeoJSON" );
+		var links = sim.state.links; // just a shortcut
+		if ( links == null ) throw "No links";
+		var fout = writeFile( path, false );
+		fout.writeString( '{"type":"FeatureCollection","features":['+sim.newline );
+		var first = true;
+		if ( filter == null ) {
+			for ( k in links ) {
+				if ( first ) first = false; else fout.writeString( ","+sim.newline+"\t" );
+				fout.writeString( geojsonLink( k ) );
+			}
+		}
+		else {
+			var aliases = sim.state.aliases;
+			var q = Query.prepare( filter, "id" );
+			for ( k in q.execute( links, aliases ) ) {
+				if ( first ) first = false; else fout.writeString( ","+sim.newline+"\t" );
+				fout.writeString( geojsonLink( k ) );
+			}
+		}
+		fout.writeString( sim.newline+"] }"+sim.newline );
+		fout.close();
+	}
+
+
+
+	// LINK SHAPE I/O -----------------------------------------------------------
+
+	/**
+		Read link shape from LinkShape ETT in `path` (reentrant); shapes for
+		unknown links are just ignored
+	**/
+	public function readShapes( path:String ) {
+		if ( sim.state.shapes == null ) {
+			println( "Reading link shapes" );
+			sim.state.shapes = new Map();
+		}
+		else {
+			println( "Reading additional link shapes; overwriting when necessary" );
+		}
+		var links = sim.state.links; // just a shortcut
+		if ( links == null || !links.iterator().hasNext() )
+			return; // no links
+		var shapes = sim.state.shapes; // just a shortcut
+		var einp = readEtt( path );
+		while ( true ) {
+			var shape = try { einp.fastReadRecord( LinkShape.makeEmpty() ); }
+			           catch ( e:Eof ) { null; };
+			if ( shape == null ) break;
+			if ( links.exists( shape.id ) )
+				shapes.set( shape.id, shape );
+		}
+		einp.close();
+	}
+
+	/**
+		Count links with custom shapes
+	**/
+	public function countShapes() {
+		var cnt = sim.state.shapes != null ? count( sim.state.shapes ) : 0;
+		println( "Counted "+cnt+" links with custom shapes" );
+	}
+
+	/**
+		Compress link shapes; removes all shapes redundant with the default ones
+		(that are based on start and finish nodes)
+	**/
+	public function compressShapes() {
+		var oldShapes = sim.state.shapes; // just a shortcut
+		if ( oldShapes == null )
+			return;
+		println( "Compressing link shape data" );
+		var shapes = new Map();
+		for ( s in oldShapes )
+			if ( s.shape.length > 2 )
+				shapes.set( s.id, s );
+		sim.state.shapes = shapes;
+		println( "All shapes with only 2 points have been removed" );
+	}
+
+	/**
+		Clear link shapes; when necessary the default ones (that are based on
+		start and finish nodes)
+	**/
+	public function clearShapes() {
+		if ( sim.state.shapes != null ) {
+			println( "Clearing link shape data; default shapes will be used" );
+			sim.state.shapes = null;
+		}
+	}
+
+
+
+	// LINK ALIASES -------------------------------------------------------------
+
+	/**
+		Read link aliases from LinkAlias ETT in `path` (reentrant); aliases for
+		unknown links are just ignored
+	**/
+	public function readAliases( path:String ) {
+		if ( sim.state.aliases == null ) {
+			println( "Reading link aliases" );
+			sim.state.aliases = new Map();
+		}
+		else {
+			println( "Reading additional link aliases; overwriting when necessary" );
+		}
+		var links = sim.state.links; // just a shortcut
+		if ( links == null || !links.iterator().hasNext() )
+			return; // no links
+		var aliases = sim.state.aliases; // just a shortcut
+		var einp = readEtt( path );
+		while ( true ) {
+			var alias = try { einp.fastReadRecord( LinkAlias.makeEmpty() ); }
+			           catch ( e:Eof ) { null; };
+			if ( alias == null ) break;
+			if ( links.exists( alias.linkId ) )
+				if ( aliases.exists( alias.name ) )
+					aliases.get( alias.name ).push( alias.linkId );
+				else
+					aliases.set( alias.name, [ alias.linkId ] );
+		}
+		einp.close();
+	}
+
+	/**
+		Clear all aliases
+	**/
+	public function clearAliases() {
+		sim.state.aliases = null;
+	}
+
+	/**
+		Show aliases
+	**/
+	public function showAliases() {
+		if ( sim.state.aliases == null )
+			println( "No aliases" );
+		var aliases = sim.state.aliases;
+		var names = [ for ( name in aliases.keys() ) name ];
+		names.sort( Reflect.compare );
+		println( "Showing aliases:" );
+		for ( name in names ) {
+			var cnt = count( aliases.get( name ) );
+			println( "  '"+name+"': "+cnt+" links" );
+		}
 	}
 
 
@@ -450,18 +604,20 @@ class SimulatorAPI extends mcli.CommandLine {
 	/**
 		Execute/run saving `volumes` and/or `path`
 	**/
-	public function run( volumes:String, path:String ) {
+	public function run( ?volumes:String, ?path:String ) {
 		var ods:Iterable<OD> = sim.state.activeOds != null ? sim.state.activeOds : sim.state.ods;
 		if ( ods == null ) throw "No O/D data";
 		if ( !ods.iterator().hasNext() ) {
 			println( "No O/D records... Try to remove the filter with --clear-od-filter" );
 			return;
 		}
-		var saveVols = readBool( volumes, false );
-		var savePath = readBool( path, false );
+		var saveVols = readBool( volumes, true );
+		var savePath = readBool( path, true );
 		assemble();
 		if ( sim.state.results == null ) sim.state.results = new Map();
 		if ( saveVols && sim.state.volumes == null ) sim.state.volumes = new Map();
+		if ( saveVols ) println( "Saving link volumes" );
+		if ( savePath ) println( "Saving selected paths" );
 		showAlgorithm();
 		sim.state.digraph.run( ods, saveVols, savePath );
 	}
@@ -480,7 +636,7 @@ class SimulatorAPI extends mcli.CommandLine {
 	/**
 		Write volumes to LinkVolume ETT in `path`; will overwrite existing files
 	**/
-	public function writeVolumes( path:String ) {
+	public function ettVolumes( path:String ) {
 		println( "Writing volumes" );
 		var volumes = sim.state.volumes; // just a shortcut
 		if ( volumes == null )
@@ -533,16 +689,20 @@ class SimulatorAPI extends mcli.CommandLine {
 	// RESULT ANALYSIS ----------------------------------------------------------
 
 	/**
-		Analyze link with id `id`; `type` may be a comma separated list of
-		"volumes", "ods", "usage", "save-usage" or "_" (for everything);
-		requires results with saved paths and volumes (when applicable)
+		Analyze links matching `query`, optionally `type` may be used to limit
+		the analysis; it can be a comma separated list of "volumes", "ods",
+		"usage", "save-usage" or "_" (for everything, the default); requires
+		results with saved paths and volumes (when applicable)
 	**/
-	public function analyze( id:Int, type:String ) {
+	public function analyze( query:String, ?type:String ) {
 		if ( sim.state.links == null )
 			throw "No links";
-		var link = sim.state.links.get( id );
-		if ( link == null )
-			throw "No link '"+id+"'";
+
+		var q = Query.prepare( query, "id" );
+		var links = array( q.execute( sim.state.links, sim.state.aliases ) );
+		if ( links.length == 0 )
+			throw "No links matching '"+query+"'";
+		var linkIds = links.map( function (x) return x.id );
 
 		var azVol = false;
 		var azOds = false;
@@ -575,7 +735,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		if ( res == null )
 			throw "No results";
 
-		println( "Analyzing link '"+link.id+"'" );
+		println( "Analyzing links ["+linkIds.join(", ")+"]" );
 
 		var resCnt = 0;
 		var users = null; // array of OD::id
@@ -584,13 +744,15 @@ class SimulatorAPI extends mcli.CommandLine {
 			users = [];
 			for ( r in res ) {
 				if ( r.path != null ) {
-					if ( svUsg )
+					if ( svUsg && r.escaped == null )
 						r.escaped = true;
 					resCnt++;
-					if ( has( r.path, link.id ) ) {
-						users.push( r.id );
-						if ( svUsg )
-							r.escaped = false;
+					for ( link in links ) {
+						if ( has( r.path, link.id ) ) {
+							users.push( r.odId );
+							if ( svUsg )
+								r.escaped = false;
+						}
 					}
 				}
 				else if ( svUsg )
@@ -598,19 +760,22 @@ class SimulatorAPI extends mcli.CommandLine {
 			}
 			users.sort( Reflect.compare );
 			if ( azOds )
-				println( "  * "+users.length+" O/D records using link: { "+users.join(", ")+" }" );
+				println( "  * "+users.length+" O/D records using links ["
+				+linkIds.join(", ")+"]: "+users.join(", ") );
 		}
 
 		if ( azVol ) { // output volumes
 			var vols = sim.state.volumes;
 			if ( vols == null )
 				throw "No volumes";
-			var v = vols.exists( link.id ) ? vols.get( link.id ) : LinkVolume.make( 0, 0, 0, 0, 0 );
-			println( "  * link volumes:");
-			println( "        "+left(strnum(v.vehicles,2,0),9)+"  vehicles" );
-			println( "        "+left(strnum(v.equivalentVehicles,2,0),9)+"  equivalent vehicles" );
-			println( "        "+left(strnum(v.axis,2,0),9)+"  axis" );
-			println( "        "+left(strnum(v.tolls,2,0),9)+"  toll multipliers" );
+			for ( link in links ) {
+				var v = vols.exists( link.id ) ? vols.get( link.id ) : LinkVolume.make( 0, 0, 0, 0, 0 );
+				println( "  * link volumes for link '"+link.id+"':");
+				println( "        "+left(strnum(v.vehicles,2,0),9)+"  vehicles" );
+				println( "        "+left(strnum(v.equivalentVehicles,2,0),9)+"  equivalent vehicles" );
+				println( "        "+left(strnum(v.axis,2,0),9)+"  axis" );
+				println( "        "+left(strnum(v.tolls,2,0),9)+"  toll multipliers" );
+			}
 		}
 
 		if ( azUsg ) { // output usage (prob) and error
@@ -621,8 +786,8 @@ class SimulatorAPI extends mcli.CommandLine {
 			var s = Math.sqrt( s2 );
 			println( "  * result analysis:" );
 			println( "    "+left(n,5)+"  allocated O/D pairs" );
-			println( "    "+left(users.length,5)+"  pairs using this link" );
-			println( "    "+left(strnum(s,2,0),5)+"  standard deviation" );
+			println( "    "+left(users.length,5)+"  pairs using this link ("+strnum(p*100,1,1)+"%)" );
+			println( "    "+left(strnum(s,2,0),5)+"  standard deviation ("+strnum(s/n*100,1,1)+"%)" );
 			println( "    error(+/-):        NPQ    Wald   Agresti-Coull" );
 			println( "        conf. 70%: "+strnum(pConf_NPQ(n,p,.30)*1e2,2,6)
 			+"% "+strnum(pConf_Wald(n,p,.30)*1e2,2,6)
@@ -681,9 +846,9 @@ class SimulatorAPI extends mcli.CommandLine {
 	}
 
 	/**
-		Read a command log from `path`
+		Execute from a command log in `path`
 	**/
-	public function read( path:String ) {
+	public function restore( path:String ) {
 		if ( !reading ) {
 			printHL( "-" );
 			printHL( "-" );
@@ -919,6 +1084,38 @@ class SimulatorAPI extends mcli.CommandLine {
 	}
 
 	/**
+		[ADVANCED] Query any table of objects, optionally specifying another
+		suitable alias table
+	**/
+	public function justQuery( table:String, type:String, expression:String, ?aliases:String ) {
+		var idName = switch ( table ) {
+		case "volumes": "linkId";
+		case "results": "odId";
+		case "speeds": "key";
+		case all: "id";
+		}
+		println( "Attempting to query table "+table+" with '"+expression+"'" );
+		var index:Map<Int,Dynamic> = Reflect.field( sim.state, table );
+		if ( table == null )
+			throw "No table";
+		var alias:Map<String,Iterable<Int>> = aliases != null ? Reflect.field( sim.state, aliases ) : null;
+		var q = Query.prepare( expression, idName );
+		switch ( type.toLowerCase() ) {
+		case "show", "list":
+			for ( v in q.execute( index, alias ) )
+				println( Std.string( v ) );
+		case "head":
+			var cnt = 0;
+			for ( v in q.execute( index, alias ) )
+				if ( cnt++ < 20 )
+					println( Std.string( v ) );
+		case "count":
+			println( "Counted "+count( q.execute( index, alias ) )+" records" );
+		}
+
+	}
+
+	/**
 		[HACK] Windows hack for problems with newlines
 	**/
 	public function windows() {
@@ -1003,6 +1200,12 @@ class SimulatorAPI extends mcli.CommandLine {
 		return activeOds;
 	}
 
+	private function geojsonLink( link:Link ):String {
+		var linkProp = link.jsonBody();
+		var geom = getShape( link ).geojsonGeometry();
+		return '{"id":${link.id},"type":"Feature","geometry":$geom,"properties":{$linkProp}}';
+	}
+
 	private function geojsonVolume( volume:LinkVolume ):String {
 		var link = sim.state.links.get( volume.linkId );
 		var linkProp = link.jsonBody();
@@ -1079,20 +1282,28 @@ class SimulatorAPI extends mcli.CommandLine {
 		};
 	}
 
-	private function readBool( s:String, ?nullable=true ):Null<Bool> {
-		return switch ( s.toLowerCase() ) {
-		case "", "_", "*", "a", "all": if ( nullable ) null; else throw "Invalid Bool "+s;
-		case "false", "no", "n", "0": false;
-		case "true", "yes", "y", "1": true;
-		case all: throw "Invalid Bool "+s;
-		};
+	private function readBool( s:Null<String>, ?nullable=true ):Null<Bool> {
+		if ( s == null )
+			if ( nullable ) return true;
+			else throw "Boll cannot be null";
+		else
+			return switch ( s.toLowerCase() ) {
+			case "", "_", "*", "a", "all": if ( nullable ) null; else throw "Invalid Bool "+s;
+			case "false", "no", "n", "0": false;
+			case "true", "yes", "y", "1": true;
+			case all: throw "Invalid Bool "+s;
+			};
 	}
 
-	private static function readSet( s:String, ?nullable=true ):Null<Array<String>> {
-		return switch ( s.toLowerCase() ) {
-		case "", "_", "*": null; if ( nullable ) null; else throw "Invalid String "+s;
-		case all: s.split( "," );
-		};
+	private static function readSet( s:Null<String>, ?nullable=true ):Null<Array<String>> {
+		if ( s == null )
+			if ( nullable ) return null;
+			else throw "Set cannot be null";
+		else
+			return switch ( s.toLowerCase() ) {
+			case "", "_", "*": null; if ( nullable ) null; else throw "Invalid String "+s;
+			case all: s.split( "," );
+			};
 	}
 
 }

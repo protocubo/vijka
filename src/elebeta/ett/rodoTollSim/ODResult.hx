@@ -5,7 +5,7 @@ import format.ett.Geometry;
 
 class ODResult {
 
-	public var id:Int;
+	public var odId:Int;
 	public var weight:Float;
 	public var ran:Bool;
 	public var reached:Bool;
@@ -16,13 +16,21 @@ class ODResult {
 	public var escaped:Null<Bool>;
 	public var path:Null<Array<Int>>; // array of link ids
 
+	public function toString() {
+		var strPath = path != null ? "["+(path.length>3?"...":path.join(","))+"]" : "null";
+		return 'OD result for record \'$odId\'\n'
+		+'  => weight: $weight, ran?: $ran, reached?: $reached\n'
+		+'     distance: $dist, time: $time, toll: $toll, total cost: $cost\n'
+		+'     ?escaped: $escaped, path: $strPath';
+	}
+
 	public static function makeEmpty():ODResult {
 		return new ODResult();
 	}
 
 	public static function ettFields():Array<Field> {
 		return [
-			new Field( "id", TInt ),
+			new Field( "odId", TInt ),
 			new Field( "weight", TFloat ),
 			new Field( "ran", TBool ),
 			new Field( "reached", TBool ),
@@ -35,9 +43,9 @@ class ODResult {
 		];
 	}
 
-	public static function make( id, weight, ran, reached, ?dist, ?time, ?toll, ?cost, ?escaped, ?path ):ODResult {
+	public static function make( odId, weight, ran, reached, ?dist, ?time, ?toll, ?cost, ?escaped, ?path ):ODResult {
 		var res = new ODResult();
-		res.id = id;
+		res.odId = odId;
 		res.weight = weight;
 		res.ran = ran;
 		res.reached = reached;
