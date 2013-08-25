@@ -1,6 +1,7 @@
 package sim;
 
 import haxe.io.StringInput;
+
 import sim.Algorithm;
 
 class Simulator {

@@ -88,7 +88,7 @@ class OnlineNetwork {
 			if ( n == null ) speeds.set( flat.typeId, n = new def.Speed() );
 			n.set( vehicles.get(flat.vehicleId), flat.speed );
 		}
-		println( "\r\t"+Lambda.count( speeds )+" speeds..." );
+		println( "\r\t"+Lambda.count( speeds )+" speeds levels (vehicle,type combinations)..." );
 	}
 
 	private function genLinks() {
