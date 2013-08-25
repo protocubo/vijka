@@ -194,6 +194,30 @@ class SimulatorAPI extends mcli.CommandLine {
 		fout.close();
 	}
 
+	/**
+		Show links with optional `filter` expression and output `type`;
+		`type` can be "show", "head" or "count" (default)
+	**/
+	public function queryLinks( ?filter="true==true", ?type="count" ) {
+		if ( sim.state.links == null )
+			throw "No links";
+		println( "Showing links matching '"+filter+"'" );
+		var q = Query.prepare( filter, "id" );
+		switch ( type.toLowerCase() ) {
+		case "show", "list":
+			for ( v in q.execute( sim.state.links, sim.state.aliases ) )
+				println( Std.string( v ) );
+		case "head":
+			var cnt = 0;
+			for ( v in q.execute( sim.state.links, sim.state.aliases ) )
+				if ( cnt++ < 20 )
+					println( Std.string( v ) );
+		case "count":
+			println( "Counted "+count( q.execute( sim.state.links, sim.state.aliases ) )+" records" );
+			println( "Pass \"show\" or \"head\" in the optional parameter `type` for more information" );
+		}
+	}
+
 
 
 	// LINK SHAPE I/O -----------------------------------------------------------
@@ -471,6 +495,30 @@ class SimulatorAPI extends mcli.CommandLine {
 			println( "Selected O/D records: "+sim.state.activeOds.length );
 	}
 
+	/**
+		Show OD records with optional `filter` expression and output `type`;
+		`type` can be "show", "head" or "count" (default)
+	**/
+	public function queryOd( ?filter="true==true", ?type="count" ) {
+		if ( sim.state.ods == null )
+			throw "No OD records";
+		println( "Showing OD records matching '"+filter+"'" );
+		var q = Query.prepare( filter, "id" );
+		switch ( type.toLowerCase() ) {
+		case "show", "list":
+			for ( v in q.execute( sim.state.ods, sim.state.aliases ) )
+				println( Std.string( v ) );
+		case "head":
+			var cnt = 0;
+			for ( v in q.execute( sim.state.ods, sim.state.aliases ) )
+				if ( cnt++ < 20 )
+					println( Std.string( v ) );
+		case "count":
+			println( "Counted "+count( q.execute( sim.state.ods, sim.state.aliases ) )+" records" );
+			println( "Pass \"show\" or \"head\" in the optional parameter `type` for more information" );
+		}
+	}
+
 
 
 	// OD FILTERS ---------------------------------------------------------------
@@ -485,7 +533,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		if ( ods == null ) throw "No O/D data";
 		var activeOds = list( sim.state.activeOds != null ? sim.state.activeOds : sim.state.ods );
 		var activeOdFilter = sim.state.activeOdFilter; if ( activeOdFilter == null ) activeOdFilter = [];
-		sim.state.activeOds = array( queryOd( activeOds, type, clause, activeOdFilter ) );
+		sim.state.activeOds = array( innerOdQuery( activeOds, type, clause, activeOdFilter ) );
 		sim.state.activeOdFilter = activeOdFilter;
 		println( "Current selected records: "+activeOds.length );
 		showOdFilter();
@@ -524,7 +572,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		var exp = sim.state.sampleWeights;
 		if ( exp == null )
 			exp = sim.state.sampleWeights = new Map();
-		var q = queryOd( sim.state.ods, type, clause );
+		var q = innerOdQuery( sim.state.ods, type, clause );
 		sim.state.volumes = null;
 		for ( od in q )
 			exp.set( od.id, value );
@@ -541,7 +589,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		var exp = sim.state.sampleWeights;
 		if ( exp == null )
 			exp = sim.state.sampleWeights = new Map();
-		var q = queryOd( sim.state.ods, type, clause );
+		var q = innerOdQuery( sim.state.ods, type, clause );
 		for ( od in q ) {
 			var previous = exp.exists( od.id ) ? exp.get( od.id ) : od.sampleWeight;
 			exp.set( od.id, od.sampleWeight*multi );
@@ -687,7 +735,7 @@ class SimulatorAPI extends mcli.CommandLine {
 			res.set( r.odId, r );
 		if ( sim.state.results != null )
 			println( "Replacing active results" );
-		sim.state.results == res;
+		sim.state.results = res;
 
 		var bvols = box.volumes();
 		if ( bvols != null ) {
@@ -765,10 +813,8 @@ class SimulatorAPI extends mcli.CommandLine {
 		Discart all results in cold storage
 	**/
 	public function clearStorage() {
-		if ( sim.state.coldStorage != null ) {
+		if ( sim.state.coldStorage != null )
 			sim.state.coldStorage = null;
-			println( "Discarted results in cold storage" );
-		}
 	}
 
 
@@ -1228,7 +1274,6 @@ class SimulatorAPI extends mcli.CommandLine {
 		case "count":
 			println( "Counted "+count( q.execute( index, alias ) )+" records" );
 		}
-
 	}
 
 	/**
@@ -1280,7 +1325,7 @@ class SimulatorAPI extends mcli.CommandLine {
 
 	// HELPERS ------------------------------------------------------------------
 
-	private function queryOd( original:Iterable<OD>, type:String, clause:String
+	private function innerOdQuery( original:Iterable<OD>, type:String, clause:String
 	, ?originalFilter:Array<String> ):Null<Iterable<OD>> {
 		var c = readSet( clause );
 		if ( c == null )

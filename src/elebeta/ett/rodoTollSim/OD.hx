@@ -17,12 +17,16 @@ class OD {
 	public var sampleWeight:Float;
 	public var origin:Point;
 	public var destination:Point;
+	public var originName:Null<String>;
+	public var destinationName:Null<String>;
 
 	public function toString() {
+		var o = originName != null ? originName : "?";
+		var d = destinationName != null ? destinationName : "?";
 		return 'OD record \'$id\', of lot \'$lot\', on section \'$section\', on direction \'$direction\'\n'
 		+'  => vehicle: $vehicleId, cargo: "$cargo", sample weight: $sampleWeight\n'
 		+'     cdist: $distWeight, ctime_o: $timeOperationalWeight, ctime_s: $timeSocialWeight\n'
-		+'     origin [lon lat]: [${origin.rawString()}], destination [lon lat]: [${destination.rawString()}]';
+		+'     origin [lon lat ?name]: [${origin.rawString()} "$o"], destination [lon lat ?name]: [${destination.rawString()} "$d"]';
 	}
 
 	public static function makeEmpty():OD {
@@ -42,13 +46,15 @@ class OD {
 			new Field( "timeSocialWeight", TFloat ),
 			new Field( "sampleWeight", TFloat ),
 			new Field( "origin", TGeometry(TPoint) ),
-			new Field( "destination", TGeometry(TPoint) )
+			new Field( "destination", TGeometry(TPoint) ),
+			new Field( "originName", TNull(TString) ),
+			new Field( "destinationName", TNull(TString) )
 		];
 	}
 
 	public static function make( id, lot, section, direction, vehicleId, cargo
 	, distWeight, timeOperationalWeight, timeSocialWeight, sampleWeight
-	, origin, destination ):OD {
+	, origin, destination, ?originName, ?destinationName ):OD {
 		var od = new OD();
 		od.id = id;
 		od.lot = lot;
@@ -62,6 +68,8 @@ class OD {
 		od.sampleWeight = sampleWeight;
 		od.origin = origin;
 		od.destination = destination;
+		od.originName = originName;
+		od.destinationName = destinationName;
 		return od;
 	}
 

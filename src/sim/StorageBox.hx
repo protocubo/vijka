@@ -34,6 +34,6 @@ class StorageBox {
 
 	public function countResults() return rs.length;
 	
-	public function countVolumes() return vs.length;
+	public function countVolumes() return vs != null ? vs.length : 0;
 
 }
