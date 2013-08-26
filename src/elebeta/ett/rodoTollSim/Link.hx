@@ -11,12 +11,12 @@ class Link {
 	public var typeId:Int; // LinkType::id
 	public var toll:Float;
 
-	public function toString() {
+	public inline function toString() {
 		return 'Link \'$id\', from node \'$startNodeId\' to node \'$finishNodeId\'\n'
 		+'  => extension: $extension, type: $typeId, toll: $toll';
 	}
 
-	public function jsonBody():String {
+	public inline function jsonBody():String {
 		return '"id":$id,"startNodeId":$startNodeId,"finishNodeId":$finishNodeId,"extension":$extension,"typeId":$typeId,"toll":$toll';
 	}
 
@@ -31,11 +31,11 @@ class Link {
 		];
 	}
 
-	public static function makeEmpty():Link {
+	public static inline function makeEmpty():Link {
 		return new Link();
 	}
 
-	public static function make( id, startNodeId, finishNodeId, extension, typeId, toll ):Link {
+	public static inline function make( id, startNodeId, finishNodeId, extension, typeId, toll ):Link {
 		var link = new Link();
 		link.id = id;
 		link.startNodeId = startNodeId;
@@ -47,6 +47,6 @@ class Link {
 		return link;
 	}
 
-	private function new() {}
+	private inline function new() {}
 
 }

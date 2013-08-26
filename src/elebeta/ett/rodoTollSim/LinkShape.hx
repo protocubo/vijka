@@ -4,6 +4,7 @@ import format.ett.Data;
 import format.ett.Geometry;
 
 class LinkShape {
+	
 	public var id:Int;
 	public var shape:LineString;
 
@@ -18,17 +19,17 @@ class LinkShape {
 		];
 	}
 
-	public static function makeEmpty():LinkShape {
+	public static inline function makeEmpty():LinkShape {
 		return new LinkShape();
 	}
 
-	public static function make( id, shape ):LinkShape {
+	public static inline function make( id, shape ):LinkShape {
 		var shp = new LinkShape();
 		shp.id = id;
 		shp.shape = shape;
 		return shp;
 	}
 
-	private function new() {}
+	private inline function new() {}
 
 }

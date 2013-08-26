@@ -75,6 +75,41 @@ class SimulatorAPI extends mcli.CommandLine {
 		println( "Counted "+cnt+" nodes" );
 	}
 
+	/**
+		Write nodes to Node ETT in `path`; will overwrite existing files
+	**/
+	public function ettNodes( path:String ) {
+		return _genericEtt( path, sim.state.nodes, Node, "Writing nodes", "No nodes" );
+	}
+
+	/**
+		Write nodes to GeoJSON in `path`, using optional `filter`
+	**/
+	public function geojsonNodes( path:String, ?filter:String ) {
+		println( "Mapping nodes in GeoJSON" );
+		var nodes = sim.state.nodes; // just a shortcut
+		if ( nodes == null ) throw "No nodes";
+		var fout = _writeFile( path, false );
+		fout.writeString( '{"type":"FeatureCollection","features":['+sim.newline );
+		var first = true;
+		if ( filter == null ) {
+			for ( n in nodes ) {
+				if ( first ) first = false; else fout.writeString( ","+sim.newline+"\t" );
+				fout.writeString( _geojsonNode( n ) );
+			}
+		}
+		else {
+			var aliases = sim.state.aliases;
+			var q = Search.prepare( filter, "id" );
+			for ( n in q.execute( sim, nodes, aliases ) ) {
+				if ( first ) first = false; else fout.writeString( ","+sim.newline+"\t" );
+				fout.writeString( _geojsonNode( n ) );
+			}
+		}
+		fout.writeString( sim.newline+"] }"+sim.newline );
+		fout.close();
+	}
+
 
 
 	// LINK TYPE I/O ------------------------------------------------------------
@@ -171,7 +206,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		(optionnally) a unified `filter` query; will overwrite existing files
 	**/
 	public function geojsonLinks( path:String, ?filter:String ) {
-		println( "Mapping volumes in GeoJSON" );
+		println( "Mapping links in GeoJSON" );
 		var links = sim.state.links; // just a shortcut
 		if ( links == null ) throw "No links";
 		var fout = _writeFile( path, false );
@@ -196,27 +231,13 @@ class SimulatorAPI extends mcli.CommandLine {
 	}
 
 	/**
-		Show links with optional `filter` expression and output `type`;
+		Search links with optional `filter` expression and output `type`;
 		`type` can be "show", "head" or "count" (default)
 	**/
 	public function queryLinks( ?filter="true==true", ?type="count" ) {
-		if ( sim.state.links == null )
-			throw "No links";
-		println( "Showing links matching '"+filter+"'" );
 		var q = Search.prepare( filter, "id" );
-		switch ( type.toLowerCase() ) {
-		case "show", "list":
-			for ( v in q.execute( sim, sim.state.links, sim.state.aliases ) )
-				println( Std.string( v ) );
-		case "head":
-			var cnt = 0;
-			for ( v in q.execute( sim, sim.state.links, sim.state.aliases ) )
-				if ( cnt++ < 20 )
-					println( Std.string( v ) );
-		case "count":
-			println( "Counted "+count( q.execute( sim, sim.state.links, sim.state.aliases ) )+" records" );
-			println( "Pass \"show\" or \"head\" in the optional parameter `type` for more information" );
-		}
+		_genericQuery( q, sim.state.links, sim.state.aliases, type
+		, "Searching for links mathcing '"+filter+"'", "No links" );
 	}
 
 
@@ -521,23 +542,9 @@ class SimulatorAPI extends mcli.CommandLine {
 		`type` can be "show", "head" or "count" (default)
 	**/
 	public function queryOd( ?filter="true==true", ?type="count" ) {
-		if ( sim.state.ods == null )
-			throw "No OD records";
-		println( "Showing OD records matching '"+filter+"'" );
 		var q = Search.prepare( filter, "id" );
-		switch ( type.toLowerCase() ) {
-		case "show", "list":
-			for ( v in q.execute( sim, sim.state.ods, sim.state.aliases ) )
-				println( Std.string( v ) );
-		case "head":
-			var cnt = 0;
-			for ( v in q.execute( sim, sim.state.ods, sim.state.aliases ) )
-				if ( cnt++ < 20 )
-					println( Std.string( v ) );
-		case "count":
-			println( "Counted "+count( q.execute( sim, sim.state.ods, sim.state.aliases ) )+" records" );
-			println( "Pass \"show\" or \"head\" in the optional parameter `type` for more information" );
-		}
+		_genericQuery( q, sim.state.ods, null, type
+		, "Searching OD records matching '"+filter+"'", "No OD records" );
 	}
 
 
@@ -800,14 +807,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		ETT in `path`
 	**/
 	public function ettStorage( path:String ) {
-		println( "Writing cold stored results" );
-		var st = sim.state.coldStorage; // just a shortcut
-		if ( st == null ) throw "No cold storage";
-		var eout = _writeEtt( ODResult, ODResult.ettFields(), path );
-		for ( box in st )
-			for ( v in box.results() )
-				eout.write( v );
-		eout.close();
+		_genericEtt( path, sim.state.coldStorage, ODResult, "No c!old stored results", "No cold storage" );
 	}
 
 	/**
@@ -843,41 +843,20 @@ class SimulatorAPI extends mcli.CommandLine {
 	// VOLUME I/O ---------------------------------------------------------------
 
 	/**
-		Show link volumes with optional `filter` expression and output `type`;
+		Search link volumes with optional `filter` expression and output `type`;
 		`type` can be "show", "head" or "count" (default)
 	**/
 	public function queryVolumes( ?filter="true==true", ?type="count" ) {
-		if ( sim.state.volumes == null )
-			throw "No volumes";
-		println( "Showing link volumes matching '"+filter+"'" );
 		var q = Search.prepare( filter, "linkId" );
-		switch ( type.toLowerCase() ) {
-		case "show", "list":
-			for ( v in q.execute( sim, sim.state.volumes, sim.state.aliases ) )
-				println( Std.string( v ) );
-		case "head":
-			var cnt = 0;
-			for ( v in q.execute( sim, sim.state.volumes, sim.state.aliases ) )
-				if ( cnt++ < 20 )
-					println( Std.string( v ) );
-		case "count":
-			println( "Counted "+count( q.execute( sim, sim.state.volumes, sim.state.aliases ) )+" records" );
-			println( "Pass \"show\" or \"head\" in the optional parameter `type` for more information" );
-		}
+		_genericQuery( q, sim.state.volumes, sim.state.aliases, type
+		, "Searching link volumes matching '"+filter+"'", "No volumes" );
 	}
 
 	/**
 		Write volumes to LinkVolume ETT in `path`; will overwrite existing files
 	**/
 	public function ettVolumes( path:String ) {
-		println( "Writing volumes" );
-		var volumes = sim.state.volumes; // just a shortcut
-		if ( volumes == null )
-			throw "No volumes";
-		var eout = _writeEtt( LinkVolume, LinkVolume.ettFields(), path );
-		for ( v in volumes )
-			eout.write( v );
-		eout.close();
+		_genericEtt( path, sim.state.volumes, LinkVolume, "Writing volumes", "No volumes" );
 	}
 
 	/**
@@ -908,23 +887,9 @@ class SimulatorAPI extends mcli.CommandLine {
 		`type` can be "show", "head" or "count" (default)
 	**/
 	public function queryResults( ?filter="true==true", ?type="count" ) {
-		if ( sim.state.results == null )
-			throw "No results";
-		println( "Showing results matching '"+filter+"'" );
 		var q = Search.prepare( filter, "odId" );
-		switch ( type.toLowerCase() ) {
-		case "show", "list":
-			for ( v in q.execute( sim, sim.state.results, sim.state.aliases ) )
-				println( Std.string( v ) );
-		case "head":
-			var cnt = 0;
-			for ( v in q.execute( sim, sim.state.results, sim.state.aliases ) )
-				if ( cnt++ < 20 )
-					println( Std.string( v ) );
-		case "count":
-			println( "Counted "+count( q.execute( sim, sim.state.results, sim.state.aliases ) )+" records" );
-			println( "Pass \"show\" or \"head\" in the optional parameter `type` for more information" );
-		}
+		_genericQuery( q, sim.state.volumes, sim.state.aliases, type
+		, "Searching results matching '"+filter+"'", "No results" );
 	}
 
 
@@ -932,14 +897,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		Write results to ODResults ETT in `path`; will overwrite existing files
 	**/
 	public function ettResults( path:String ) {
-		println( "Writing results" );
-		var results = sim.state.results; // just a shortcut
-		if ( results == null )
-			throw "No results";
-		var eout = _writeEtt( ODResult, ODResult.ettFields(), path );
-		for ( v in results )
-			eout.write( v );
-		eout.close();
+		_genericEtt( path, sim.state.results, ODResult, "Writing results", "No results" );
 	}
 
 
@@ -1286,16 +1244,13 @@ class SimulatorAPI extends mcli.CommandLine {
 	**/
 	public function dumpEtt( table:String, path:String ) {
 		println( "Attempting to dump table \""+table+"\" in \""+path+"\"" );
-		var table:{ iterator:Void->Iterator<Dynamic> } = Reflect.field( sim.state, table );
-		if ( table == null )
+		var tb:{ iterator:Void->Iterator<Dynamic> } = Reflect.field( sim.state, table );
+		if ( tb == null )
 			throw "No table";
-		if ( !table.iterator().hasNext() )
+		if ( !tb.iterator().hasNext() )
 			throw "Cannot figure out the type of an EMPTY table";
-		var cl:Dynamic = Type.getClass( table.iterator().next() );
-		var eout = _writeEtt( cl, cl.ettFields(), path );
-		for ( r in table )
-			eout.write( r );
-		eout.close();
+		var cl:Dynamic = Type.getClass( tb.iterator().next() );
+		_genericEtt( path, tb, cl, null, null );
 	}
 
 	/**
@@ -1387,6 +1342,39 @@ class SimulatorAPI extends mcli.CommandLine {
 
 	// HELPERS ------------------------------------------------------------------
 
+	private function _genericQuery( query:Search, table:Map<Dynamic,Dynamic>
+	, aliases:Null<Map<String,Dynamic>>, type:Null<String>
+	, status:Null<String>, notAvailable:Null<String> ) {
+		if ( table == null )
+			throw notAvailable != null ? notAvailable : "Table not available";
+		if ( status != null ) println( status );
+		if ( type == null ) type = "count";
+		switch ( type.toLowerCase() ) {
+		case "show", "list":
+			for ( v in query.execute( sim, table, aliases ) )
+				println( Std.string( v ) );
+		case "head":
+			var cnt = 0;
+			for ( v in query.execute( sim, table, aliases ) )
+				if ( cnt++ < 20 )
+					println( Std.string( v ) );
+		case "count":
+			println( "Counted "+count( query.execute( sim, table, aliases ) )+" records" );
+			println( "Pass \"show\" or \"head\" in the optional parameter `type` for more information" );
+		}
+	}
+
+	private function _genericEtt<T>( path:String, table:Iterable<T>, cl:Dynamic
+	, status:Null<String>, notAvailable:Null<String> ) {
+		if ( status != null ) println( status );
+		if ( table == null )
+			throw notAvailable != null ? notAvailable : "Table not available";
+		var eout = _writeEtt( cl, cl.ettFields(), path );
+		for ( r in table )
+			eout.write( r );
+		eout.close();
+	}
+
 	private function _innerOdQuery( original:Iterable<OD>, type:String, clause:String
 	, ?originalFilter:Array<String> ):Null<Iterable<OD>> {
 		var c = _readSet( clause );
@@ -1422,10 +1410,16 @@ class SimulatorAPI extends mcli.CommandLine {
 		return activeOds;
 	}
 
+	private function _geojsonNode( node:Node ):String {
+		var prop = node.jsonBody();
+		var geom = node.geojsonGeometry();
+		return '{"id":${node.id},"type":"Feature","geometry":${geom},"properties":{$prop}}';
+	}
+
 	private function _geojsonLink( link:Link ):String {
 		var linkProp = link.jsonBody();
 		var geom = _getShape( link ).geojsonGeometry();
-		return '{"id":${link.id},"type":"Feature","geometry":$geom,"properties":{$linkProp}}';
+		return '{"id":${link.id},"type":"Feature","geometry":${geom},"properties":{$linkProp}}';
 	}
 
 	private function _geojsonVolume( volume:LinkVolume, moreProperties:Null<String> ):String {
@@ -1434,9 +1428,9 @@ class SimulatorAPI extends mcli.CommandLine {
 		var linkVolume = volume.jsonBody();
 		var geom = _getShape( link ).geojsonGeometry();
 		if ( moreProperties != null )
-			return '{"id":${link.id},"type":"Feature","geometry":$geom,"properties":{$linkProp,$linkVolume,$moreProperties}}';
+			return '{"id":${link.id},"type":"Feature","geometry":${geom},"properties":{$linkProp,$linkVolume,$moreProperties}}';
 		else
-			return '{"id":${link.id},"type":"Feature","geometry":$geom,"properties":{$linkProp,$linkVolume}}';
+			return '{"id":${link.id},"type":"Feature","geometry":${geom},"properties":{$linkProp,$linkVolume}}';
 	}
 
 	private function _getShape( link:Link):LinkShape {
