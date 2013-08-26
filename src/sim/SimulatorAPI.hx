@@ -453,7 +453,8 @@ class SimulatorAPI extends mcli.CommandLine {
 	// ONLINE NETWORK UPDATES ---------------------------------------------------
 
 	/**
-		Update link properties (`extension`, `typedId` or `toll`)
+		Update link properties (`extension`, `typedId` or `toll`); this forces
+		a full online network and digraph reassembly before the next run
 	**/
 	public function updateLinks( filter:String, update:String ) {
 		println( "Updating links mathcing '"+filter+"' with '"+update+"'" );
@@ -464,6 +465,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		var q = Search.prepare( filter, "id" );
 		var set = array( q.execute( links, aliases ) );
 		var u = Update.prepare( update, ["extension", "typeId", "toll"] );
+		sim.state.invalidate();
 		u.execute( set );
 	}
 
