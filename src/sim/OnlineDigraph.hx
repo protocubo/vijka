@@ -101,7 +101,6 @@ class OnlineDigraph {
 			var i = 0;
 			print( "\rRunning "+i+"/"+ods.length );
 			while ( i < ods.length ) {
-				trace( [ i, ods.length ] );
 				var nextEnd = i + partSize;
 				if ( nextEnd >= ods.length )
 					nextEnd = ods.length;
