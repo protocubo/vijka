@@ -223,105 +223,7 @@ class OnlineDigraph {
 	}
 
 
-	// GENERATION ---------------------------------------------------------------
-
-	private function genDigraph() {
-		switch ( sim.state.algorithm ) {
-		case ADijkstra: dg = new Digraph( false, sim.state.heapArity, sim.state.heapReserve );
-		case AAStar: dg = new Digraph( true, sim.state.heapArity, sim.state.heapReserve );
-		case ABellmanFord: throw "Bellman Ford not working for now";
-		}
-		genVertices();
-		genArcs();
-	}
-
-	private function genVertices() {
-		if ( workers < 1 )
-			print( "\tVertices..." );
-		for ( node in sim.state.network.nodes )
-			dg.addVertex( node );
-		if ( workers < 1 )
-			println( "\r\t"+countIterator( dg.vertices() )+" vertices..." );
-	}
-
-	private function genArcs() {
-		if ( workers < 1 )
-			print( "\tArcs..." );
-		for ( link in sim.state.network.links )
-			dg.addArc( link );
-		if ( workers < 1 )
-			println( "\r\t"+countIterator( dg.arcs() )+" arcs..." );
-	}
-
-	private static function countIterator<T>( it:Iterator<T> ):Int {
-		var i = 0;
-		for ( v in it )
-			i++;
-		return i;
-	}
-
-
-	// MULTITHREADED ------------------------------------------------------------
-
-	private static function spawnWorker( id:Int, sim:Simulator ):Thread {
-		var w = threadCreate( threadMain );
-		sendMsg( w, -1, MInit( curThread(), id ) );
-		switch ( readMsg( true ).data ) {
-		case MAlive:
-		case all: throw all;
-		}
-		return w;
-	}
-
-	private static function threadCreate( main:Void->Void ):Thread {
-		return #if ( neko )
-		Thread.create( main );
-		#elseif ( cpp && HXCPP_MULTI_THREADED )
-		Thread.create( main );
-		#elseif ( java )
-		Thread.create( main );
-		#else
-		throw "Threads not avaibable in this build";
-		#end
-	}
-
-	private static function readMsg( block:Bool ):Message {
-		return #if ( neko )
-		Thread.readMessage( block );
-		#elseif ( cpp && HXCPP_MULTI_THREADED )
-		Thread.readMessage( block );
-		#elseif ( java )
-		Thread.readMessage( block );
-		#else
-		throw "Threads not avaibable in this build";
-		#end
-	}
-
-	private static function sendMsg( thread:Thread, from:Int, data:MessageData ) {
-		#if ( neko )
-		thread.sendMessage( new Message( from, data ) );
-		#elseif ( cpp && HXCPP_MULTI_THREADED )
-		thread.sendMessage( new Message( from, data ) );
-		#elseif ( java )
-		thread.sendMessage( new Message( from, data ) );
-		#else
-		throw "Threads not avaibable in this build";
-		#end
-	}
-
-	private static function curThread() {
-		return #if ( neko )
-		Thread.current();
-		#elseif ( cpp && HXCPP_MULTI_THREADED )
-		Thread.current();
-		#elseif ( java )
-		Thread.current();
-		#else
-		throw "Threads not avaibable in this build";
-		#end
-	}
-
-	private static function threadMain():Void {
+	private static function workerMain():Void {
 		// initial handshake
 		// receive parent
 		var parent:Thread = null;
@@ -382,6 +284,105 @@ class OnlineDigraph {
 				throw all;
 			}
 		} while ( true );
+	}
+
+
+	// GENERATION ---------------------------------------------------------------
+
+	private function genDigraph() {
+		switch ( sim.state.algorithm ) {
+		case ADijkstra: dg = new Digraph( false, sim.state.heapArity, sim.state.heapReserve );
+		case AAStar: dg = new Digraph( true, sim.state.heapArity, sim.state.heapReserve );
+		case ABellmanFord: throw "Bellman Ford not working for now";
+		}
+		genVertices();
+		genArcs();
+	}
+
+	private function genVertices() {
+		if ( workers < 1 )
+			print( "\tVertices..." );
+		for ( node in sim.state.network.nodes )
+			dg.addVertex( node );
+		if ( workers < 1 )
+			println( "\r\t"+countIterator( dg.vertices() )+" vertices..." );
+	}
+
+	private function genArcs() {
+		if ( workers < 1 )
+			print( "\tArcs..." );
+		for ( link in sim.state.network.links )
+			dg.addArc( link );
+		if ( workers < 1 )
+			println( "\r\t"+countIterator( dg.arcs() )+" arcs..." );
+	}
+
+	private static function countIterator<T>( it:Iterator<T> ):Int {
+		var i = 0;
+		for ( v in it )
+			i++;
+		return i;
+	}
+
+
+	// MULTITHREADED ------------------------------------------------------------
+
+	private static function spawnWorker( id:Int, sim:Simulator ):Thread {
+		var w = threadCreate( workerMain );
+		sendMsg( w, -1, MInit( curThread(), id ) );
+		switch ( readMsg( true ).data ) {
+		case MAlive:
+		case all: throw all;
+		}
+		return w;
+	}
+
+	private static function threadCreate( main:Void->Void ):Thread {
+		return #if ( neko )
+		Thread.create( main );
+		#elseif ( cpp && HXCPP_MULTI_THREADED )
+		Thread.create( main );
+		#elseif ( java )
+		Thread.create( main );
+		#else
+		throw "Threads not avaibable in this build";
+		#end
+	}
+
+	private static function readMsg( block:Bool ):Message {
+		return #if ( neko )
+		Thread.readMessage( block );
+		#elseif ( cpp && HXCPP_MULTI_THREADED )
+		Thread.readMessage( block );
+		#elseif ( java )
+		Thread.readMessage( block );
+		#else
+		throw "Threads not avaibable in this build";
+		#end
+	}
+
+	private static function sendMsg( thread:Thread, from:Int, data:MessageData ) {
+		#if ( neko )
+		thread.sendMessage( new Message( from, data ) );
+		#elseif ( cpp && HXCPP_MULTI_THREADED )
+		thread.sendMessage( new Message( from, data ) );
+		#elseif ( java )
+		thread.sendMessage( new Message( from, data ) );
+		#else
+		throw "Threads not avaibable in this build";
+		#end
+	}
+
+	private static function curThread() {
+		return #if ( neko )
+		Thread.current();
+		#elseif ( cpp && HXCPP_MULTI_THREADED )
+		Thread.current();
+		#elseif ( java )
+		Thread.current();
+		#else
+		throw "Threads not avaibable in this build";
+		#end
 	}
 
 	private static function incorporatePseudoState( actual:SimulatorState
