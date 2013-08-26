@@ -42,14 +42,14 @@ class Search {
 		var path:Array<Link> = [];
 		var output:SimulatorState = Type.createEmptyInstance( SimulatorState );
 		output.results = new Map();
-		sim.state.assemble();
+		sim.state.assemble( false, false );
 		var pre:Node = null;
 		for ( id in nodeIds ) {
 			var node = sim.state.nodes.get( id );
 			if ( node == null ) throw "No node '"+id+"'";
 			if ( pre != null ) {
 				var fakeOd = OD.make(0,0,0,0,vehicleId,null,1,0,0,1,pre.point,node.point,null,null);
-				sim.state.digraph.run( [ fakeOd ], false, true, output );
+				sim.state.digraph.run( [ fakeOd ], false, true, output, false );
 				var r = output.results.get(0);
 				if ( !r.ran || r.path == null || r.path.length == 0 ) // only !r.ran should be enough
 					continue;

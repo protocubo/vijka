@@ -57,21 +57,21 @@ class SimulatorState {
 		workerPartSize = 0;
 	}
 
-	public function assemble( ?force=false ) {
-		if ( force ) {
+	public function assemble( ?force=false, ?info=true ) {
+		if ( force && info ) {
 			println( "Forcing online network and graph assembly" );
 			printHL( "-" );
 		}
 		if ( sim.state.network == null || force ) {
 			println( "Assembling the network" );
 			digraph = null;
-			var nk = network = new OnlineNetwork( sim );
+			var nk = network = new OnlineNetwork( sim, info );
 		}
 		if ( sim.state.digraph == null || force ) {
 			println( "Assembling the (directed) graph" );
 			if ( sim.state.digraph != null )
 				digraph.prepareForInvalidation();
-			var dg = digraph = new OnlineDigraph( sim, workers, workerPartSize );
+			var dg = digraph = new OnlineDigraph( sim, workers, workerPartSize, info );
 		}
 	}
 

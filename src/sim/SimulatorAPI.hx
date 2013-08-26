@@ -688,7 +688,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		if ( saveVols ) println( "Saving link volumes" );
 		if ( savePath ) println( "Saving selected paths" );
 		showAlgorithm();
-		sim.state.digraph.run( ods, saveVols, savePath, sim.state );
+		sim.state.digraph.run( ods, saveVols, savePath, sim.state, true );
 	}
 
 	/**

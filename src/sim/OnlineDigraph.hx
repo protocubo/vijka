@@ -34,13 +34,13 @@ class OnlineDigraph {
 	private var dg:Digraph;
 	private var sim:Simulator;
 
-	public function new( _sim:Simulator, _workers, _partSize ) {
+	public function new( _sim:Simulator, _workers, _partSize, info ) {
 		sim = _sim;
 		workers = _workers;
 		partSize = _partSize;
 		if ( workers <= 1 ) {
 			workers = 1;
-			genDigraph();
+			genDigraph( info );
 		}
 		else { // multithreaded
 			genStubDigraph();
@@ -53,7 +53,7 @@ class OnlineDigraph {
 			for ( i in 0...workers ) {
 				var res = readMsg( true );
 				switch ( res.data ) {
-				case MReady: println( "Worker #"+res.from+" ready" );
+				case MReady: if ( info ) println( "Worker #"+res.from+" ready" );
 				case all: throw all;
 				}
 			}
@@ -64,33 +64,33 @@ class OnlineDigraph {
 		Run `ods`, saving `volumes` and/or `path`; results will be saved to
 		`state`
 	*/
-	public function run( ods:Iterable<elebeta.ett.rodoTollSim.OD>, volumes:Bool, path:Bool, output:SimulatorState ) {
+	public function run( ods:Iterable<elebeta.ett.rodoTollSim.OD>, volumes:Bool
+	, path:Bool, output:SimulatorState, info ) {
 		var wgts = sim.state.sampleWeights;
 		if ( workers == 1 ) {
 			var odCnt = count( ods );
-			println( "\tD-ary heap arity = "+heapArity );
-			println( "\tD-ary heap initial reserve = "+heapReserve );
 			var lt = haxe.Timer.stamp();
 			var i = 0;
-			print( "\rRunning "+i+"/"+odCnt );
+			if ( info ) {
+				println( "\tD-ary heap arity = "+heapArity );
+				println( "\tD-ary heap initial reserve = "+heapReserve );
+				print( "\rRunning "+i+"/"+odCnt );
+			}
 			for ( od in ods ) {
 				var w = od.sampleWeight;
 				if ( wgts != null && wgts.exists( od.id ) )
 					w = wgts.get( od.id );
 				runEach( od, w, volumes, path, output );
 				i++;
-				if ( haxe.Timer.stamp() - lt > .2 ) {
+				if ( info && haxe.Timer.stamp() - lt > .2 ) {
 					lt = haxe.Timer.stamp();
 					print( "\rRunning "+i+"/"+odCnt+" paths" );
 				}
 			}
-			println( "\rRunning "+i+"/"+odCnt+" paths... Done" );
+			if ( info ) println( "\rRunning "+i+"/"+odCnt+" paths... Done" );
 		}
 		else {
 			var ods = array( ods );
-			println( "\tD-ary heap arity = "+heapArity );
-			println( "\tD-ary heap initial reserve = "+heapReserve );
-			println( "\tMultithreaded mode: "+workers+" workers with part size = "+partSize );
 			var lt = haxe.Timer.stamp();
 			var noParts = Math.ceil( ods.length/partSize );
 			for ( i in 0...( workers < noParts ? workers : noParts ) )
@@ -99,7 +99,12 @@ class OnlineDigraph {
 			var recv = 0;
 			var store:SimulatorState = null;
 			var i = 0;
-			print( "\rRunning "+i+"/"+ods.length );
+			if ( info ) {
+				println( "\tD-ary heap arity = "+heapArity );
+				println( "\tD-ary heap initial reserve = "+heapReserve );
+				println( "\tMultithreaded mode: "+workers+" workers with part size = "+partSize );
+				print( "\rRunning "+i+"/"+ods.length );
+			}
 			while ( i < ods.length ) {
 				var nextEnd = i + partSize;
 				if ( nextEnd >= ods.length )
@@ -108,7 +113,7 @@ class OnlineDigraph {
 				if ( msg == null && store != null ) {
 					incorporatePseudoState( sim.state, store );
 					store = null;
-					print( "\rRunning "+recv+"/"+ods.length+" paths" );
+					if ( info ) print( "\rRunning "+recv+"/"+ods.length+" paths" );
 				}
 				if ( msg == null )
 					msg = readMsg( true );
@@ -130,20 +135,20 @@ class OnlineDigraph {
 			if ( store != null ) {
 				incorporatePseudoState( sim.state, store );
 				store = null;
-				print( "\rRunning "+recv+"/"+ods.length+" paths" );
+				if ( info ) print( "\rRunning "+recv+"/"+ods.length+" paths" );
 			}
 			while ( recv < sent ) {
 				var msg = readMsg( true );
 				switch ( msg.data ) {
 				case MDone( ps, cnt ):
 					recv += cnt;
-					print( "\rRunning "+recv+"/"+ods.length+" paths" );
+					if ( info ) print( "\rRunning "+recv+"/"+ods.length+" paths" );
 					incorporatePseudoState( output, ps );
 				case all:
 					throw all;
 				}
 			}
-			println( "\rRunning "+i+"/"+ods.length+" paths... Done" );
+			if ( info ) println( "\rRunning "+i+"/"+ods.length+" paths... Done" );
 
 		}
 	}
@@ -182,7 +187,8 @@ class OnlineDigraph {
 
 	// RUNNING ------------------------------------------------------------------
 
-	private function runEach( od:elebeta.ett.rodoTollSim.OD, weight:Float, volumes:Bool, path:Bool, output:SimulatorState ) {
+	private function runEach( od:elebeta.ett.rodoTollSim.OD, weight:Float
+	, volumes:Bool, path:Bool, output:SimulatorState ) {
 		
 		var origin = findEntry( od.origin.x, od.origin.y ); // find closest
 		var destination = findEntry( od.destination.x, od.destination.y ); // find closest
@@ -248,7 +254,7 @@ class OnlineDigraph {
 		case all: throw all;
 		}
 		// self gen
-		var self = new OnlineDigraph( sim, 1, 0 );
+		var self = new OnlineDigraph( sim, 1, 0, false );
 		var wgts = sim.state.sampleWeights;
 		// set self.workers to impossible number
 		self.workers = -999;
@@ -292,31 +298,31 @@ class OnlineDigraph {
 
 	// GENERATION ---------------------------------------------------------------
 
-	private function genDigraph() {
+	private function genDigraph( info ) {
 		switch ( sim.state.algorithm ) {
 		case ADijkstra: dg = new Digraph( false, sim.state.heapArity, sim.state.heapReserve );
 		case AAStar: dg = new Digraph( true, sim.state.heapArity, sim.state.heapReserve );
 		case ABellmanFord: throw "Bellman Ford not working for now";
 		}
-		genVertices();
-		genArcs();
+		genVertices( info );
+		genArcs( info );
 	}
 
-	private function genVertices() {
-		if ( workers < 1 )
+	private function genVertices( info ) {
+		if ( info )
 			print( "\tVertices..." );
 		for ( node in sim.state.network.nodes )
 			dg.addVertex( node );
-		if ( workers < 1 )
+		if ( info )
 			println( "\r\t"+countIterator( dg.vertices() )+" vertices..." );
 	}
 
-	private function genArcs() {
-		if ( workers < 1 )
+	private function genArcs( info ) {
+		if ( info )
 			print( "\tArcs..." );
 		for ( link in sim.state.network.links )
 			dg.addArc( link );
-		if ( workers < 1 )
+		if ( info )
 			println( "\r\t"+countIterator( dg.arcs() )+" arcs..." );
 	}
 

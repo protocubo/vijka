@@ -17,12 +17,12 @@ class OnlineNetwork {
 	public var speeds:Map<Int,def.Speed>; // indexed by typeId
 	private var sim:Simulator;
 
-	public function new( _sim:Simulator ) {
+	public function new( _sim:Simulator, info ) {
 		sim = _sim;
-		genNodes();
-		genVehicles();
-		genSpeeds();
-		genLinks();
+		genNodes( info );
+		genVehicles( info );
+		genSpeeds( info );
+		genLinks( info );
 	}
 
 	public function findNearestNode( x:Float, y:Float ):def.Node {
@@ -52,8 +52,8 @@ class OnlineNetwork {
 		return Math.sqrt( dx*dx + dy*dy );
 	}
 
-	private function genNodes() {
-		print( "\tNodes..." );
+	private function genNodes( info ) {
+		if ( info ) print( "\tNodes..." );
 		nodes = new Map();
 		nodeSpace = new Rj1Tree<def.Node>( 16, true );
 		var flatNodes = sim.state.nodes; // just a shortcut
@@ -63,11 +63,11 @@ class OnlineNetwork {
 			nodes.set( n.id, n );
 			nodeSpace.insertPoint( n.x, n.y, n );
 		}
-		println( "\r\t"+Lambda.count( nodes )+" nodes..." );
+		if ( info ) println( "\r\t"+Lambda.count( nodes )+" nodes..." );
 	}
 
-	private function genVehicles() {
-		print( "\tVehicles..." );
+	private function genVehicles( info ) {
+		if ( info ) print( "\tVehicles..." );
 		vehicles = new Map();
 		var flatVehicles = sim.state.vehicles; // just a shortcut
 		if ( flatVehicles == null ) throw "No vehicles";
@@ -75,11 +75,11 @@ class OnlineNetwork {
 			var n = new def.VehicleClass( flat.id, flat.noAxis, flat.tollMulti, flat.eqNo, flat.name );
 			vehicles.set( n.id, n );
 		}
-		println( "\r\t"+Lambda.count( vehicles )+" vehicles..." );
+		if ( info ) println( "\r\t"+Lambda.count( vehicles )+" vehicles..." );
 	}
 
-	private function genSpeeds() {
-		print( "\tSpeeds..." );
+	private function genSpeeds( info ) {
+		if ( info ) print( "\tSpeeds..." );
 		speeds = new Map();
 		var flatSpeeds = sim.state.speeds; // just a shortcut
 		if ( flatSpeeds == null ) throw "No speeds";
@@ -88,11 +88,11 @@ class OnlineNetwork {
 			if ( n == null ) speeds.set( flat.typeId, n = new def.Speed() );
 			n.set( vehicles.get(flat.vehicleId), flat.speed );
 		}
-		println( "\r\t"+Lambda.count( speeds )+" speeds levels (vehicle,type combinations)..." );
+		if ( info ) println( "\r\t"+Lambda.count( speeds )+" speeds levels (vehicle,type combinations)..." );
 	}
 
-	private function genLinks() {
-		print( "\tLinks..." );
+	private function genLinks( info ) {
+		if ( info ) print( "\tLinks..." );
 		links = new Map();
 		var flatLinks = sim.state.links; // just a shortcut
 		if ( flatLinks == null ) throw "No links";
@@ -103,7 +103,7 @@ class OnlineNetwork {
 			var n = new def.Link( flat.id, start, finish, flat.extension, speed, flat.toll );
 			links.set( n.id, n );
 		}
-		println( "\r\t"+Lambda.count( links )+" links..." );
+		if ( info ) println( "\r\t"+Lambda.count( links )+" links..." );
 	}
 
 }
