@@ -92,8 +92,9 @@ class OnlineDigraph {
 			println( "\tD-ary heap initial reserve = "+heapReserve );
 			println( "\tMultithreaded mode: "+workers+" workers with part size = "+partSize );
 			var lt = haxe.Timer.stamp();
-			for ( w in ws )
-				sendMsg( w, -1, MPing );
+			var noParts = Math.ceil( ods.length/partSize );
+			for ( i in 0...( workers < noParts ? workers : noParts ) )
+				sendMsg( ws[i], -1, MPing );
 			var sent = 0;
 			var recv = 0;
 			var store:SimulatorState = null;
@@ -193,6 +194,7 @@ class OnlineDigraph {
 		}
 
 		var vehicle = sim.state.network.vehicles.get( od.vehicleId ); // from online network
+		if ( vehicle == null ) throw "No vehicle found: "+od.vehicleId;
 		var ucost = new def.UserCostModel( od.distWeight, od.timeSocialWeight, od.timeOperationalWeight ); // from flat od
 		
 		dg.stpath( origin, destination, vehicle, ucost );

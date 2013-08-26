@@ -30,11 +30,11 @@ class Simulator {
 	public function reset() {
 		if ( state != null )
 			state.invalidate();
-		state = state != null ? new SimulatorState( state.newline
+		state = state != null ? new SimulatorState( this, state.newline
 		                                          , ADijkstra
 		                                          , sim.state.heapArity
 		                                          , sim.state.heapReserve )
-                            : new SimulatorState( newline
+                            : new SimulatorState( this, newline
 		                                          , ADijkstra
 		                                          , 3 // optimal b*log(N,b)
 		                                          , 16 ); // reasonable considering

@@ -5,6 +5,9 @@ import hscript.Interp;
 import hscript.Parser;
 
 import Lambda.has;
+import Lambda.map;
+
+import elebeta.ett.rodoTollSim.*;
 
 class Search {
 
@@ -13,6 +16,7 @@ class Search {
 	private var idName:String;
 	private var exactAlias:Null<String>;
 	private var exactId:Null<Dynamic>;
+	private var findPath:Null<{vehicleId:Int,nodeIds:Array<Int>}>;
 	private var ast:Expr;
 
 	private function new( _ast, _idName ) {
@@ -27,7 +31,44 @@ class Search {
 	}
 
 	private function registerCustomNames() {
-		interp.variables.set( "in", function (x:Dynamic,it:Iterable<Dynamic>) return has(it,x) );
+		interp.variables.set( "found", found );
+	}
+
+	private function found( instance:Dynamic, set:Iterable<Dynamic> ) {
+		return has( set, instance );
+	}
+
+	private function sp( sim:Simulator, vehicleId:Int, nodeIds:Iterable<Int> ):Iterable<Link> {
+		var path:Array<Link> = [];
+		var output:SimulatorState = Type.createEmptyInstance( SimulatorState );
+		output.results = new Map();
+		sim.state.assemble();
+		var pre:Node = null;
+		for ( id in nodeIds ) {
+			var node = sim.state.nodes.get( id );
+			if ( node == null ) throw "No node '"+id+"'";
+			if ( pre != null ) {
+				var fakeOd = OD.make(0,0,0,0,vehicleId,null,1,0,0,1,pre.point,node.point,null,null);
+				sim.state.digraph.run( [ fakeOd ], false, true, output );
+				var r = output.results.get(0);
+				if ( !r.ran || r.path == null || r.path.length == 0 ) // only !r.ran should be enough
+					continue;
+				else if ( !r.reached )
+					throw "Could not find a path between '"+pre.id+"' and '"+node.id+"'";
+				else {
+					var rpath = r.path.map( sim.state.links.get );
+					if ( path.length > 0
+					&& rpath[0].startNodeId != path[path.length - 1].finishNodeId )
+						throw "Could not join paths at '"+rpath[0].startNodeId
+						+"'-'"+path[path.length - 1].finishNodeId+"'";
+					else
+						path = path.concat( rpath );
+				}
+				output.results.remove( 0 );
+			}
+			pre = node;
+		}
+		return path;
 	}
 
 	public static function prepare( s:String, id:String ):Search {
@@ -40,12 +81,22 @@ class Search {
 		return p.parseString( s );
 	}
 
-	public function execute( index:Map<Dynamic,Dynamic>
+	public function execute( sim:Simulator, index:Map<Dynamic,Dynamic>
 	, ?aliases:Map<String,Dynamic> ):Iterable<Dynamic> {
+		interp.variables.set( "__sim__", sim );
 		var res = [];
 		// trace( exactId );
 		// trace( exactAlias );
-		if ( exactAlias != null ) {
+		if ( findPath != null ) {
+			if ( exactAlias != null )
+				throw "Cannot use alias in conjunction with sp";
+			for ( link in sp( sim, findPath.vehicleId, findPath.nodeIds ) ) {
+				interp.variables.set( "__record__", link );
+				if ( interp.execute( ast ) == true )
+					res.push( link );
+			}
+		}
+		else if ( exactAlias != null ) {
 			if ( aliases == null )
 				throw "No alias available";
 			var alias:Iterable<Int> = aliases.get( exactAlias );
@@ -82,30 +133,30 @@ class Search {
 		return switch ( ast ) {
 		case null: null;
 		case EConst(_): ast;
-		case EIdent("alias"): throw "`alias` can only be used once and with the '==' operator";
-		case EIdent(v): EField(EIdent("__record__"),v);
-		// case EVar(n,t,e): EVar(n,t,remap(e));
-		// case EParent(e): EParent(remap(e));
-		// case EBlock(e): EBlock(e.map(remap));
-		// case EField(e,f): EField(remap(e),f);
-		case EBinop(op,e1,e2): remapBinop(ast);
-		// case EUnop(op,preffix,e): EUnop(op,preffix,remap(e));
-		case ECall(EIdent("in"),params): ECall(EIdent("in"),params.map(remap));
-		// case ECall(e,params): ECall(remap(e),params.map(remap));
-		// case EIf(cond,e1,e2): EIf(remap(cond),remap(e1),remap(e2));
-		// case EWhile(cond,e): EWhile(remap(cond),remap(e));
-		// case EFor(v,it,e): EFor(v,remap(it),remap(e));
-		// case EBreak:
-		// case EContinue:
-		// case EFunction(args,e,name,ret): EFunction(args,remap(e),name,ret);
-		// case EReturn(e): EReturn(remap(e));
-		case EArray(e,index): EArray(remap(e),remap(index));
+
+		case EIdent("alias"):
+			throw "`alias` can only be used once and with the '==' operator";
+		case EIdent(v):
+			EField(EIdent("__record__"),v);
+
+		case EBinop(op,e1,e2):
+			remapBinop(ast);
+
+		case ECall(EIdent("found"),params):
+			ECall(EIdent("found"),params.map(remap));
+		case ECall(EIdent("sp"),[EConst(CInt(vid)),EArrayDecl(e)]):
+			if ( findPath != null )
+				throw "Can only search links in path once";
+			findPath = { vehicleId: vid, nodeIds: e.map( function ( _e ) return switch ( _e ) {
+				case EConst(CInt(nid)): nid;
+				case all: throw "Invalid node id '"+all+"'";
+				} )
+			};
+			EBinop("==",EIdent("true"),EIdent("true"));
+
+		// case EArray(e,index): EArray(remap(e),remap(index));
 		case EArrayDecl(e): EArrayDecl(e.map(remap));
-		// case ENew(cl,params): ENew(cl,params.map(remap));
-		// case EThrow(e): EThrow(remap(e));
-		// case ETry(e,v,t,ecatch): ETry(remap(e),v,t,remap(ecatch));
-		// case EObject(fl): EObject(fl.map( function (f) return { name:f.name, e:remap(f.e) } ) );
-		// case ETernary(cond,e1,e2): ETernary(remap(cond),remap(e1),remap(e2));
+
 		case all: throw "Bad expression: "+all;
 		};
 	}
@@ -115,17 +166,15 @@ class Search {
 		case EBinop("==",EConst(ct), EIdent("alias")):
 			remapBinop( EBinop("==",EIdent("alias"),EConst(ct)) );
 		case EBinop("==",EIdent("alias"),EConst(ct)):
-			if ( exactAlias == null ) {
-				exactAlias = switch ( ct ) {
-				case CInt(v): Std.string( v );
-				case CFloat(v): Std.string( v );
-				case CString(v): v;
-				}
-				EBinop("==",EIdent("true"),EIdent("true"));
-			}
-			else {
-				throw "`alias` can only be used (once) to match a constant";
-			}
+			if ( exactAlias != null )
+				throw "`alias` can only be used (once) to match a constant";	
+			exactAlias = switch ( ct ) {
+			case CInt(v): Std.string( v );
+			case CFloat(v): Std.string( v );
+			case CString(v): v;
+			};
+			EBinop("==",EIdent("true"),EIdent("true"));
+
 		case EBinop("==",EConst(CInt(v)),EIdent(name)):
 			remapBinop( EBinop("==",EIdent(name),EConst(CInt(v))) );
 		case EBinop("==",EIdent(name),EConst(CInt(v))):
@@ -136,12 +185,20 @@ class Search {
 			}
 			else
 				EBinop("==",remap(EIdent(name)),EConst(CInt(v)));
-		case EBinop(op,e1,e2) if (has(["==","!="],op)): EBinop(op,remap(e1),remap(e2));
-		case EBinop(op,e1,e2) if (has([">","<",">=","<="],op)): EBinop(op,remap(e1),remap(e2));
-		case EBinop(op,e1,e2) if (has(["&&","||"],op)): EBinop(op,remap(e1),remap(e2));
-		case EBinop("=",_,_): throw "Assignment '=' operator not allowed; did you mean to use the equality operator '=='?";
-		case EBinop(op,_,_): throw "Operator '"+op+"' not allowed";
-		case all: throw "Expression processing error: "+all;
+
+		case EBinop(op,e1,e2) if (has(["==","!="],op)):
+			EBinop(op,remap(e1),remap(e2));
+		case EBinop(op,e1,e2) if (has([">","<",">=","<="],op)):
+			EBinop(op,remap(e1),remap(e2));
+		case EBinop(op,e1,e2) if (has(["&&","||"],op)):
+			EBinop(op,remap(e1),remap(e2));
+
+		case EBinop("=",_,_):
+			throw "Assignment '=' operator not allowed; did you mean to use the equality operator '=='?";
+		case EBinop(op,_,_):
+			throw "Operator '"+op+"' not allowed";
+		case all:
+			throw "Expression processing error: "+all;
 		};
 	}
 

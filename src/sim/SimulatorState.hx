@@ -5,7 +5,13 @@ import elebeta.ett.rodoTollSim.*;
 import sim.Algorithm;
 import sim.col.*;
 
+import sim.Simulator.print;
+import sim.Simulator.printHL;
+import sim.Simulator.println;
+
 class SimulatorState {
+
+	public var sim:Simulator;
 
 	public var newline:String;
 
@@ -41,7 +47,8 @@ class SimulatorState {
 	public var workers:Int;
 	public var workerPartSize:Int;
 
-	public function new( _newline, _algorithm, _heapArity, _heapReserve ) {
+	public function new( _sim:Simulator, _newline, _algorithm, _heapArity, _heapReserve ) {
+		sim = _sim;
 		newline = _newline;
 		algorithm = _algorithm;
 		heapArity = _heapArity;
@@ -49,7 +56,25 @@ class SimulatorState {
 		workers = 1;
 		workerPartSize = 0;
 	}
-	
+
+	public function assemble( ?force=false ) {
+		if ( force ) {
+			println( "Forcing online network and graph assembly" );
+			printHL( "-" );
+		}
+		if ( sim.state.network == null || force ) {
+			println( "Assembling the network" );
+			digraph = null;
+			var nk = network = new OnlineNetwork( sim );
+		}
+		if ( sim.state.digraph == null || force ) {
+			println( "Assembling the (directed) graph" );
+			if ( sim.state.digraph != null )
+				digraph.prepareForInvalidation();
+			var dg = digraph = new OnlineDigraph( sim, workers, workerPartSize );
+		}
+	}
+
 	public function invalidate() {
 		network = null;
 		if ( digraph != null )

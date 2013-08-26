@@ -186,7 +186,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		else {
 			var aliases = sim.state.aliases;
 			var q = Search.prepare( filter, "id" );
-			for ( k in q.execute( links, aliases ) ) {
+			for ( k in q.execute( sim, links, aliases ) ) {
 				if ( first ) first = false; else fout.writeString( ","+sim.newline+"\t" );
 				fout.writeString( _geojsonLink( k ) );
 			}
@@ -206,15 +206,15 @@ class SimulatorAPI extends mcli.CommandLine {
 		var q = Search.prepare( filter, "id" );
 		switch ( type.toLowerCase() ) {
 		case "show", "list":
-			for ( v in q.execute( sim.state.links, sim.state.aliases ) )
+			for ( v in q.execute( sim, sim.state.links, sim.state.aliases ) )
 				println( Std.string( v ) );
 		case "head":
 			var cnt = 0;
-			for ( v in q.execute( sim.state.links, sim.state.aliases ) )
+			for ( v in q.execute( sim, sim.state.links, sim.state.aliases ) )
 				if ( cnt++ < 20 )
 					println( Std.string( v ) );
 		case "count":
-			println( "Counted "+count( q.execute( sim.state.links, sim.state.aliases ) )+" records" );
+			println( "Counted "+count( q.execute( sim, sim.state.links, sim.state.aliases ) )+" records" );
 			println( "Pass \"show\" or \"head\" in the optional parameter `type` for more information" );
 		}
 	}
@@ -463,7 +463,7 @@ class SimulatorAPI extends mcli.CommandLine {
 			throw "No links";
 		var aliases = sim.state.aliases;
 		var q = Search.prepare( filter, "id" );
-		var set = array( q.execute( links, aliases ) );
+		var set = array( q.execute( sim, links, aliases ) );
 		var u = Update.prepare( update, ["extension", "typeId", "toll"] );
 		sim.state.invalidate();
 		u.execute( set );
@@ -527,15 +527,15 @@ class SimulatorAPI extends mcli.CommandLine {
 		var q = Search.prepare( filter, "id" );
 		switch ( type.toLowerCase() ) {
 		case "show", "list":
-			for ( v in q.execute( sim.state.ods, sim.state.aliases ) )
+			for ( v in q.execute( sim, sim.state.ods, sim.state.aliases ) )
 				println( Std.string( v ) );
 		case "head":
 			var cnt = 0;
-			for ( v in q.execute( sim.state.ods, sim.state.aliases ) )
+			for ( v in q.execute( sim, sim.state.ods, sim.state.aliases ) )
 				if ( cnt++ < 20 )
 					println( Std.string( v ) );
 		case "count":
-			println( "Counted "+count( q.execute( sim.state.ods, sim.state.aliases ) )+" records" );
+			println( "Counted "+count( q.execute( sim, sim.state.ods, sim.state.aliases ) )+" records" );
 			println( "Pass \"show\" or \"head\" in the optional parameter `type` for more information" );
 		}
 	}
@@ -682,7 +682,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		}
 		var saveVols = _readBool( volumes, true );
 		var savePath = _readBool( path, true );
-		assemble();
+		sim.state.assemble();
 		if ( sim.state.results == null ) sim.state.results = new Map();
 		if ( saveVols && sim.state.volumes == null ) sim.state.volumes = new Map();
 		if ( saveVols ) println( "Saving link volumes" );
@@ -853,15 +853,15 @@ class SimulatorAPI extends mcli.CommandLine {
 		var q = Search.prepare( filter, "linkId" );
 		switch ( type.toLowerCase() ) {
 		case "show", "list":
-			for ( v in q.execute( sim.state.volumes, sim.state.aliases ) )
+			for ( v in q.execute( sim, sim.state.volumes, sim.state.aliases ) )
 				println( Std.string( v ) );
 		case "head":
 			var cnt = 0;
-			for ( v in q.execute( sim.state.volumes, sim.state.aliases ) )
+			for ( v in q.execute( sim, sim.state.volumes, sim.state.aliases ) )
 				if ( cnt++ < 20 )
 					println( Std.string( v ) );
 		case "count":
-			println( "Counted "+count( q.execute( sim.state.volumes, sim.state.aliases ) )+" records" );
+			println( "Counted "+count( q.execute( sim, sim.state.volumes, sim.state.aliases ) )+" records" );
 			println( "Pass \"show\" or \"head\" in the optional parameter `type` for more information" );
 		}
 	}
@@ -914,15 +914,15 @@ class SimulatorAPI extends mcli.CommandLine {
 		var q = Search.prepare( filter, "odId" );
 		switch ( type.toLowerCase() ) {
 		case "show", "list":
-			for ( v in q.execute( sim.state.results, sim.state.aliases ) )
+			for ( v in q.execute( sim, sim.state.results, sim.state.aliases ) )
 				println( Std.string( v ) );
 		case "head":
 			var cnt = 0;
-			for ( v in q.execute( sim.state.results, sim.state.aliases ) )
+			for ( v in q.execute( sim, sim.state.results, sim.state.aliases ) )
 				if ( cnt++ < 20 )
 					println( Std.string( v ) );
 		case "count":
-			println( "Counted "+count( q.execute( sim.state.results, sim.state.aliases ) )+" records" );
+			println( "Counted "+count( q.execute( sim, sim.state.results, sim.state.aliases ) )+" records" );
 			println( "Pass \"show\" or \"head\" in the optional parameter `type` for more information" );
 		}
 	}
@@ -957,7 +957,7 @@ class SimulatorAPI extends mcli.CommandLine {
 			throw "No links";
 
 		var q = Search.prepare( query, "id" );
-		var links = array( q.execute( sim.state.links, sim.state.aliases ) );
+		var links = array( q.execute( sim, sim.state.links, sim.state.aliases ) );
 		if ( links.length == 0 )
 			throw "No links matching query '"+query+"'";
 		var linkIds = links.map( function (x) return x.id );
@@ -1249,24 +1249,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		[ADVANCED] Force network and graph assembly; this is
 		automaticallly called from --run
 	**/
-	public function forceAssemble() assemble( true );
-	private function assemble( ?force=false ) {
-		if ( force ) {
-			println( "Forcing online network and graph assembly" );
-			printHL( "-" );
-		}
-		if ( sim.state.network == null || force ) {
-			println( "Assembling the network" );
-			sim.state.digraph = null;
-			var nk = sim.state.network = new OnlineNetwork( sim );
-		}
-		if ( sim.state.digraph == null || force ) {
-			println( "Assembling the (directed) graph" );
-			if ( sim.state.digraph != null )
-				sim.state.digraph.prepareForInvalidation();
-			var dg = sim.state.digraph = new OnlineDigraph( sim, sim.state.workers, sim.state.workerPartSize );
-		}
-	}
+	public function forceAssemble() sim.state.assemble( true );
 
 	/**
 		[ADVANCED] Run the unit tests; these are relevant at the moment, since
@@ -1334,15 +1317,15 @@ class SimulatorAPI extends mcli.CommandLine {
 		var q = Search.prepare( expression, idName );
 		switch ( type.toLowerCase() ) {
 		case "show", "list":
-			for ( v in q.execute( index, alias ) )
+			for ( v in q.execute( sim, index, alias ) )
 				println( Std.string( v ) );
 		case "head":
 			var cnt = 0;
-			for ( v in q.execute( index, alias ) )
+			for ( v in q.execute( sim, index, alias ) )
 				if ( cnt++ < 20 )
 					println( Std.string( v ) );
 		case "count":
-			println( "Counted "+count( q.execute( index, alias ) )+" records" );
+			println( "Counted "+count( q.execute( sim, index, alias ) )+" records" );
 		}
 	}
 
