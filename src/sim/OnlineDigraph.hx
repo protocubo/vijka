@@ -60,7 +60,11 @@ class OnlineDigraph {
 		}
 	}
 
-	public function run( ods:Iterable<elebeta.ett.rodoTollSim.OD>, volumes:Bool, path:Bool ) {
+	/*
+		Run `ods`, saving `volumes` and/or `path`; results will be saved to
+		`state`
+	*/
+	public function run( ods:Iterable<elebeta.ett.rodoTollSim.OD>, volumes:Bool, path:Bool, output:SimulatorState ) {
 		var wgts = sim.state.sampleWeights;
 		if ( workers == 1 ) {
 			var odCnt = count( ods );
@@ -73,7 +77,7 @@ class OnlineDigraph {
 				var w = od.sampleWeight;
 				if ( wgts != null && wgts.exists( od.id ) )
 					w = wgts.get( od.id );
-				runEach( od, w, volumes, path );
+				runEach( od, w, volumes, path, output );
 				i++;
 				if ( haxe.Timer.stamp() - lt > .2 ) {
 					lt = haxe.Timer.stamp();
@@ -177,14 +181,14 @@ class OnlineDigraph {
 
 	// RUNNING ------------------------------------------------------------------
 
-	private function runEach( od:elebeta.ett.rodoTollSim.OD, weight:Float, volumes:Bool, path:Bool ) {
+	private function runEach( od:elebeta.ett.rodoTollSim.OD, weight:Float, volumes:Bool, path:Bool, output:SimulatorState ) {
 		
 		var origin = findEntry( od.origin.x, od.origin.y ); // find closest
 		var destination = findEntry( od.destination.x, od.destination.y ); // find closest
 
 		// trace( destination );
 		if ( origin == destination ) {
-			sim.state.results.set( od.id, ODResult.make( od.id, weight, false, false, null, null, null, null, null, null ) );
+			output.results.set( od.id, ODResult.make( od.id, weight, false, false, null, null, null, null, null, null ) );
 			return;
 		}
 
@@ -195,7 +199,7 @@ class OnlineDigraph {
 
 		var t = dg.getVertex( destination );
 		if ( t.parent == null ) {
-			sim.state.results.set( od.id, ODResult.make( od.id, weight, true, false, null, null, null, null, null, null ) );
+			output.results.set( od.id, ODResult.make( od.id, weight, true, false, null, null, null, null, null, null ) );
 			return;
 		}
 
@@ -205,16 +209,16 @@ class OnlineDigraph {
 			dg.revPathFold( destination, traversor.traverse, 0 );
 			if ( traversor.volumes != null ) {
 				for ( v in traversor.volumes )
-					if ( sim.state.volumes.exists( v.linkId ) )
-						sim.state.volumes.get( v.linkId ).sum( v );
+					if ( output.volumes.exists( v.linkId ) )
+						output.volumes.get( v.linkId ).sum( v );
 					else
-						sim.state.volumes.set( v.linkId, v );
+						output.volumes.set( v.linkId, v );
 			}
 			if ( traversor.path != null ) {
 				res.path = array( traversor.path );
 			}
 		}
-		sim.state.results.set( od.id, res );
+		output.results.set( od.id, res );
 
 	}
 
@@ -254,13 +258,10 @@ class OnlineDigraph {
 			switch ( readMsg( true ).data ) {
 			case MRun( ods, begin, end, volumes, path ):
 				// generate a pseudo state
-				self.sim = Type.createEmptyInstance( Simulator );
-				self.sim.state = new sim.SimulatorState( sim.state.newline
-				, sim.state.algorithm, sim.state.heapArity, sim.state.heapReserve );
-				self.sim.state.network = sim.state.network;
-				self.sim.state.results = new Map();
+				var output:SimulatorState = Type.createEmptyInstance( SimulatorState );
+				output.results = new Map();
 				if ( volumes )
-					self.sim.state.volumes = new Map();
+					output.volumes = new Map();
 
 				// run all job units
 				var cnt = 0;
@@ -269,12 +270,12 @@ class OnlineDigraph {
 					var w = od.sampleWeight;
 					if ( wgts != null && wgts.exists( od.id ) )
 						w = wgts.get( od.id );
-					self.runEach( ods[i], w, volumes, path );
+					self.runEach( ods[i], w, volumes, path, output );
 					cnt++;
 				}
 
 				// send back the pseudo state
-				sendMsg( parent, id, MDone( self.sim.state, cnt ) );
+				sendMsg( parent, id, MDone( output, cnt ) );
 			case MKill:
 				sendMsg( parent, id, MExiting );
 				break;
