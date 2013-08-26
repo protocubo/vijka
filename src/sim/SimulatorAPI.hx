@@ -68,11 +68,13 @@ class SimulatorAPI extends mcli.CommandLine {
 	}
 
 	/**
-		Count nodes
+		Search nodes with optional `filter` expression and output `type`;
+		`type` can be "show", "head" or "count" (default)
 	**/
-	public function countNodes() {
-		var cnt = sim.state.nodes != null ? count( sim.state.nodes ) : 0;
-		println( "Counted "+cnt+" nodes" );
+	public function queryNodes( ?filter="true==true", ?type="count" ) {
+		var q = Search.prepare( filter, "id" );
+		_genericQuery( q, sim.state.nodes, null, type
+		, "Searching for nodes mathcing '"+filter+"'", "No nodes" );
 	}
 
 	/**
@@ -137,22 +139,20 @@ class SimulatorAPI extends mcli.CommandLine {
 	}
 
 	/**
-		Show link types
+		Search link types with optional `filter` expression and output `type`;
+		`type` can be "show", "head" or "count" (default)
 	**/
-	public function showTypes() {
-		println( "Known types:" );
-		println( _right("id",6)+"  |  name" );
-		printHL( "-" );
-		for ( type in sim.state.linkTypes )
-			println( _right(type.id,6)+"  |  "+type.name );
+	public function queryTypes( ?filter="true==true", ?type="count" ) {
+		var q = Search.prepare( filter, "id" );
+		_genericQuery( q, sim.state.linkTypes, null, type
+		, "Searching for link types mathcing '"+filter+"'", "No link types" );
 	}
 
 	/**
-		Count link types
+		Write link types to LinkType ETT in `path`; will overwrite existing files
 	**/
-	public function countTypes() {
-		var cnt = sim.state.linkTypes != null ? count( sim.state.linkTypes ) : 0;
-		println( "Counted "+cnt+" link types" );
+	public function ettTypes( path:String ) {
+		return _genericEtt( path, sim.state.nodes, LinkType, "Writing link types", "No link types" );
 	}
 
 
@@ -194,11 +194,20 @@ class SimulatorAPI extends mcli.CommandLine {
 	}
 
 	/**
-		Count links
+		Search links with optional `filter` expression and output `type`;
+		`type` can be "show", "head" or "count" (default)
 	**/
-	public function countLinks() {
-		var cnt = sim.state.links != null ? count( sim.state.links ) : 0;
-		println( "Counted "+cnt+" links" );
+	public function queryLinks( ?filter="true==true", ?type="count" ) {
+		var q = Search.prepare( filter, "id" );
+		_genericQuery( q, sim.state.links, sim.state.aliases, type
+		, "Searching for links mathcing '"+filter+"'", "No links" );
+	}
+
+	/**
+		Write links to Link ETT in `path`; will overwrite existing files
+	**/
+	public function ettLinks( path:String ) {
+		return _genericEtt( path, sim.state.nodes, Link, "Writing links", "No links" );
 	}
 
 	/**
@@ -228,16 +237,6 @@ class SimulatorAPI extends mcli.CommandLine {
 		}
 		fout.writeString( sim.newline+"] }"+sim.newline );
 		fout.close();
-	}
-
-	/**
-		Search links with optional `filter` expression and output `type`;
-		`type` can be "show", "head" or "count" (default)
-	**/
-	public function queryLinks( ?filter="true==true", ?type="count" ) {
-		var q = Search.prepare( filter, "id" );
-		_genericQuery( q, sim.state.links, sim.state.aliases, type
-		, "Searching for links mathcing '"+filter+"'", "No links" );
 	}
 
 
