@@ -1199,7 +1199,7 @@ class SimulatorAPI extends mcli.CommandLine {
 	// EXPERIMENTAL -------------------------------------------------------------
 
 	/**
-		[EXPERIMENTAL] Set multi-threading with `workers` and `part-size`
+		[EXPERIMENTAL] Set multithreading with `workers` and `part-size`
 	**/
 	public function setMcpus( workers:Int, partSize:Int ) {
 		if ( sim.state.workers != workers || sim.state.workerPartSize != partSize )

@@ -86,7 +86,7 @@ class OnlineDigraph {
 			var ods = array( ods );
 			println( "\tD-ary heap arity = "+heapArity );
 			println( "\tD-ary heap initial reserve = "+heapReserve );
-			println( "\tEXPERIMENTAL MULTITHREADED MODE: "+workers+" workers with part size = "+partSize );
+			println( "\tMultithreaded mode: "+workers+" workers with part size = "+partSize );
 			var lt = haxe.Timer.stamp();
 			for ( w in ws )
 				sendMsg( w, -1, MPing );
