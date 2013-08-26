@@ -101,6 +101,7 @@ class OnlineDigraph {
 			var i = 0;
 			print( "\rRunning "+i+"/"+ods.length );
 			while ( i < ods.length ) {
+				trace( [ i, ods.length ] );
 				var nextEnd = i + partSize;
 				if ( nextEnd >= ods.length )
 					nextEnd = ods.length;
@@ -138,7 +139,7 @@ class OnlineDigraph {
 				case MDone( ps, cnt ):
 					recv += cnt;
 					print( "\rRunning "+recv+"/"+ods.length+" paths" );
-					incorporatePseudoState( sim.state, ps );
+					incorporatePseudoState( output, ps );
 				case all:
 					throw all;
 				}
