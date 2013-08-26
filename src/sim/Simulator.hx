@@ -60,6 +60,10 @@ class Simulator {
 		#end
 	}
 
+	public static inline var SHORTNAME = "Vijka";
+	public static inline var FULLNAME = "Vijka - Demand model for highway tolls on regional road networks";
+	public static inline var COPYRIGHT = "Copyright 2013, Elebeta Consultoria";
+	public static inline var LICENSE = "Propretary internal version; open source release planned";
 	public static inline var VERSION = "1.0.0-consult-alamak";
 	public static inline var PLATFORM = #if neko
 		                                  	"Neko";
@@ -152,7 +156,8 @@ class Simulator {
 		}
 
 		printHL( "=" );
-		println( "Welcome to the RodoTollSim!" );
+		new SimulatorAPI( sim, true ).fullInfo();
+		printHL( "-" );
 		println( "Type the desired options (and their arguments) bellow, or --help for usage information..." );
 		printHL( "=" );
 

@@ -1358,14 +1358,23 @@ class SimulatorAPI extends mcli.CommandLine {
 		Show simulator version
 	**/
 	public function version() {
-		println( "RodoTollSim version "+Simulator.VERSION );
+		println( Simulator.SHORTNAME+" version "+Simulator.VERSION );
 	}
 
 	/**
 		Show simulator version and platform information
 	**/
 	public function fullVersion() {
-		println( "RodoTollSim version "+Simulator.VERSION+" ("+Simulator.PLATFORM
+		println( Simulator.FULLNAME );
+		println( "Version "+Simulator.VERSION+" ("+Simulator.PLATFORM
+		+" on "+Sys.systemName()+")" );
+	}
+
+	public function fullInfo() {
+		println( Simulator.FULLNAME );
+		println( Simulator.COPYRIGHT );
+		println( Simulator.LICENSE );
+		println( "Version "+Simulator.VERSION+" ("+Simulator.PLATFORM
 		+" on "+Sys.systemName()+")" );
 	}
 
