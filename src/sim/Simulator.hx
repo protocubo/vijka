@@ -60,7 +60,7 @@ class Simulator {
 		#end
 	}
 
-	public static inline var VERSION = "0.0.1-alpha";
+	public static inline var VERSION = "1.0.0-consult-alamak";
 	public static inline var PLATFORM = #if neko
 		                                  	"Neko";
 		                                 #elseif cpp
