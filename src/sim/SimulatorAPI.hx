@@ -152,7 +152,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		Write link types to LinkType ETT in `path`; will overwrite existing files
 	**/
 	public function ettTypes( path:String ) {
-		return _genericEtt( path, sim.state.nodes, LinkType, "Writing link types", "No link types" );
+		return _genericEtt( path, sim.state.types, LinkType, "Writing link types", "No link types" );
 	}
 
 
@@ -207,7 +207,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		Write links to Link ETT in `path`; will overwrite existing files
 	**/
 	public function ettLinks( path:String ) {
-		return _genericEtt( path, sim.state.nodes, Link, "Writing links", "No links" );
+		return _genericEtt( path, sim.state.links, Link, "Writing links", "No links" );
 	}
 
 	/**
@@ -1363,7 +1363,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		}
 	}
 
-	private function _genericEtt<T>( path:String, table:Iterable<T>, cl:Dynamic
+	private function _genericEtt( path:String, table:Iterable<Dynamic>, cl:Dynamic
 	, status:Null<String>, notAvailable:Null<String> ) {
 		if ( status != null ) println( status );
 		if ( table == null )
