@@ -3,11 +3,14 @@ package sim.uq;
 import hscript.Expr;
 import hscript.Interp;
 import hscript.Parser;
+import elebeta.ett.rodoTollSim.*;
 
 import Lambda.has;
 import Lambda.map;
 
-import elebeta.ett.rodoTollSim.*;
+import sim.Simulator.print;
+import sim.Simulator.printHL;
+import sim.Simulator.println;
 
 class Search {
 
@@ -68,6 +71,9 @@ class Search {
 			}
 			pre = node;
 		}
+		var ext = 0.;
+		for ( link in path ) ext += link.extension;
+		println( "Got "+path.length+" links, resulting in a path extension of "+ext );
 		return path;
 	}
 

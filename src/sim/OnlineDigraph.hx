@@ -201,7 +201,7 @@ class OnlineDigraph {
 
 		var vehicle = sim.state.network.vehicles.get( od.vehicleId ); // from online network
 		if ( vehicle == null ) throw "No vehicle found: "+od.vehicleId;
-		var ucost = new def.UserCostModel( od.distWeight, od.timeSocialWeight, od.timeOperationalWeight ); // from flat od
+		var ucost = new def.UserCostModel( od.distWeight, od.timeSocialWeight, od.timeOperationalWeight, od.tollWeight ); // from flat od
 		
 		dg.stpath( origin, destination, vehicle, ucost );
 

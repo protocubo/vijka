@@ -19,6 +19,7 @@ class OD {
 	public var destination:Point;
 	public var originName:Null<String>;
 	public var destinationName:Null<String>;
+	public var tollWeight:Float; // always defined as 1., never exported
 
 	public function toString() {
 		var o = originName != null ? originName : "?";
@@ -74,6 +75,6 @@ class OD {
 		return od;
 	}
 
-	private function new() {}
+	private function new() { tollWeight = 1.; }
 
 }
