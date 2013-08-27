@@ -1051,9 +1051,9 @@ class SimulatorAPI extends mcli.CommandLine {
 		return stat.ZScore.forProbGreaterThan( 1.-a );
 	}
 	private function printError( sampleSize:Float, prob:Float, conf:Float ) {
-		println( "        conf. "+_strnum(conf,0,1)+"%: "+_strnum(pConf_NPQ(sampleSize,prob,(1-conf))*1e2,2,6)
-		+"% "+_strnum(pConf_Wald(sampleSize,prob,(1-conf))*1e2,2,6)
-		+"% "+_strnum(pConf_AgrestiCoull(sampleSize,prob,(1-conf))*1e2,2,14)+"%" );
+		println( "        conf. "+_strnum(conf*100,0,1)+"%: "+_strnum(pConf_NPQ(sampleSize,prob,(1-conf))*100,2,6)
+		+"% "+_strnum(pConf_Wald(sampleSize,prob,(1-conf))*100,2,6)
+		+"% "+_strnum(pConf_AgrestiCoull(sampleSize,prob,(1-conf))*100,2,14)+"%" );
 	}
 
 
