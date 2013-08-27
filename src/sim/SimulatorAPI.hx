@@ -152,7 +152,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		Write link types to LinkType ETT in `path`; will overwrite existing files
 	**/
 	public function ettTypes( path:String ) {
-		return _genericEtt( path, sim.state.types, LinkType, "Writing link types", "No link types" );
+		return _genericEtt( path, sim.state.linkTypes, LinkType, "Writing link types", "No link types" );
 	}
 
 
