@@ -78,10 +78,16 @@ class SimulatorAPI extends mcli.CommandLine {
 	}
 
 	/**
-		Write nodes to Node ETT in `path`; will overwrite existing files
+		Write nodes to Node ETT in `path`, using optional `filter`; will
+		overwrite existing files
 	**/
-	public function ettNodes( path:String ) {
-		return _genericEtt( path, sim.state.nodes, Node, "Writing nodes", "No nodes" );
+	public function ettNodes( path:String, ?filter:String ) {
+		var nodes:Iterable<Node> = sim.state.nodes;
+		if ( filter != null ) {
+			var q = Search.prepare( filter, "id" );
+			nodes = q.execute( sim, sim.state.nodes, null );
+		}
+		return _genericEtt( path, nodes, Node, "Writing nodes", "No nodes" );
 	}
 
 	/**
@@ -101,9 +107,8 @@ class SimulatorAPI extends mcli.CommandLine {
 			}
 		}
 		else {
-			var aliases = sim.state.aliases;
 			var q = Search.prepare( filter, "id" );
-			for ( n in q.execute( sim, nodes, aliases ) ) {
+			for ( n in q.execute( sim, nodes, null ) ) {
 				if ( first ) first = false; else fout.writeString( ","+sim.newline+"\t" );
 				fout.writeString( _geojsonNode( n ) );
 			}
@@ -149,10 +154,16 @@ class SimulatorAPI extends mcli.CommandLine {
 	}
 
 	/**
-		Write link types to LinkType ETT in `path`; will overwrite existing files
+		Write link types to LinkType ETT in `path`, using optional `filter`; will
+		overwrite existing files
 	**/
-	public function ettTypes( path:String ) {
-		return _genericEtt( path, sim.state.linkTypes, LinkType, "Writing link types", "No link types" );
+	public function ettTypes( path:String, ?filter:String ) {
+		var linkTypes:Iterable<LinkType> = sim.state.linkTypes;
+		if ( filter != null ) {
+			var q = Search.prepare( filter, "id" );
+			linkTypes = q.execute( sim, sim.state.linkTypes, null );
+		}
+		return _genericEtt( path, linkTypes, LinkType, "Writing link types", "No link types" );
 	}
 
 
@@ -204,10 +215,16 @@ class SimulatorAPI extends mcli.CommandLine {
 	}
 
 	/**
-		Write links to Link ETT in `path`; will overwrite existing files
+		Write links to Link ETT in `path`, using optional `filter`; will overwrite
+		existing files
 	**/
-	public function ettLinks( path:String ) {
-		return _genericEtt( path, sim.state.links, Link, "Writing links", "No links" );
+	public function ettLinks( path:String, ?filter:String ) {
+		var links:Iterable<Link> = sim.state.links;
+		if ( filter != null ) {
+			var q = Search.prepare( filter, "id" );
+			links = q.execute( sim, sim.state.links, sim.state.aliases );
+		}
+		return _genericEtt( path, links, Link, "Writing links", "No links" );
 	}
 
 	/**
@@ -264,8 +281,8 @@ class SimulatorAPI extends mcli.CommandLine {
 			var shape = try { einp.fastReadRecord( LinkShape.makeEmpty() ); }
 			           catch ( e:Eof ) { null; };
 			if ( shape == null ) break;
-			if ( links.exists( shape.id ) )
-				shapes.set( shape.id, shape );
+			if ( links.exists( shape.linkId ) )
+				shapes.set( shape.linkId, shape );
 		}
 		einp.close();
 	}
@@ -290,7 +307,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		var shapes = new Map();
 		for ( s in oldShapes )
 			if ( s.shape.length > 2 )
-				shapes.set( s.id, s );
+				shapes.set( s.linkId, s );
 		sim.state.shapes = shapes;
 		println( "All shapes with only 2 points have been removed" );
 	}
@@ -304,6 +321,19 @@ class SimulatorAPI extends mcli.CommandLine {
 			println( "Clearing link shape data; default shapes will be used" );
 			sim.state.shapes = null;
 		}
+	}
+
+	/**
+		Write link shapes to LinkShape ETT in `path`, using optional `filter`;
+		will overwrite existing files
+	**/
+	public function ettShapes( path:String, ?filter:String ) {
+		var shapes:Iterable<LinkShape> = sim.state.shapes;
+		if ( filter != null ) {
+			var q = Search.prepare( filter, "linkId" );
+			shapes = q.execute( sim, sim.state.shapes, sim.state.aliases );
+		}
+		return _genericEtt( path, shapes, LinkShape, "Writing link shapes", "No link shapes" );
 	}
 
 
@@ -538,7 +568,7 @@ class SimulatorAPI extends mcli.CommandLine {
 	}
 
 	/**
-		Show all (ignores the filter) O/D records with optional `filter`
+		Show all (ignore any filter) O/D records with optional `filter`
 		expression and output `type`; `type` can be "show", "head" or
 		"count" (default)
 	**/
@@ -557,6 +587,33 @@ class SimulatorAPI extends mcli.CommandLine {
 		clearResults();
 		clearOdFilter();
 		sim.state.ods = null;
+	}
+
+	/**
+		Write (filtered) O/D records to OD ETT in `path`, using optional `filter`;
+		will overwrite existing files
+	**/
+	public function ettOds( path:String, ?filter:String ) {
+		var idx = sim.state.activeOds != null ? sim.state.activeOds : sim.state.ods;
+		var ods:Iterable<OD> = idx;
+		if ( filter != null ) {
+			var q = Search.prepare( filter, "id" );
+			ods = q.execute( sim, idx, null );
+		}
+		return _genericEtt( path, ods, OD, "Writing O/D records", "No O/D records" );
+	}
+
+	/**
+		Write all (ignore any filter) O/D records to OD ETT in `path`, using
+		optional `filter`; will overwrite existing files
+	**/
+	public function ettAllOds( path:String, ?filter:String ) {
+		var ods:Iterable<OD> = sim.state.ods;
+		if ( filter != null ) {
+			var q = Search.prepare( filter, "id" );
+			ods = q.execute( sim, sim.state.ods, null );
+		}
+		return _genericEtt( path, ods, OD, "Writing O/D records", "No O/D records" );
 	}
 
 

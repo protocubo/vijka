@@ -5,7 +5,7 @@ import format.ett.Geometry;
 
 class LinkShape {
 	
-	public var id:Int;
+	public var linkId:Int;
 	public var shape:LineString;
 
 	public inline function geojsonGeometry():String {
@@ -14,7 +14,7 @@ class LinkShape {
 
 	public static function ettFields():Array<Field> {
 		return [
-			new Field( "id", TInt ),
+			new Field( "linkId", TInt ),
 			new Field( "shape", TGeometry(TLineString) )
 		];
 	}
@@ -23,9 +23,9 @@ class LinkShape {
 		return new LinkShape();
 	}
 
-	public static inline function make( id, shape ):LinkShape {
+	public static inline function make( linkId, shape ):LinkShape {
 		var shp = new LinkShape();
-		shp.id = id;
+		shp.linkId = linkId;
 		shp.shape = shape;
 		return shp;
 	}
