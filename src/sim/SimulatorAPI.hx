@@ -527,16 +527,6 @@ class SimulatorAPI extends mcli.CommandLine {
 	}
 
 	/**
-		Count O/D data
-	**/
-	public function countOd() {
-		var cnt = sim.state.ods != null ? count( sim.state.ods ) : 0;
-		println( "Total O/D records: "+cnt );
-		if ( sim.state.activeOds != null )
-			println( "Selected O/D records: "+sim.state.activeOds.length );
-	}
-
-	/**
 		Show OD records with optional `filter` expression and output `type`;
 		`type` can be "show", "head" or "count" (default)
 	**/
