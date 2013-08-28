@@ -160,38 +160,67 @@ class Digraph {
 	public function stpath( source:Node, destination:Node, vclass:VehicleClass
 	, ucost:UserCostModel, ?keepCosts=false ) {
 
+		// get corresponding nodes
 		var s = getVertex( source );
 		var t = getVertex( destination );
 
-		if ( !keepCosts ) {
+		// keepCosts?
+		if ( keepCosts ) { // yes => do not clear paths or costs
+			// do NOT bumb version to a new one
+			// do NOT set source cost and parent
+			if ( s.parent == null ) {
+				// however, it source has no parent, stpath cannot proceed
+				// so raise an execption
+				throw "stpath with keep costs active can only proceed if the source"
+				+"vertex has been reached or has been manually set with _.parent = new PseudoArc(_)";
+			}
+			// do NOT clear destination state
+		}
+		else { // no => compute a NEW path, from s to t
+			// bump version to a new one
+			var oldVersion = version;
 			version = new StateVersion();
+			// set source cost and parent
 			s.parent = new PseudoArc( s );
 			s.dist = 0; s.time = 0; s.toll = 0; s.cost = 0;
 			s.est = s.cost + hf(s,t,ucost);
 			s.version = version;
+			// clear destination state (for safety)
 			t.clearState();
 		}
 
 		var Q = new Queue( queueArity, queueReserve );
-		Q.put( s );
+		Q.put( s ); // starting point: s
 
 		while ( Q.notEmpty() ) {
+
+			// next vertex => min cost
 			var v = Q.extract();
+
+			// exit early?
 			if ( v == t ) break;
+			
 			for ( a in v.adjs ) {
+				// arcs weighting is lazy; weight this arc
 				a.weight( vclass, ucost );
+
+				// tentative costs
 				var tdist = v.dist + a.dist;
 				var ttime = v.time + a.time;
-
 				var ttoll = v.toll + a.toll;
 				var tcost = ucost.userCost( tdist, ttime, ttoll );
-				// trace( [ tdist, ttime, ttoll, tcost ] );
-				if ( a.to.version != version ) {
+				
+				// destination endpoint of the arc is valid?
+				// i.e. equal versions?
+				if ( a.to.version != version ) { // no, reset it
+					// if this is a new (previously unknown) vertex, then keepCosts
+					// does not matter
 					a.to.clearPath();
-					if ( !keepCosts )
-						a.to.clearCosts();
+					a.to.clearCosts();
 					a.to.version = version;
 				}
+
+				// arc relaxation
 				if ( tcost < a.to.cost ) {
 					a.to.dist = tdist;
 					a.to.time = ttime;
@@ -205,6 +234,7 @@ class Digraph {
 					a.to.parent = a;
 				}
 			}
+
 		}
 
 	}
