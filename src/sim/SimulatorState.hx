@@ -26,7 +26,7 @@ class SimulatorState {
 	public var shapes:Null<Map<Int,LinkShape>>;
 
 	public var ods:Null<Map<Int,OD>>;
-	public var activeOds:Null<Array<OD>>;
+	public var activeOds:Null<Map<Int,OD>>;
 	public var activeOdFilter:Null<Array<String>>;
 
 	public var sampleWeights:Null<Map<Int,Float>>; // maps OD::id to Float expansion factor

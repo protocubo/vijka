@@ -526,16 +526,16 @@ class SimulatorAPI extends mcli.CommandLine {
 		einp.close();
 	}
 
-	// /**
-	// 	Show (filtered) O/D records with optional `filter` expression and output
-	// 	`type`; `type` can be "show", "head" or "count" (default)
-	// **/
-	// public function queryOds( ?filter="true==true", ?type="count" ) {
-	// 	var q = Search.prepare( filter, "id" );
-	// 	var idx = sim.state.activeOds != null ? sim.state.activeOds : sim.state.ods;
-	// 	_genericQuery( q, sim.state.ods, null, type
-	// 	, "Searching OD records matching '"+filter+"'", "No OD records" );
-	// }
+	/**
+		Show (filtered) O/D records with optional `filter` expression and output
+		`type`; `type` can be "show", "head" or "count" (default)
+	**/
+	public function queryOds( ?filter="true==true", ?type="count" ) {
+		var q = Search.prepare( filter, "id" );
+		var idx = sim.state.activeOds != null ? sim.state.activeOds : sim.state.ods;
+		_genericQuery( q, idx, null, type
+		, "Searching OD records matching '"+filter+"'", "No OD records" );
+	}
 
 	/**
 		Show all (ignores the filter) O/D records with optional `filter`
@@ -571,11 +571,11 @@ class SimulatorAPI extends mcli.CommandLine {
 	public function filterOd( type:String, clause:String ) {
 		var ods = sim.state.ods;
 		if ( ods == null ) throw "No O/D data";
-		var activeOds = list( sim.state.activeOds != null ? sim.state.activeOds : sim.state.ods );
+		var activeOds = sim.state.activeOds != null ? sim.state.activeOds : _odMap( sim.state.ods );
 		var activeOdFilter = sim.state.activeOdFilter; if ( activeOdFilter == null ) activeOdFilter = [];
-		sim.state.activeOds = array( _innerOdQuery( activeOds, type, clause, activeOdFilter ) );
+		sim.state.activeOds = _odMap( _innerOdQuery( activeOds, type, clause, activeOdFilter ) );
 		sim.state.activeOdFilter = activeOdFilter;
-		println( "Current selected records: "+activeOds.length );
+		println( "Current selected records: "+count( activeOds ) );
 		showOdFilter();
 	}
 
@@ -1011,7 +1011,7 @@ class SimulatorAPI extends mcli.CommandLine {
 
 			if ( frOds ) {
 				sim.state.activeOdFilter = [ "Passing through '"+query+"'" ];
-				sim.state.activeOds = users.map( ods.get );
+				sim.state.activeOds = _odMap( users.map( ods.get ) );
 				showOdFilter();
 			}
 
@@ -1024,7 +1024,7 @@ class SimulatorAPI extends mcli.CommandLine {
 				for ( r in res )
 					if ( !tset.exists( r.odId ) )
 						f.push( ods.get( r.odId ) );
-				sim.state.activeOds = f;
+				sim.state.activeOds = _odMap( f );
 				showOdFilter();
 			}
 
@@ -1414,6 +1414,13 @@ class SimulatorAPI extends mcli.CommandLine {
 		for ( r in table )
 			eout.write( r );
 		eout.close();
+	}
+
+	private function _odMap( ods:Iterable<OD> ) {
+		var map = new Map();
+		for ( od in ods )
+			map.set( od.id, od );
+		return map;
 	}
 
 	private function _innerOdQuery( original:Iterable<OD>, type:String, clause:String
