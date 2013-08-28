@@ -1,5 +1,5 @@
 package graph.adjLists;
 
-class Label {
+class StateVersion {
 	public inline function new() {}
 }

@@ -15,6 +15,9 @@ class Digraph {
 	public var queueArity:Int;
 	public var queueReserve:Int;
 
+	public var version(default,null):StateVersion;
+
+
 
 	// CONSTRUCTION, POPULATION AND BASIC QUERIES -------------------------------
 
@@ -22,6 +25,7 @@ class Digraph {
 	 * Directed graph constructor
 	 */
 	public function new( _heuristic:Bool, ?_queueArity=2, ?_queueReserve=32 ) {
+		version = new StateVersion();
 		as = new Map();
 		vs = new Map();
 		heuristic = _heuristic;
@@ -131,6 +135,7 @@ class Digraph {
 	}
 
 
+
 	// SHORTESTS PATHS ----------------------------------------------------------
 
 	public function clearVertexState() {
@@ -145,10 +150,11 @@ class Digraph {
 
 	/*
 		`keepCosts`:
-			`true`:    don't alter paths or costs before hand; be sure that only
-			           desired data remains there before calling `stpath`
 			`false`:   clear all path and cost info when visiting a vertex for the
 			           first time
+			`true`:    don't alter paths or costs before hand; be sure that only
+			           desired data remains there before calling `stpath`; ** MORE
+			           TESTING NEEDED! **
 	*/
 	@:access( graph.adjLists.Vertex )
 	public function stpath( source:Node, destination:Node, vclass:VehicleClass
@@ -157,14 +163,12 @@ class Digraph {
 		var s = getVertex( source );
 		var t = getVertex( destination );
 
-		var label = new Label();
-
 		if ( !keepCosts ) {
+			version = new StateVersion();
 			s.parent = new PseudoArc( s );
 			s.dist = 0; s.time = 0; s.toll = 0; s.cost = 0;
 			s.est = s.cost + hf(s,t,ucost);
-			s.label = label;
-
+			s.version = version;
 			t.clearState();
 		}
 
@@ -182,11 +186,11 @@ class Digraph {
 				var ttoll = v.toll + a.toll;
 				var tcost = ucost.userCost( tdist, ttime, ttoll );
 				// trace( [ tdist, ttime, ttoll, tcost ] );
-				if ( a.to.label != label ) {
+				if ( a.to.version != version ) {
 					a.to.clearPath();
 					if ( !keepCosts )
 						a.to.clearCosts();
-					a.to.label = label;
+					a.to.version = version;
 				}
 				if ( tcost < a.to.cost ) {
 					a.to.dist = tdist;
@@ -212,16 +216,18 @@ class Digraph {
 	 */
 	@:generic
 	public function revPathFold<T>( destination:Node, f:Arc->T->T, first:T ):T {
-		var t = getVertex( destination ).parent;
+		var tv = getVertex( destination );
+		var t = tv.version == version ? tv.parent : null;
 		while ( t != null ) {
 			first = f( t, first );
 			if ( t.isPseudo() )
 				return first;
 			else
-				t = t.from.parent;
+				t = t.from.version == version ? t.from.parent : null;
 		}
 		return first;
 	}
+
 
 
 	// SHORTEST PATHS: INTERNALS ------------------------------------------------
@@ -235,6 +241,7 @@ class Digraph {
 		for ( a in as )
 			a.weight( vclass, ucost );
 	}
+
 
 
 	// HELPERS ------------------------------------------------------------------

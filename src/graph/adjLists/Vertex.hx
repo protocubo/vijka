@@ -16,8 +16,8 @@ class Vertex {
 	public var toll( default, null ):Toll;
 	public var cost( default, null ):Cost;
 
-	// run label
-	public var label:Label;
+	// run version
+	public var version:StateVersion;
 
 	// relation
 	public var adjs:Array<Arc>;
@@ -39,7 +39,7 @@ class Vertex {
 	}
 
 	public inline function clearState() {
-		label = null;
+		version = null;
 		clearPath();
 		clearCosts();
 	}
