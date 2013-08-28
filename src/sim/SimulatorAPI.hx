@@ -490,7 +490,7 @@ class SimulatorAPI extends mcli.CommandLine {
 	}
 
 
-	// OD I/O -------------------------------------------------------------------
+	// O/D I/O ------------------------------------------------------------------
 
 	/**
 		Read O/D data from OD ETT in `path` (reentrant); requires vehicles; costs
@@ -526,19 +526,42 @@ class SimulatorAPI extends mcli.CommandLine {
 		einp.close();
 	}
 
+	// /**
+	// 	Show (filtered) O/D records with optional `filter` expression and output
+	// 	`type`; `type` can be "show", "head" or "count" (default)
+	// **/
+	// public function queryOds( ?filter="true==true", ?type="count" ) {
+	// 	var q = Search.prepare( filter, "id" );
+	// 	var idx = sim.state.activeOds != null ? sim.state.activeOds : sim.state.ods;
+	// 	_genericQuery( q, sim.state.ods, null, type
+	// 	, "Searching OD records matching '"+filter+"'", "No OD records" );
+	// }
+
 	/**
-		Show OD records with optional `filter` expression and output `type`;
-		`type` can be "show", "head" or "count" (default)
+		Show all (ignores the filter) O/D records with optional `filter`
+		expression and output `type`; `type` can be "show", "head" or
+		"count" (default)
 	**/
-	public function queryOd( ?filter="true==true", ?type="count" ) {
+	public function queryAllOds( ?filter="true==true", ?type="count" ) {
 		var q = Search.prepare( filter, "id" );
 		_genericQuery( q, sim.state.ods, null, type
 		, "Searching OD records matching '"+filter+"'", "No OD records" );
 	}
 
+	/**
+		Clear O/D records; this removes any results or volumes
+		(active or cold stored)
+	**/
+	public function clearOd() {
+		clearStorage();
+		clearResults();
+		clearOdFilter();
+		sim.state.ods = null;
+	}
 
 
-	// OD FILTERS ---------------------------------------------------------------
+
+	// O/D FILTERS --------------------------------------------------------------
 
 	/**
 		Filter remaining O/D data (reentrant); supported filter `type`s are "id",
@@ -897,7 +920,9 @@ class SimulatorAPI extends mcli.CommandLine {
 		Analyze links matching `query`, optionally `type` may be used to limit
 		the analysis; it can be a comma separated list of "volumes", "ods",
 		"usage", "save-usage" or "_" (for everything, the default); requires
-		results with saved paths and volumes (when applicable)
+		results with saved paths and volumes (when applicable); other values for
+		`type` are "filter-ods" and "filter-outside-ods", that set the od filter
+		acordingly
 	**/
 	public function analyze( query:String, ?type:String ) {
 		if ( sim.state.links == null )
@@ -916,6 +941,8 @@ class SimulatorAPI extends mcli.CommandLine {
 		var azOds = false;
 		var azUsg = false;
 		var svUsg = false;
+		var frOds = false;
+		var frOsOds = false;
 
 		var types = _readSet( type, true );
 		if ( types == null )
@@ -932,11 +959,16 @@ class SimulatorAPI extends mcli.CommandLine {
 				svUsg = true;
 			case "users":
 				throw "No analysis type \"users\"; did you mean \"usage\" or \"ods\"";
+			case "filter-ods":
+				frOds = true;
+			case "filter-outside-ods":
+				frOsOds = true;
 			case all:
 				throw "No analysis type \""+all+"\"";
 			}
 		}
 
+		if ( frOds && frOsOds ) throw "Cannot simultaneouly filter o/d records both passing and not passing";
 		azUsg = azUsg || svUsg;
 
 		var res = sim.state.results;
@@ -950,7 +982,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		var totalWeight = 0.;
 		var userWeight = 0.;
 
-		if ( azUsg || azOds ) { // output O/D record ids
+		if ( azUsg || azOds || frOds || frOsOds ) { // output O/D record ids
 			users = [];
 			for ( r in res ) {
 				if ( r.path != null ) {
@@ -976,6 +1008,26 @@ class SimulatorAPI extends mcli.CommandLine {
 					r.escaped = null;
 			}
 			users.sort( Reflect.compare );
+
+			if ( frOds ) {
+				sim.state.activeOdFilter = [ "Passing through '"+query+"'" ];
+				sim.state.activeOds = users.map( ods.get );
+				showOdFilter();
+			}
+
+			if ( frOsOds ) {
+				sim.state.activeOdFilter = [ "NOT passing through '"+query+"'" ];
+				var tset = new Map();
+				for ( odId in users )
+					tset.set( odId, odId );
+				var f = [];
+				for ( r in res )
+					if ( !tset.exists( r.odId ) )
+						f.push( ods.get( r.odId ) );
+				sim.state.activeOds = f;
+				showOdFilter();
+			}
+
 			if ( azOds )
 				println( "  * "+users.length+" O/D records using links ["
 				+linkIds.join(", ")+"]: "+users.join(", ") );
