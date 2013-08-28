@@ -74,7 +74,7 @@ class SimulatorAPI extends mcli.CommandLine {
 	public function queryNodes( ?filter="true==true", ?type="count" ) {
 		var q = Search.prepare( filter, "id" );
 		_genericQuery( q, sim.state.nodes, null, type
-		, "Searching for nodes mathcing '"+filter+"'", "No nodes" );
+		, "Searching for nodes matching '"+filter+"'", "No nodes" );
 	}
 
 	/**
@@ -150,7 +150,7 @@ class SimulatorAPI extends mcli.CommandLine {
 	public function queryTypes( ?filter="true==true", ?type="count" ) {
 		var q = Search.prepare( filter, "id" );
 		_genericQuery( q, sim.state.linkTypes, null, type
-		, "Searching for link types mathcing '"+filter+"'", "No link types" );
+		, "Searching for link types matching '"+filter+"'", "No link types" );
 	}
 
 	/**
@@ -211,7 +211,7 @@ class SimulatorAPI extends mcli.CommandLine {
 	public function queryLinks( ?filter="true==true", ?type="count" ) {
 		var q = Search.prepare( filter, "id" );
 		_genericQuery( q, sim.state.links, sim.state.aliases, type
-		, "Searching for links mathcing '"+filter+"'", "No links" );
+		, "Searching for links matching '"+filter+"'", "No links" );
 	}
 
 	/**
@@ -507,7 +507,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		a full online network and digraph reassembly before the next run
 	**/
 	public function updateLinks( filter:String, update:String ) {
-		println( "Updating links mathcing '"+filter+"' with '"+update+"'" );
+		println( "Updating links matching '"+filter+"' with '"+update+"'" );
 		var links = sim.state.links;
 		if ( links == null )
 			throw "No links";
@@ -876,7 +876,14 @@ class SimulatorAPI extends mcli.CommandLine {
 		ETT in `path`
 	**/
 	public function ettStorage( path:String ) {
-		_genericEtt( path, sim.state.coldStorage, ODResult, "No c!old stored results", "No cold storage" );
+		println( "Writing cold stored results in ETT" );
+		if ( sim.state.coldStorage == null )
+			throw "No cold storage";
+		var eout = _writeEtt( ODResult, ODResult.ettFields(), path );
+		for ( box in sim.state.coldStorage )
+			for ( r in box.results() )
+				eout.write( r );
+		eout.close();
 	}
 
 	/**
