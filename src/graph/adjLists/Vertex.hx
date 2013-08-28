@@ -39,6 +39,7 @@ class Vertex {
 	}
 
 	public inline function clearState() {
+		label = null;
 		clearPath();
 		clearCosts();
 	}

@@ -133,35 +133,27 @@ class Digraph {
 
 	// SHORTESTS PATHS ----------------------------------------------------------
 
-	// all state
-	public inline function clearState() {
-		clearCosts();
-		clearWeights();
-	}
-
-	// just a path (if `keepCosts == true`)
-	public inline function clearPath( ?keepCosts=false ) {
-		if ( keepCosts )
-			for ( v in vs )
-				v.clearPath();
-		else
-			clearCosts();
-	}
-
-	// all vertex state
-	public inline function clearCosts() {
+	public function clearVertexState() {
 		for ( v in vs )
 			v.clearState();
 	}
 
-	// all arc state
-	public function clearWeights() {
+	public function clearArcWeights() {
 		for ( a in as )
 			a.clearState();
 	}
 
+	/*
+		`keepCosts`:
+			`true`:    don't alter paths or costs before hand; be sure that only
+			           desired data remains there before calling `stpath`
+			`false`:   clear all path and cost info when visiting a vertex for the
+			           first time
+	*/
 	@:access( graph.adjLists.Vertex )
-	public function stpath( source:Node, destination:Node, vclass:VehicleClass, ucost:UserCostModel, ?keepCosts=false ) {
+	public function stpath( source:Node, destination:Node, vclass:VehicleClass
+	, ucost:UserCostModel, ?keepCosts=false ) {
+
 		var s = getVertex( source );
 		var t = getVertex( destination );
 
@@ -172,30 +164,21 @@ class Digraph {
 			s.dist = 0; s.time = 0; s.toll = 0; s.cost = 0;
 			s.est = s.cost + hf(s,t,ucost);
 			s.label = label;
-		}
 
-		#if ( debug || TRACES )
-		var _maxQueue = 0;
-		var _visArcs = 0;
-		#end
+			t.clearState();
+		}
 
 		var Q = new Queue( queueArity, queueReserve );
 		Q.put( s );
 
 		while ( Q.notEmpty() ) {
-			#if ( debug || TRACES )
-			if ( Q.length > _maxQueue ) _maxQueue = Q.length;
-			#end
-
 			var v = Q.extract();
 			if ( v == t ) break;
 			for ( a in v.adjs ) {
-				#if ( debug || TRACES )
-				_visArcs++;
-				#end
 				a.weight( vclass, ucost );
 				var tdist = v.dist + a.dist;
 				var ttime = v.time + a.time;
+
 				var ttoll = v.toll + a.toll;
 				var tcost = ucost.userCost( tdist, ttime, ttoll );
 				// trace( [ tdist, ttime, ttoll, tcost ] );
@@ -220,10 +203,6 @@ class Digraph {
 			}
 		}
 
-		#if ( debug || TRACES )
-		trace( 'Max queue size = $_maxQueue, visited arcs = $_visArcs' );
-		trace( 'Destination cost = ${t.cost}' );
-		#end
 	}
 
 	/* 
