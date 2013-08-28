@@ -94,7 +94,8 @@ class Simulator {
 	}
 
 	public function getArgs( inp:Input ):Array<String> {
-		var args = new format.csv.Reader( inp, newline, " ", "'" ).readRecord();
+		var reader = new format.csv.Reader( inp, newline, " ", "'" );
+		var args = reader.readRecord();
 		if ( args.length>0 && args[0].length>0 && args[0].charCodeAt(0)=="#".code )
 			return [];
 		else
