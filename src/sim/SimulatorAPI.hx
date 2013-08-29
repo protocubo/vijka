@@ -241,7 +241,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		if ( filter == null ) {
 			for ( k in links ) {
 				if ( first ) first = false; else fout.writeString( ","+sim.newline+"\t" );
-				fout.writeString( _geojsonLink( k ) );
+				fout.writeString( _geojsonLink( k, false ) );
 			}
 		}
 		else {
@@ -249,7 +249,37 @@ class SimulatorAPI extends mcli.CommandLine {
 			var q = Search.prepare( filter, "id" );
 			for ( k in q.execute( sim, links, aliases ) ) {
 				if ( first ) first = false; else fout.writeString( ","+sim.newline+"\t" );
-				fout.writeString( _geojsonLink( k ) );
+				fout.writeString( _geojsonLink( k, false ) );
+			}
+		}
+		fout.writeString( sim.newline+"] }"+sim.newline );
+		fout.close();
+	}
+
+	/**
+		Write links to GeoJSON in `path` using available link shape data and
+		including speed information; accepts (optionnally) a unified `filter`
+		query; will overwrite existing files
+	**/
+	public function geojsonLinkSpeeds( path:String, ?filter:String ) {
+		println( "Mapping links in GeoJSON" );
+		var links = sim.state.links; // just a shortcut
+		if ( links == null ) throw "No links";
+		var fout = _writeFile( path, false );
+		fout.writeString( '{"type":"FeatureCollection","features":['+sim.newline );
+		var first = true;
+		if ( filter == null ) {
+			for ( k in links ) {
+				if ( first ) first = false; else fout.writeString( ","+sim.newline+"\t" );
+				fout.writeString( _geojsonLink( k, true ) );
+			}
+		}
+		else {
+			var aliases = sim.state.aliases;
+			var q = Search.prepare( filter, "id" );
+			for ( k in q.execute( sim, links, aliases ) ) {
+				if ( first ) first = false; else fout.writeString( ","+sim.newline+"\t" );
+				fout.writeString( _geojsonLink( k, true ) );
 			}
 		}
 		fout.writeString( sim.newline+"] }"+sim.newline );
@@ -1528,10 +1558,19 @@ class SimulatorAPI extends mcli.CommandLine {
 		return '{"id":${node.id},"type":"Feature","geometry":${geom},"properties":{$prop}}';
 	}
 
-	private function _geojsonLink( link:Link ):String {
+	private function _geojsonLink( link:Link, speeds:Bool ):String {
 		var linkProp = link.jsonBody();
 		var geom = _getShape( link ).geojsonGeometry();
-		return '{"id":${link.id},"type":"Feature","geometry":${geom},"properties":{$linkProp}}';
+		if ( speeds ) {
+			var speedData = [];
+			for ( s in sim.state.speeds )
+				if ( s.typeId == link.typeId )
+					speedData.push( '"speed_${s.vehicleId}":${s.speed}' );
+			return '{"id":${link.id},"type":"Feature","geometry":${geom},"properties":{$linkProp,${speedData.join(",")}}}';
+		}
+		else {
+			return '{"id":${link.id},"type":"Feature","geometry":${geom},"properties":{$linkProp}}';
+		}
 	}
 
 	private function _geojsonVolume( volume:LinkVolume, moreProperties:Null<String> ):String {
