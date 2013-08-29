@@ -97,7 +97,8 @@ class OnlineDigraph {
 				sendMsg( ws[i], -1, MPing );
 			var sent = 0;
 			var recv = 0;
-			var store:SimulatorState = null;
+			var saved = 0;
+			var store:haxe.ds.GenericStack<SimulatorState> = new haxe.ds.GenericStack();
 			var i = 0;
 			if ( info ) {
 				println( "\tD-ary heap arity = "+heapArity );
@@ -110,13 +111,15 @@ class OnlineDigraph {
 				if ( nextEnd >= ods.length )
 					nextEnd = ods.length;
 				var msg = readMsg( false );
-				if ( msg == null && store != null ) {
-					incorporatePseudoState( sim.state, store );
-					store = null;
-					if ( info ) print( "\rRunning "+recv+"/"+ods.length+" paths" );
-				}
 				if ( msg == null )
-					msg = readMsg( true );
+					if ( !store.isEmpty() ) {
+						saved += incorporatePseudoState( sim.state, store.pop() );
+						if ( info ) print( "\rRunning "+saved+"/"+ods.length+" paths" );
+						continue;
+					}
+					else {
+						msg = readMsg( true );
+					}
 				switch ( msg.data ) {
 				case MAlive:
 					sendMsg( ws[msg.from], -1, MRun( ods, i, nextEnd, volumes, path ) );
@@ -127,28 +130,28 @@ class OnlineDigraph {
 					sendMsg( ws[msg.from], -1, MRun( ods, i, nextEnd, volumes, path ) );
 					sent += nextEnd - i;
 					i = nextEnd;
-					store = ps;
+					store.add( ps );
 				case all:
 					throw all;
 				}
 			}
-			if ( store != null ) {
-				incorporatePseudoState( sim.state, store );
-				store = null;
-				if ( info ) print( "\rRunning "+recv+"/"+ods.length+" paths" );
+			while ( !store.isEmpty() ) {
+				saved += incorporatePseudoState( sim.state, store.pop() );
+				if ( info ) print( "\rRunning "+saved+"/"+ods.length+" paths" );
 			}
-			while ( recv < sent ) {
-				var msg = readMsg( true );
-				switch ( msg.data ) {
+			while ( saved < sent ) {
+				switch ( readMsg( true ).data ) {
 				case MDone( ps, cnt ):
 					recv += cnt;
-					if ( info ) print( "\rRunning "+recv+"/"+ods.length+" paths" );
-					incorporatePseudoState( output, ps );
+					saved += incorporatePseudoState( output, ps );
+					if ( info ) print( "\rRunning "+saved+"/"+ods.length+" paths" );
 				case all:
 					throw all;
 				}
 			}
-			if ( info ) println( "\rRunning "+i+"/"+ods.length+" paths... Done" );
+			if ( recv != sent || saved != recv )
+				throw 'Error: sent,recv,saved = $sent,$recv,$saved';
+			if ( info ) println( "\rRunning "+saved+"/"+ods.length+" paths... Done" );
 
 		}
 	}
@@ -395,15 +398,20 @@ class OnlineDigraph {
 	}
 
 	private static function incorporatePseudoState( actual:SimulatorState
-	, pseudo:SimulatorState ) {
-		for ( r in pseudo.results )
+	, pseudo:SimulatorState ):Int {
+		var saved = 0;
+		for ( r in pseudo.results ) {
 			actual.results.set( r.odId, r );
+			saved++;
+		}
 		if ( actual.volumes != null )
-			for ( r in pseudo.volumes )
+			for ( r in pseudo.volumes ) {
 				if ( actual.volumes.exists( r.linkId ) )
 					actual.volumes.get( r.linkId ).sum( r );
 				else
 					actual.volumes.set( r.linkId, r );
+			}
+		return saved;
 	}
 
 	private function genStubDigraph() {
