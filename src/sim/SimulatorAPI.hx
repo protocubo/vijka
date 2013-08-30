@@ -6,10 +6,10 @@ import format.ett.Data.Field in ETTField;
 import format.ett.Reader;
 import format.ett.Writer;
 import haxe.io.Eof;
-import jonas.NumberPrinter.printDecimal;
 import sys.io.FileInput;
 import sys.io.FileOutput;
 
+import jonas.NumberPrinter.printDecimal;
 import Lambda.array;
 import Lambda.count;
 import Lambda.filter;
