@@ -1,0 +1,12 @@
+-java exp/vijka/java/
+-main sim.Simulator
+-cp src
+-lib elebeta-format
+-lib mcli
+-lib hscript
+
+# -D dump
+
+-cmd cp exp/vijka/java/java.jar exp/vijka/java/vijka.jar
+-cmd cp exp/vijka/java/java.jar exp/vijka/java/vijka
+-cmd chmod +x exp/vijka/java/vijka

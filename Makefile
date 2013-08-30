@@ -1,4 +1,4 @@
-all: UnitTests Simulator
+all: UnitTests vijka
 
 include UnitTests.Makefile
-include Simulator.Makefile
+include vijka.Makefile

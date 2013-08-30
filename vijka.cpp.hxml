@@ -1,0 +1,16 @@
+-cpp exp/vijka/cpp/
+-main sim.Simulator
+-cp src
+-lib elebeta-format
+-lib mcli
+-lib hscript
+
+# -D dump
+
+-D HXCPP_STACK_TRACE
+-D HXCPP_STACK_LINE
+# -D HXCPP_DEBUG_LINK
+-D HXCPP_CHECK_POINTER
+# -debug
+
+-cmd cp exp/vijka/cpp/Simulator exp/vijka/cpp/vijka
