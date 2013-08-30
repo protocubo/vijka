@@ -1484,7 +1484,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		Show simulator version
 	**/
 	public function version() {
-		println( Simulator.SHORTNAME+" version "+Simulator.VERSION );
+		println( Simulator.SHORTNAME+" version "+Simulator.VERSION+", build "+Simulator.BUILD );
 	}
 
 	/**
@@ -1492,7 +1492,7 @@ class SimulatorAPI extends mcli.CommandLine {
 	**/
 	public function fullVersion() {
 		println( Simulator.FULLNAME );
-		println( "Version "+Simulator.VERSION+" ("+Simulator.PLATFORM
+		println( "Version "+Simulator.VERSION+", build "+Simulator.BUILD+" ("+Simulator.PLATFORM
 		+" on "+Sys.systemName()+")" );
 	}
 
@@ -1500,7 +1500,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		println( Simulator.FULLNAME );
 		println( Simulator.COPYRIGHT );
 		println( Simulator.LICENSE );
-		println( "Version "+Simulator.VERSION+" ("+Simulator.PLATFORM
+		println( "Version "+Simulator.VERSION+", build "+Simulator.BUILD+" ("+Simulator.PLATFORM
 		+" on "+Sys.systemName()+")" );
 	}
 
