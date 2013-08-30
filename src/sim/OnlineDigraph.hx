@@ -98,7 +98,7 @@ class OnlineDigraph {
 			var sent = 0;
 			var recv = 0;
 			var saved = 0;
-			var store:haxe.ds.GenericStack<SimulatorState> = new haxe.ds.GenericStack();
+			var store = new haxe.ds.GenericStack<SimulatorState>();
 			var i = 0;
 			if ( info ) {
 				println( "\tD-ary heap arity = "+heapArity );
