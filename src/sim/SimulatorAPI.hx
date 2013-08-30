@@ -1496,12 +1496,29 @@ class SimulatorAPI extends mcli.CommandLine {
 		+" on "+Sys.systemName()+")" );
 	}
 
+	/**
+		Show more information about the software
+	**/
 	public function fullInfo() {
 		println( Simulator.FULLNAME );
 		println( Simulator.COPYRIGHT );
 		println( Simulator.LICENSE );
 		println( "Version "+Simulator.VERSION+", build "+Simulator.BUILD+" ("+Simulator.PLATFORM
 		+" on "+Sys.systemName()+")" );
+	}
+
+	/**
+		Show copyright information
+	**/
+	public function copyright() {
+		println( Simulator.COPYRIGHT );
+	}
+
+	/**
+		Show licensing information
+	**/
+	public function license() {
+		println( Simulator.LICENSE );
 	}
 
 	/**

@@ -62,8 +62,8 @@ class Simulator {
 
 	public static inline var SHORTNAME = "Vijka";
 	public static inline var FULLNAME = "Vijka - Demand model for highway tolls on regional road networks";
-	public static inline var COPYRIGHT = "Copyright 2013, Elebeta Consultoria";
-	public static inline var LICENSE = "Propretary internal version; open source release planned";
+	public static inline var COPYRIGHT = "Copyright 2013, Jonas Malaco and Arthur Szász, Elebeta Consultoria";
+	public static inline var LICENSE = "Licensed under the BSD 3-clause license: http://opensource.org/licenses/BSD-3-Clause";
 	public static inline var VERSION = "1.0.0-consult-alamak";
 	public static inline var BUILD = utils.GitVersion.get( 8 );
 	public static inline var PLATFORM = #if neko
