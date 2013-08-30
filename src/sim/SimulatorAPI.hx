@@ -984,6 +984,57 @@ class SimulatorAPI extends mcli.CommandLine {
 		fout.close();
 	}
 
+	/**
+		Store a copy of the current volumes for later use as reference
+	**/
+	public function saveVolumeReference() {
+		var volumes = sim.state.volumes;
+		if ( volumes == null )
+			throw "No volumes";
+		var refVolumes = new Map();
+		for ( v in volumes )
+			refVolumes.set( v.linkId, v.copy() );
+		sim.state.refVolumes = refVolumes;
+	}
+
+	/**
+		Generate a comparission between current and reference volumes and write
+		it to GeoJSON in `path`, using available link shape data; will overwrite
+		existing files
+	**/
+	public function geojsonVolumeDiff( path:String ) {
+		println( "Mapping volumes in GeoJSON" );
+		var volumes = sim.state.volumes; // just a shortcut
+		var refVolumes = sim.state.refVolumes; // just a shortcut
+		if ( volumes == null ) throw "No volumes";
+		if ( refVolumes == null ) throw "No reference volumes";
+		var fout = _writeFile( path, false );
+		fout.writeString( '{"type":"FeatureCollection","features":['+sim.newline );
+		var first = true;
+		for ( v in volumes ) {
+			if ( first ) first = false; else fout.writeString( ","+sim.newline+"\t" );
+			var ref = refVolumes.get( v.linkId );
+			if ( ref != null ) {
+				var v_ = v.copy();
+				v_.sub( ref );
+				fout.writeString( _geojsonVolume( v_, null ) );
+			}
+			else {
+				fout.writeString( _geojsonVolume( v, null ) );
+			}
+		}
+		for ( ref in refVolumes ) {
+			if ( !volumes.exists( ref.linkId ) ) {
+				if ( first ) first = false; else fout.writeString( ","+sim.newline+"\t" );
+				var v_ = LinkVolume.make( ref.linkId, 0, 0, 0, 0 );
+				v_.sub( ref );
+				fout.writeString( _geojsonVolume( v_, null ) );
+			}
+		}
+		fout.writeString( sim.newline+"] }"+sim.newline );
+		fout.close();
+	}
+
 	
 
 	// RESULTS I/O --------------------------------------------------------------
@@ -1212,7 +1263,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		print( "Saving the current command log" );
 		if ( !reading ) {
 			var fout = _writeFile( path, false );
-			fout.writeString( sim.log.join( sim.newline )+sim.newline );
+			fout.writeString( sim.log.join("") );
 			fout.close();
 		}
 		println( "\rSaving the current command log... Done" );

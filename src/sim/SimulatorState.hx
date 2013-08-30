@@ -34,6 +34,8 @@ class SimulatorState {
 	public var volumes:Null<Map<Int,LinkVolume>>;
 	public var results:Null<Map<Int,ODResult>>;
 
+	public var refVolumes:Null<Map<Int,LinkVolume>>;
+
 	public var coldStorage:Null<Map<String,StorageBox>>;
 
 	public var algorithm:Algorithm;

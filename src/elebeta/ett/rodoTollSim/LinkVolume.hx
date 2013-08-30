@@ -17,6 +17,13 @@ class LinkVolume {
 		equivalentVehicles += v.equivalentVehicles;
 	}
 
+	public function sub( v:LinkVolume ):Void {
+		vehicles -= v.vehicles;
+		axis -= v.axis;
+		tolls -= v.tolls;
+		equivalentVehicles -= v.equivalentVehicles;
+	}
+
 	public function toString() {
 		return 'Volume for link \'$linkId\'\n  '
 		+'  => vehicles: $vehicles, axis: $axis, tolls: $tolls, equivalent vehicles: $equivalentVehicles';
@@ -24,6 +31,10 @@ class LinkVolume {
 
 	public function jsonBody():String {
 		return '"vehicles":$vehicles,"axis":$axis,"tolls":$tolls,"equivalentVehicles":$equivalentVehicles';
+	}
+
+	public function copy():LinkVolume {
+		return make( linkId, vehicles, axis, tolls, equivalentVehicles );
 	}
 
 	public static function ettFields():Array<Field> {
