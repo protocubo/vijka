@@ -1,5 +1,0 @@
--java exp/compile_sim/java/
--main blah.CompileSim
--cp src
--lib elebeta-format
-# -D dump
