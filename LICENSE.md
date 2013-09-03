@@ -41,10 +41,10 @@ jonas-haxe - Open-source collection of data structures and algorithms in Haxe
 --------------------------------------------------------------------------------
 
 Vijka includes code based on and adapted from the haxe3migration branch of the
-jonas-haxe library (https://github.com/jonasmalacofilho/jonas-haxe/tree
-/haxe3migration):
+jonas-haxe library:
  - Data structures: R-trees and d-ary heaps
  - Utilities: a pretty printer for floating point numbers
+(https://github.com/jonasmalacofilho/jonas-haxe/tree/haxe3migration)
 
 
 Copyright (c) 2012-2013, Jonas Malaco Filho
