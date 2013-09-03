@@ -59,8 +59,9 @@ different percepetion of costs: there are distance based costs and time based
 costs (the latter ones are then divided into social and operational).
 
 All input is done in text files, following the Elebeta Text Table (ETT) format.
-This is a variation of Comma-Separated Values (CSV, RFC ????), that retains
+This is a variation of Comma-Separated Values (CSV, RFC 4180) that retains
 backwards compatibility but includes additional information:
+
  - Separator: comma, tab, semicolon, pipe?
  - Encoding: local ISO/extended ASCII or UTF-8?
  - Mandatory column names
@@ -126,6 +127,3 @@ It can be single handed used to target both native (desktop C++, iOS, Android,
 ...) and virtual (Neko VM, Java VM, JavaScript, Flash, ...) targets, altought
 that may require some code refactoring due to incompatibilities between the
 underlying platforms.
-
-
-
