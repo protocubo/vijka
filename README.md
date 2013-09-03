@@ -13,8 +13,8 @@ desires, _Vijka_ can perform the necessary demmand assignments and output the
 traffic volume estimates and other interesing information.
 
 _Vijka_ is also __fast__, and has been used to run, in only a couple of minutes,
-a large number of trips (each with its own cost perception), for multiple
-scenarios (10+) and on large networks (~100k nodes, ~200k links).
+a large number of trips (each with its own cost perception) on large networks
+(~100k nodes, ~200k links), for multiple scenarios (10+).
 
 2. Interface and platforms
 --------------------------------------------------------------------------------
