@@ -1,15 +1,12 @@
 LICENSE & COPYING
-
 ================================================================================
 
-
 Vijka - Demand model for highway tolls on regional road networks
-
+--------------------------------------------------------------------------------
 
 Copyright (c) 2013, Arthur Campora Szász and Jonas Malaco Filho,
 Elebeta Consultoria.
 All rights reserved.
-
 
 Licensed under the BSD 3-clause license:
 
@@ -23,7 +20,7 @@ are permitted provided that the following conditions are met:
    this list of conditions and the following disclaimer in the documentation
    and/or other materials provided with the distribution.
    
- - Neither the name of the Elebeta Engenharia Ltda. nor the names of its
+ - Neither the name of the Elebeta Consultoria nor the names of its
    contributors may be used to endorse or promote products derived from this
    software without specific prior written permission.
 
@@ -40,11 +37,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 (http://opensource.org/licenses/BSD-3-Clause)
 
-
-================================================================================
-
-
 jonas-haxe - Open-source collection of data structures and algorithms in Haxe
+--------------------------------------------------------------------------------
 
 Vijka includes code based on and adapted from the haxe3migration branch of the
 jonas-haxe library (https://github.com/jonasmalacofilho/jonas-haxe/tree
@@ -55,7 +49,6 @@ jonas-haxe library (https://github.com/jonasmalacofilho/jonas-haxe/tree
 
 Copyright (c) 2012-2013, Jonas Malaco Filho
 All rights reserved.
-
 
 Licensed under the MIT license:
 
@@ -77,6 +70,3 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 (http://www.opensource.org/licenses/mit)
-
-
-================================================================================
