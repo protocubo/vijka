@@ -5,12 +5,12 @@ _A demand model/simulator for highway tolls on regional road networks_
 About
 --------------------------------------------------------------------------------
 
-_Vijka_ is a simulator for analysing and estimating the number of vehicles that
+_Vijka_ is a simulator for analyzing and estimating the number of vehicles that
 will use a highway, that is, its traffic volume.
 
 Given a road network and and a weighted list of origin/destination trip
-desires, _Vijka_ can perform the necessary demmand assignments and output the
-traffic volume estimates and other interesing information.
+desires, _Vijka_ can perform the necessary demand assignments and output the
+traffic volume estimates and other interesting information.
 
 _Vijka_ is also __fast__, and has been used to run, in only a couple of minutes,
 a large number of trips (each with its own cost perception) on large networks
@@ -26,18 +26,18 @@ commands, each with a set of corresponding arguments.
 It runs on many different platforms, both native and virtual.
 
 Of the virtual platforms, it runs on both the Neko VM and the Java VM (or, more
-preciselly, the various Java VM flavours out there). Of these, the Java VM is
-recomended due to performance and scalability reasons.
+precisely, the various Java VM flavors out there). Of these, the Java VM is
+recommended due to performance and scalability reasons.
 
 _Vijka_ also runs natively on all major operating systems (Windows, Mac OSX and
-Linux), being compiled through a C++ toolchain. Not that anyone would want that,
+Linux), being compiled through a C++ tool-chain. Not that anyone would want that,
 but it should also run on mobile systems (iOS, Android)... Ideally, the native
 (C++ based) binaries should be faster than the Java VM (JVM) and, therefore,
-recomended for large networks. However, due mainly to garbage collector issues
-(memory management) on the underlying C++ toolchain, that is not true yet.
+recommended for large networks. However, due mainly to garbage collector issues
+(memory management) on the underlying C++ tool-chain, that is not true yet.
 
 Therefore, the amazing Hotspot Java VM (be it the Sun/Oracle one, or the OpenJDK
-one for the Linux users), is still the fastest and so, the recomended
+one for the Linux users), is still the fastest and so, the recommended
 alternative. It should also be noted that the JVM actually is faster
 on Linux than on Windows.
 
@@ -54,12 +54,12 @@ set on the link is only the _base_ fare). Links also have types, and for each
 combination of link type and vehicle a different speed may be set.
 
 Links can also have custom (more detailed) shapes, other than the default
-start node -> finihsh node line segment. They can also be referenced by aliases,
+start node -> finish node line segment. They can also be referenced by aliases,
 and aliases and links have N:M relation.
 
-The demand constists on a weighted list of origin/destination trip desises. Each
+The demand consists on a weighted list of origin/destination trip desires. Each
 of its elements is associated with a particular vehicle type and can have a
-different percepetion of costs: there are distance based costs and time based
+different perception of costs: there are distance based costs and time based
 costs (the latter ones are then divided into social and operational).
 
 All input is done in text files, following the Elebeta Text Table (ETT) format.
@@ -76,7 +76,7 @@ Assignment
 --------------------------------------------------------------------------------
 
 The assignment is of the all-or-nothing type, and is computed as the shortest
-path between origin and destination acoording to a generalized cost function.
+path between origin and destination according to a generalized cost function.
 
 Output
 --------------------------------------------------------------------------------
@@ -84,7 +84,7 @@ Output
 As with other traffic assignment software, one can generate traffic volume
 estimates for all (used) links. However, this is not all.
 
-_Vijka_ was developed with a particular focus on analysing users of a
+_Vijka_ was developed with a particular focus on analyzing users of a
 particular road segment. Therefore, for each assigned origin/destination trip
 desire a result is stored that contains all cost parts (and the resulting
 generalized cost) and its complete path. Since the full path is stored, _Vijka_
@@ -120,11 +120,11 @@ language and toolkit under active development.
 
 The Haxe programming language is a high-level procedural and object oriented
 language, with EcmaScript like syntax and that has also inhered a few
-improvements from functional languages. It is stricly typed (so it has a lot of
-compile time checks, unline Python), but has generics (unlike C) and real
+improvements from functional languages. It is strictly typed (so it has a lot of
+compile time checks, unlike Python), but has generics (unlike C) and real
 runtime Dynamics (unlike C++). It is also less verbose, easier to read, write
 and maintain than languages like Java or C++. Of the functional like
-improvements, is supports function binding, function passing, Lambda calculus
+improvements, it supports function binding, function passing, Lambda calculus
 and pattern matching. Haxe is used to target both native (desktop C++, iOS,
 Android, ...) and virtual (Neko VM, Java VM, JavaScript, Flash, ...) targets,
 although some code refactoring is sometimes needed due to incompatibilities
