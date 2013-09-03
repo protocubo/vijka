@@ -51,7 +51,7 @@ jonas-haxe library:
 (https://github.com/jonasmalacofilho/jonas-haxe/tree/haxe3migration)
 
 
-Copyright (c) 2012-2013, Jonas Malaco Filho
+Copyright (c) 2012-2013, Jonas Malaco Filho.
 All rights reserved.
 
 Licensed under the MIT license:

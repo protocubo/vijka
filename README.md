@@ -2,7 +2,7 @@ Vijka
 ================================================================================
 _A demand model/simulator for highway tolls on regional road networks_
 
-1. About
+About
 --------------------------------------------------------------------------------
 
 _Vijka_ is a simulator for analysing and estimating the number of vehicles that
@@ -16,7 +16,7 @@ _Vijka_ is also __fast__, and has been used to run, in only a couple of minutes,
 a large number of trips (each with its own cost perception) on large networks
 (~100k nodes, ~200k links), for multiple scenarios (10+).
 
-2. Interface and platforms
+Interface and platforms
 --------------------------------------------------------------------------------
 
 For the time being, _Vijka_ only has a console based user interface. You open it
@@ -41,7 +41,7 @@ one for the Linux users), is still the fastest and so, the recomended
 alternative. It should also be noted that the JVM actually is faster
 on Linux than on Windows.
 
-3. Input
+Input
 --------------------------------------------------------------------------------
 
 The various inputs for _Vijka_ may be split in two categories: network and
@@ -72,13 +72,13 @@ backwards compatibility but includes additional information:
  - Mandatory column types (these are used by software to check that what's in a
    column is actually compatible with its definition).
 
-4. Assignment
+Assignment
 --------------------------------------------------------------------------------
 
 The assignment is of the all-or-nothing type, and is computed as the shortest
 path between origin and destination acoording to a generalized cost function.
 
-5. Output
+Output
 --------------------------------------------------------------------------------
 
 As with other traffic assignment software, one can generate traffic volume
@@ -97,7 +97,7 @@ format) used for sharing geospacial information, that can be easily parsed,
 converted to other formats such as shapefiles (by using ogr2ogr) and viewed
 (using Quantum GIS, TileMill, or even GitHub).
 
-6. Other features
+Other features
 --------------------------------------------------------------------------------
 
 _Vijka_ has some additional features...
@@ -112,7 +112,7 @@ commands from a text file (but there is no support for variables or control
 statements yet) and you can also save and recall results for multiple
 (different) runs.
 
-7. Development history and future plans
+Development history and future plans
 --------------------------------------------------------------------------------
 
 _Vijka_ is entirely coded in Haxe, a open-source cross-platform programming
