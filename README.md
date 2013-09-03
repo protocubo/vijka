@@ -112,7 +112,7 @@ commands from a text file (but there is no support for variables or control
 statements yet) and you can also save and recall results for multiple
 (different) runs.
 
-7. Development history and future improvements
+7. Development history and future plans
 --------------------------------------------------------------------------------
 
 _Vijka_ is entirely coded in Haxe, a open-source cross-platform programming
@@ -125,9 +125,17 @@ compile time checks, unline Python), but has generics (unlike C) and real
 runtime Dynamics (unlike C++). It is also less verbose, easier to read, write
 and maintain than languages like Java or C++. Of the functional like
 improvements, is supports function binding, function passing, Lambda calculus
-and pattern matching.
+and pattern matching. Haxe is used to target both native (desktop C++, iOS,
+Android, ...) and virtual (Neko VM, Java VM, JavaScript, Flash, ...) targets,
+although some code refactoring is sometimes needed due to incompatibilities
+between the underlying platforms.
 
-It can be single handed used to target both native (desktop C++, iOS, Android,
-...) and virtual (Neko VM, Java VM, JavaScript, Flash, ...) targets, altought
-that may require some code refactoring due to incompatibilities between the
-underlying platforms.
+_Vijka_ was created for a highway concession study, and the current version
+1.0.x was aimed to provide only the most important functionality.
+
+Initally not a concern, performance ended up getting a lot of importance when GC
+issues were found on C++ Haxe target. In the next two days, the migration to the
+(at time thought to be yet experimental) Java target and several algorithm
+optimizations generated a 2000x speed improvement. A few days later, another
+3~4x improvement was experienced by implementing concurrent computation.
+
