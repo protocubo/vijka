@@ -63,8 +63,9 @@ different perception of costs: there are distance based costs and time based
 costs (the latter ones are then divided into social and operational).
 
 All input is done in text files, following the Elebeta Text Table (ETT) format.
-This is a variation of Comma-Separated Values (CSV, RFC 4180) that retains
-backwards compatibility but includes additional information:
+This is a variation of Comma-Separated Values (CSV,
+[RFC 4180](http://tools.ietf.org/html/rfc4180)) that retains backwards
+compatibility but includes additional information:
 
  - Separator: comma, tab, semicolon, pipe?
  - Encoding: local ISO/extended ASCII or UTF-8?
@@ -112,11 +113,11 @@ commands from a text file (but there is no support for variables or control
 statements yet) and you can also save and recall results for multiple
 (different) runs.
 
-Development history and future plans
+Implementation details
 --------------------------------------------------------------------------------
 
-_Vijka_ is entirely coded in Haxe, a open-source cross-platform programming
-language and toolkit under active development.
+_Vijka_ is entirely coded in [Haxe](http://haxe.org), a open-source
+cross-platform programming language and toolkit under active development.
 
 The Haxe programming language is a high-level procedural and object oriented
 language, with EcmaScript like syntax and that has also inhered a few
@@ -126,16 +127,29 @@ runtime Dynamics (unlike C++). It is also less verbose, easier to read, write
 and maintain than languages like Java or C++. Of the functional like
 improvements, it supports function binding, function passing, Lambda calculus
 and pattern matching. Haxe is used to target both native (desktop C++, iOS,
-Android, ...) and virtual (Neko VM, Java VM, JavaScript, Flash, ...) targets,
-although some code refactoring is sometimes needed due to incompatibilities
-between the underlying platforms.
+Android, ...) and virtual ([Neko VM](http://nekovm.org), Java VM, JavaScript,
+Flash, ...) targets, although some code refactoring is sometimes needed due to
+incompatibilities between the underlying platforms.
 
-_Vijka_ was created for a highway concession study, and the current version
-1.0.x was aimed to provide only the most important functionality.
+Development history
+--------------------------------------------------------------------------------
 
-Initally not a concern, performance ended up getting a lot of importance when GC
-issues were found on C++ Haxe target. In the next two days, the migration to the
-(at time thought to be yet experimental) Java target and several algorithm
+_Vijka_ was created for a highway concession study, and version 1.0 was aimed to
+provide only the most important functionality.
+
+Initially not a concern, performance ended up getting a lot of importance when
+GC issues were found on C++ Haxe target. In the next two days, the migration to
+the (at time thought to be yet experimental) Java target and several algorithm
 optimizations generated a 2000x speed improvement. A few days later, another
 3~4x improvement was experienced by implementing concurrent computation.
 
+Future plans
+--------------------------------------------------------------------------------
+
+In addition to general improvements on functionality and performance, there are
+a few major changes that may get implemented in the following months:
+
+ - A simple GUI interface
+ - A self-contained network viewer and editor
+
+Other than this, most of the code will be unit tested and documented soon.
