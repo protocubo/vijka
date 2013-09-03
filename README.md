@@ -1,6 +1,6 @@
 Vijka
 ================================================================================
-A demand model/simulator for highway tolls on regional road networks
+_A demand model/simulator for highway tolls on regional road networks_
 
 1. About
 --------------------------------------------------------------------------------
