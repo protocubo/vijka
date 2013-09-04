@@ -34,7 +34,7 @@ Linux), being compiled through a C++ tool-chain. Not that anyone would want that
 but it should also run on mobile systems (iOS, Android)... Ideally, the native
 (C++ based) binaries should be faster than the Java VM (JVM) and, therefore,
 recommended for large networks. However, due mainly to garbage collector issues
-(memory management) on the underlying C++ tool-chain, that is not true yet.
+(memory management) on the underlying C++ toolchain, that is not true yet.
 
 Therefore, the amazing Hotspot Java VM (be it the Sun/Oracle one, or the OpenJDK
 one for the Linux users), is still the fastest and so, the recommended
