@@ -63,7 +63,7 @@ class Simulator {
 	public static inline var COPYRIGHT = "Copyright 2013, Jonas Malaco Filho and Arthur Campora Szász, Elebeta Consultoria";
 	public static inline var LICENSE = "Licensed under the BSD 3-clause license: http://opensource.org/licenses/BSD-3-Clause";
 	public static inline var VERSION = "1.1.1";
-	public static inline var BUILD = utils.GitVersion.get( 8 );
+	public static inline var COMMIT_HASH = utils.GitVersion.describe(20);
 	public static inline var PLATFORM = #if neko
 		                                  	"Neko";
 		                                 #elseif cpp
