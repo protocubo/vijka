@@ -25,9 +25,9 @@ commands, each with a set of corresponding arguments.
 
 It runs on many different platforms, both native and virtual.
 
-Of the virtual platforms, it runs on both the Neko VM and the Java VM (or, more
-precisely, the various Java VM flavors out there). Of these, the Java VM is
-recommended due to performance and scalability reasons.
+Of the virtual platforms, it runs on both the [Neko VM](http://nekovm.org) and
+the Java VM (or, more precisely, the various Java VM flavors out there). Of
+these, the Java VM is recommended due to performance and scalability reasons.
 
 _Vijka_ also runs natively on all major operating systems (Windows, Mac OSX and
 Linux), being compiled through a C++ tool-chain. Not that anyone would want that,
@@ -132,9 +132,9 @@ runtime Dynamics (unlike C++). It is also less verbose, easier to read, write
 and maintain than languages like Java or C++. Of the functional like
 improvements, it supports function binding, function passing, Lambda calculus
 and pattern matching. Haxe is used to target both native (desktop C++, iOS,
-Android, ...) and virtual ([Neko VM](http://nekovm.org), Java VM, JavaScript,
-Flash, ...) targets, although some code refactoring is sometimes needed due to
-incompatibilities between the underlying platforms.
+Android, ...) and virtual (Neko VM, Java VM, JavaScript, Flash, ...) targets,
+although some code refactoring is sometimes needed due to incompatibilities
+between the underlying platforms.
 
 Dependencies
 --------------------------------------------------------------------------------
