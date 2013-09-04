@@ -24,6 +24,7 @@ import sim.col.LinkTypeSpeedMap;
 import sim.uq.Search;
 import sim.uq.Update;
 
+import sim.Simulator.baseNewline;
 import sim.Simulator.print;
 import sim.Simulator.printHL;
 import sim.Simulator.println;
@@ -98,22 +99,22 @@ class SimulatorAPI extends mcli.CommandLine {
 		var nodes = sim.state.nodes; // just a shortcut
 		if ( nodes == null ) throw "No nodes";
 		var fout = _writeFile( path, false );
-		fout.writeString( '{"type":"FeatureCollection","features":['+sim.newline );
+		fout.writeString( '{"type":"FeatureCollection","features":['+sim.state.newline );
 		var first = true;
 		if ( filter == null ) {
 			for ( n in nodes ) {
-				if ( first ) first = false; else fout.writeString( ","+sim.newline+"\t" );
+				if ( first ) first = false; else fout.writeString( ","+sim.state.newline+"\t" );
 				fout.writeString( _geojsonNode( n ) );
 			}
 		}
 		else {
 			var q = Search.prepare( filter, "id" );
 			for ( n in q.execute( sim, nodes, null ) ) {
-				if ( first ) first = false; else fout.writeString( ","+sim.newline+"\t" );
+				if ( first ) first = false; else fout.writeString( ","+sim.state.newline+"\t" );
 				fout.writeString( _geojsonNode( n ) );
 			}
 		}
-		fout.writeString( sim.newline+"] }"+sim.newline );
+		fout.writeString( sim.state.newline+"] }"+sim.state.newline );
 		fout.close();
 	}
 
@@ -236,11 +237,11 @@ class SimulatorAPI extends mcli.CommandLine {
 		var links = sim.state.links; // just a shortcut
 		if ( links == null ) throw "No links";
 		var fout = _writeFile( path, false );
-		fout.writeString( '{"type":"FeatureCollection","features":['+sim.newline );
+		fout.writeString( '{"type":"FeatureCollection","features":['+sim.state.newline );
 		var first = true;
 		if ( filter == null ) {
 			for ( k in links ) {
-				if ( first ) first = false; else fout.writeString( ","+sim.newline+"\t" );
+				if ( first ) first = false; else fout.writeString( ","+sim.state.newline+"\t" );
 				fout.writeString( _geojsonLink( k, false ) );
 			}
 		}
@@ -248,11 +249,11 @@ class SimulatorAPI extends mcli.CommandLine {
 			var aliases = sim.state.aliases;
 			var q = Search.prepare( filter, "id" );
 			for ( k in q.execute( sim, links, aliases ) ) {
-				if ( first ) first = false; else fout.writeString( ","+sim.newline+"\t" );
+				if ( first ) first = false; else fout.writeString( ","+sim.state.newline+"\t" );
 				fout.writeString( _geojsonLink( k, false ) );
 			}
 		}
-		fout.writeString( sim.newline+"] }"+sim.newline );
+		fout.writeString( sim.state.newline+"] }"+sim.state.newline );
 		fout.close();
 	}
 
@@ -266,11 +267,11 @@ class SimulatorAPI extends mcli.CommandLine {
 		var links = sim.state.links; // just a shortcut
 		if ( links == null ) throw "No links";
 		var fout = _writeFile( path, false );
-		fout.writeString( '{"type":"FeatureCollection","features":['+sim.newline );
+		fout.writeString( '{"type":"FeatureCollection","features":['+sim.state.newline );
 		var first = true;
 		if ( filter == null ) {
 			for ( k in links ) {
-				if ( first ) first = false; else fout.writeString( ","+sim.newline+"\t" );
+				if ( first ) first = false; else fout.writeString( ","+sim.state.newline+"\t" );
 				fout.writeString( _geojsonLink( k, true ) );
 			}
 		}
@@ -278,11 +279,11 @@ class SimulatorAPI extends mcli.CommandLine {
 			var aliases = sim.state.aliases;
 			var q = Search.prepare( filter, "id" );
 			for ( k in q.execute( sim, links, aliases ) ) {
-				if ( first ) first = false; else fout.writeString( ","+sim.newline+"\t" );
+				if ( first ) first = false; else fout.writeString( ","+sim.state.newline+"\t" );
 				fout.writeString( _geojsonLink( k, true ) );
 			}
 		}
-		fout.writeString( sim.newline+"] }"+sim.newline );
+		fout.writeString( sim.state.newline+"] }"+sim.state.newline );
 		fout.close();
 	}
 
@@ -925,14 +926,14 @@ class SimulatorAPI extends mcli.CommandLine {
 		var st = sim.state.coldStorage; // just a shortcut
 		if ( st == null ) throw "No cold storage";
 		var fout = _writeFile( path, false );
-		fout.writeString( '{"type":"FeatureCollection","features":['+sim.newline );
+		fout.writeString( '{"type":"FeatureCollection","features":['+sim.state.newline );
 		var first = true;
 		for ( box in st )
 			for ( v in box.volumes() ) {
-				if ( first ) first = false; else fout.writeString( ","+sim.newline+"\t" );
+				if ( first ) first = false; else fout.writeString( ","+sim.state.newline+"\t" );
 				fout.writeString( _geojsonVolume( v, '"key":"${box.key}"' ) );
 			}
-		fout.writeString( sim.newline+"] }"+sim.newline );
+		fout.writeString( sim.state.newline+"] }"+sim.state.newline );
 		fout.close();
 	}
 
@@ -974,13 +975,13 @@ class SimulatorAPI extends mcli.CommandLine {
 		var volumes = sim.state.volumes; // just a shortcut
 		if ( volumes == null ) throw "No volumes";
 		var fout = _writeFile( path, false );
-		fout.writeString( '{"type":"FeatureCollection","features":['+sim.newline );
+		fout.writeString( '{"type":"FeatureCollection","features":['+sim.state.newline );
 		var first = true;
 		for ( v in volumes ) {
-			if ( first ) first = false; else fout.writeString( ","+sim.newline+"\t" );
+			if ( first ) first = false; else fout.writeString( ","+sim.state.newline+"\t" );
 			fout.writeString( _geojsonVolume( v, null ) );
 		}
-		fout.writeString( sim.newline+"] }"+sim.newline );
+		fout.writeString( sim.state.newline+"] }"+sim.state.newline );
 		fout.close();
 	}
 
@@ -1009,10 +1010,10 @@ class SimulatorAPI extends mcli.CommandLine {
 		if ( volumes == null ) throw "No volumes";
 		if ( refVolumes == null ) throw "No reference volumes";
 		var fout = _writeFile( path, false );
-		fout.writeString( '{"type":"FeatureCollection","features":['+sim.newline );
+		fout.writeString( '{"type":"FeatureCollection","features":['+sim.state.newline );
 		var first = true;
 		for ( v in volumes ) {
-			if ( first ) first = false; else fout.writeString( ","+sim.newline+"\t" );
+			if ( first ) first = false; else fout.writeString( ","+sim.state.newline+"\t" );
 			var ref = refVolumes.get( v.linkId );
 			if ( ref != null ) {
 				var v_ = v.copy();
@@ -1025,13 +1026,13 @@ class SimulatorAPI extends mcli.CommandLine {
 		}
 		for ( ref in refVolumes ) {
 			if ( !volumes.exists( ref.linkId ) ) {
-				if ( first ) first = false; else fout.writeString( ","+sim.newline+"\t" );
+				if ( first ) first = false; else fout.writeString( ","+sim.state.newline+"\t" );
 				var v_ = LinkVolume.make( ref.linkId, 0, 0, 0, 0 );
 				v_.sub( ref );
 				fout.writeString( _geojsonVolume( v_, null ) );
 			}
 		}
-		fout.writeString( sim.newline+"] }"+sim.newline );
+		fout.writeString( sim.state.newline+"] }"+sim.state.newline );
 		fout.close();
 	}
 
@@ -1263,7 +1264,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		print( "Saving the current command log" );
 		if ( !reading ) {
 			var fout = _writeFile( path, false );
-			fout.writeString( sim.log.join("") );
+			fout.writeString( sim.log.join(sim.state.newline)+sim.state.newline );
 			fout.close();
 		}
 		println( "\rSaving the current command log... Done" );
@@ -1281,13 +1282,13 @@ class SimulatorAPI extends mcli.CommandLine {
 		if ( !reading )
 			println( "" );
 
-		var finp = _readFile( path, false );
+		var finp = _readFile( path, true );
 		var eof = false;
 		while ( !eof ) {
 			try {
-				var r = sim.getArgs( finp );
+				var r = sim.getArgs( finp, sim.state.newline );
 				if ( r.length != 0 ) {
-					print( ":: "+sim.strArgs(r) );
+					print( ":: "+sim.strArgs(r)+baseNewline );
 					sim.run( r, true, true, false );
 				}
 			}
@@ -1312,7 +1313,7 @@ class SimulatorAPI extends mcli.CommandLine {
 	public function showLog() {
 		println( "Showing the current log" );
 		printHL( "-" );
-		println( "    :: "+sim.log.join( "    :: " ) ); // log already has newlines
+		println( "    :: "+sim.log.join( baseNewline+"    :: " ) ); // log already has newlines
 	}
 
 
@@ -1357,7 +1358,8 @@ class SimulatorAPI extends mcli.CommandLine {
 	// ADVANCED -----------------------------------------------------------------
 
 	/**
-		[ADVANCED] Set the newline sequence for all file output
+		[ADVANCED] Set the newline sequence for all file output; options are NL,
+		CRNL and NLCR
 	**/
 	public function setNewline( sequence:String ) {
 		switch ( sequence ) {
@@ -1474,7 +1476,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		[HACK] Windows hack for problems with newlines
 	**/
 	public function windows() {
-		sim.newline = "\r\n";
+		sim.state.newline = "\r\n";
 	}
 
 
@@ -1677,7 +1679,7 @@ class SimulatorAPI extends mcli.CommandLine {
 
 	private function _writeEtt( cl:Class<Dynamic>, fields:Array<ETTField>, outputPath:String ):ETTWriter {
 		var fout = _writeFile( outputPath, true );
-		var finfo = new format.ett.Data.FileInfo( sim.newline, ETTEncoding.UTF8, "\t", "\""
+		var finfo = new format.ett.Data.FileInfo( sim.state.newline, ETTEncoding.UTF8, "\t", "\""
 		, Type.getClassName( cl ), fields );
 		var w = new ETTWriter( finfo );
 		w.prepare( fout );

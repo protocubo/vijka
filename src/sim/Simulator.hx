@@ -12,15 +12,13 @@ class Simulator {
 	public var profiling:Null<String>;
 	public var log:Array<String>;
 
-	public var newline:String;
 	public var screenSize:Int;
 
 	public var underlyingInput:haxe.io.Input;
 
 	public var online:Bool;
 
-	private function new( _underlyingInput:haxe.io.Input, _newline, _screenSize ) {
-		newline = _newline;
+	private function new( _underlyingInput:haxe.io.Input, _screenSize ) {
 		screenSize = _screenSize;
 		underlyingInput = _underlyingInput;
 		online = false;
@@ -34,7 +32,7 @@ class Simulator {
 		                                          , ADijkstra
 		                                          , sim.state.heapArity
 		                                          , sim.state.heapReserve )
-                            : new SimulatorState( this, newline
+                            : new SimulatorState( this, baseNewline
 		                                          , ADijkstra
 		                                          , 3 // optimal b*log(N,b)
 		                                          , 16 ); // reasonable considering
@@ -62,9 +60,9 @@ class Simulator {
 
 	public static inline var SHORTNAME = "Vijka";
 	public static inline var FULLNAME = "Vijka - Demand model for highway tolls on regional road networks";
-	public static inline var COPYRIGHT = "Copyright 2013, Jonas Malaco and Arthur Szász, Elebeta Consultoria";
+	public static inline var COPYRIGHT = "Copyright 2013, Jonas Malaco Filho and Arthur Campora Szász, Elebeta Consultoria";
 	public static inline var LICENSE = "Licensed under the BSD 3-clause license: http://opensource.org/licenses/BSD-3-Clause";
-	public static inline var VERSION = "1.1.0";
+	public static inline var VERSION = "1.1.1";
 	public static inline var BUILD = utils.GitVersion.get( 8 );
 	public static inline var PLATFORM = #if neko
 		                                  	"Neko";
@@ -87,14 +85,14 @@ class Simulator {
 	}
 	
 	public static function println( s:String, ?err=false ) {
-		print( s+"\n", err );
+		print( s+baseNewline, err );
 	}
 	
 	public static function printHL( s:String, ?err=false ) {
 		println( StringTools.rpad( "", s, sim != null ? sim.screenSize : 80 ) );
 	}
 
-	public function getArgs( inp:Input ):Array<String> {
+	public function getArgs( inp:Input, newline:String ):Array<String> {
 		var reader = new format.csv.Reader( inp, newline, " ", "'" );
 		var args = reader.readRecord();
 		if ( args.length>0 && args[0].length>0 && args[0].charCodeAt(0)=="#".code )
@@ -105,8 +103,9 @@ class Simulator {
 
 	public function strArgs( args:Array<String> ):String {
 		var buf = new haxe.io.BytesOutput();
-		new format.csv.Writer( buf, newline, " ", "'" ).writeRecord( args );
-		return buf.getBytes().toString();
+		new format.csv.Writer( buf, "\n", " ", "'" ).writeRecord( args );
+		var bufStr = buf.getBytes().toString();
+		return bufStr.substr( 0, bufStr.length - 1 );
 	}
 	
 	private static var stdin = Sys.stdin();
@@ -146,11 +145,12 @@ class Simulator {
 	}
 
 	public static var sim:Simulator;
+	public static var baseNewline:String;
 	
 	private static function main() {
 
-		var initialNewline = ( PLATFORM == "Java" && Sys.systemName() == "Windows" ) ? "\r\n" : "\n";
-		sim = new Simulator( stdin, initialNewline, 80 );
+		baseNewline = ( PLATFORM == "Java" && Sys.systemName() == "Windows" ) ? "\r\n" : "\n";
+		sim = new Simulator( stdin, 80 );
 
 		if ( Sys.args().length > 0 ) {
 			println( ":: "+Sys.args().join( " " ) );
@@ -167,8 +167,8 @@ class Simulator {
 
 		while ( true ) {
 			try {
-				print( "> " ); stdout.flush();
-				var r = sim.getArgs( stdin );
+				print( "> " );
+				var r = sim.getArgs( stdin, baseNewline );
 				sim.run( r, false, true, true );
 			}
 			catch ( e:haxe.io.Eof ) {
