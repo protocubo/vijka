@@ -9,7 +9,7 @@ class GitVersion {
 		Sys.setCwd( path );
 		var uuid = "";
 
-		var p = new sys.io.Process( exec, "describe --abbrev=40 --always --dirt".split(" ") );
+		var p = new sys.io.Process( exec, "describe --abbrev=40 --always --dirty=-dirty".split(" ") );
 		var code = p.exitCode();
 		if ( code != 0 )
 			throw "git returned "+code;
