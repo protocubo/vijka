@@ -62,10 +62,11 @@ of its elements is associated with a particular vehicle type and can have a
 different perception of costs: there are distance based costs and time based
 costs (the latter ones are then divided into social and operational).
 
-All input is done in text files, following the Elebeta Text Table (ETT) format.
-This is a variation of Comma-Separated Values (CSV,
-[RFC 4180](http://tools.ietf.org/html/rfc4180)) that retains backwards
-compatibility but includes additional information:
+All input is done in text files, following the [Elebeta Text Table (ETT)]
+(https://github.com/Elebeta/haxe-format/blob/master/doc/ett/Elebeta%20Text%20Tables%20(ETT).md)
+format. This is a variation of Comma-Separated Values (CSV, [RFC 4180]
+(http://tools.ietf.org/html/rfc4180)) that retains backwards compatibility but
+includes additional information:
 
  - Separator: comma, tab, semicolon, pipe?
  - Encoding: local ISO/extended ASCII or UTF-8?
@@ -134,6 +135,18 @@ and pattern matching. Haxe is used to target both native (desktop C++, iOS,
 Android, ...) and virtual ([Neko VM](http://nekovm.org), Java VM, JavaScript,
 Flash, ...) targets, although some code refactoring is sometimes needed due to
 incompatibilities between the underlying platforms.
+
+Dependencies
+--------------------------------------------------------------------------------
+
+Haxe libraries necessary for compilation:
+ - [elebeta-format](https://github.com/Elebeta/haxe-format):1.0.0: for ETT and
+   CSV readers and writers
+ - [mcli](https://github.com/waneck/mcli):[dev]
+   (https://github.com/jonasmalacofilho/mcli/commit/60527d9cfd5cf23e1c55b23b63cc2f1ebead862a):
+   for command processing
+ - [hscript](https://github.com/HaxeFoundation/hscript):2.0.1: for the query
+   engine
 
 Development history
 --------------------------------------------------------------------------------
