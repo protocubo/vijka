@@ -49,6 +49,8 @@ class SimulatorState {
 	public var workers:Int;
 	public var workerPartSize:Int;
 
+	public var macros:Map<String,String>;
+
 	public function new( _sim:Simulator, _newline, _algorithm, _heapArity, _heapReserve ) {
 		sim = _sim;
 		newline = _newline;
@@ -57,6 +59,7 @@ class SimulatorState {
 		heapReserve = _heapReserve;
 		workers = 1;
 		workerPartSize = 0;
+		macros = new Map();
 	}
 
 	public function assemble( ?force=false, ?info=true ) {

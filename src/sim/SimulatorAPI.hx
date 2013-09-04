@@ -6,6 +6,7 @@ import format.ett.Data.Field in ETTField;
 import format.ett.Reader;
 import format.ett.Writer;
 import haxe.io.Eof;
+import haxe.io.StringInput;
 import sys.io.FileInput;
 import sys.io.FileOutput;
 
@@ -1314,6 +1315,112 @@ class SimulatorAPI extends mcli.CommandLine {
 		println( "Showing the current log" );
 		printHL( "-" );
 		println( "    :: "+sim.log.join( baseNewline+"    :: " ) ); // log already has newlines
+	}
+
+
+
+	// MACRO --------------------------------------------------------------------
+	// simple preprocessor macros
+	// experimental/in development/unstable
+
+	/**
+		[EXPERIMENTAL] Define a macro
+	**/
+	public function define( name:String, expansion:String ) {
+		sim.state.macros.set( name, expansion );
+	}
+
+	/**
+		[EXPERIMENTAL] Define a macro
+	**/
+	public function undefine( name:String ) {
+		sim.state.macros.remove( name );
+	}
+
+	/**
+		[EXPERIMENTAL] Show defined macros
+	**/
+	public function showMacros() {
+		var names = [ for ( name in sim.state.macros.keys() ) name ];
+		names.sort( Reflect.compare );
+		println( "  : := :" );
+		println( "  :::: := ::" );
+		for ( name in names ) {
+			println( "  ::"+name+":: := "+sim.state.macros.get( name ) );
+		}
+	}
+
+	/**
+		[EXPERIMENTAL] Preview macro expansion for file in `path`
+	**/
+	public function expandFile( path:String ) {
+		var expanded = _expandFile( path );
+		println( expanded );
+	}
+
+	private function _expandFile( path:String ):String {
+		var macros = sim.state.macros; // just a shortcut
+		
+		var finp = _readFile( path, true );
+		var ibuf = finp.readAll().toString();
+		finp.close();
+
+		var obuf = "";
+		var r = ~/::(.*?)::/;
+		while ( r.match( ibuf ) ) {
+			obuf += r.matchedLeft();
+			if ( r.matched( 1 ) == null )
+				obuf += "::";
+			else {
+				var name = r.matched( 1 );
+				if ( !macros.exists( name ) )
+					throw "Unknown macro ::"+name+"::";
+				obuf += macros.get( name );
+			}
+			ibuf = r.matchedRight();
+		}
+		obuf += ibuf;
+
+		return obuf;
+	}
+
+	/**
+		[EXPERIMENTAL] Execute a file expanding macros; for now, expansion and
+		execution happen in different moments (so macro definitions inside a file
+		can only be expanded on subsequent file executions)
+	**/
+	public function executeFile( path:String ) {
+		if ( !reading ) {
+			printHL( "-" );
+			printHL( "-" );
+		}
+		println( "Expanding macros and reading commands in \""+path+"\"" );
+		if ( !reading )
+			println( "" );
+
+		var inp = new StringInput( _expandFile(path) );
+		var eof = false;
+		while ( !eof ) {
+			try {
+				var r = sim.getArgs( inp, sim.state.newline );
+				if ( r.length != 0 ) {
+					print( ":: "+sim.strArgs(r)+baseNewline );
+					sim.run( r, true, true, false );
+				}
+			}
+			catch ( e:haxe.io.Eof ) {
+				eof = true;
+			}
+		}
+		inp.close();
+		
+		if ( !reading )
+			println( "" );
+		println( "Expanding macros and reading commands in \""+path+"\"... Done" );
+		if ( !reading ) {
+			printHL( "-" );
+			printHL( "-" );
+		}
 	}
 
 
