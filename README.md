@@ -20,7 +20,7 @@ Interface and platforms
 --------------------------------------------------------------------------------
 
 For the time being, _Vijka_ only has a console based user interface. You open it
-in a shell (terminal emulator or _prompt_) and interact with it via text
+in a shell (terminal emulator or prompt) and interact with it via text
 commands, each with a set of corresponding arguments.
 
 It runs on many different platforms, both native and virtual.
