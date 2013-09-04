@@ -1,6 +1,6 @@
 package sim;
 
-import elebeta.ett.rodoTollSim.*;
+import elebeta.ett.vijka.*;
 import format.ett.Data.Encoding in ETTEncoding;
 import format.ett.Data.Field in ETTField;
 import format.ett.Reader;

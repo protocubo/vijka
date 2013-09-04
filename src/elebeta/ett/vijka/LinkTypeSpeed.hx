@@ -1,4 +1,4 @@
-package elebeta.ett.rodoTollSim;
+package elebeta.ett.vijka;
 
 import format.ett.Data;
 import sim.col.LinkTypeSpeedMap;

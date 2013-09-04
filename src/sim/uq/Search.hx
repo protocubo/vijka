@@ -3,7 +3,7 @@ package sim.uq;
 import hscript.Expr;
 import hscript.Interp;
 import hscript.Parser;
-import elebeta.ett.rodoTollSim.*;
+import elebeta.ett.vijka.*;
 
 import Lambda.has;
 import Lambda.map;

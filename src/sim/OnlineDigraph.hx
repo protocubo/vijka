@@ -1,6 +1,6 @@
 package sim;
 
-import elebeta.ett.rodoTollSim.*;
+import elebeta.ett.vijka.*;
 import graph.adjLists.Arc;
 import graph.adjLists.Digraph;
 
@@ -64,7 +64,7 @@ class OnlineDigraph {
 		Run `ods`, saving `volumes` and/or `path`; results will be saved to
 		`state`
 	*/
-	public function run( ods:Iterable<elebeta.ett.rodoTollSim.OD>, volumes:Bool
+	public function run( ods:Iterable<elebeta.ett.vijka.OD>, volumes:Bool
 	, path:Bool, output:SimulatorState, info ) {
 		var wgts = sim.state.sampleWeights;
 		if ( workers == 1 ) {
@@ -190,7 +190,7 @@ class OnlineDigraph {
 
 	// RUNNING ------------------------------------------------------------------
 
-	private function runEach( od:elebeta.ett.rodoTollSim.OD, weight:Float
+	private function runEach( od:elebeta.ett.vijka.OD, weight:Float
 	, volumes:Bool, path:Bool, output:SimulatorState ) {
 		
 		var origin = findEntry( od.origin.x, od.origin.y ); // find closest
@@ -477,7 +477,7 @@ private enum MessageData {
 	MReady;
 
 	// main -> worker
-	MRun( ods:Array<elebeta.ett.rodoTollSim.OD>, begin:Int, end:Int
+	MRun( ods:Array<elebeta.ett.vijka.OD>, begin:Int, end:Int
 	, volumes:Bool, path:Bool );
 	MDone( pseudoState:SimulatorState, cnt:Int );
 

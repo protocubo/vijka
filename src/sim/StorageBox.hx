@@ -1,6 +1,6 @@
 package sim;
 
-import elebeta.ett.rodoTollSim.*;
+import elebeta.ett.vijka.*;
 
 import Lambda.array;
 

@@ -1,6 +1,6 @@
 package sim;
 
-import elebeta.ett.rodoTollSim.*;
+import elebeta.ett.vijka.*;
 
 import sim.Algorithm;
 import sim.col.*;

@@ -1,6 +1,6 @@
 package sim.col;
 
-import elebeta.ett.rodoTollSim.*;
+import elebeta.ett.vijka.*;
 
 class LinkTypeSpeedMap {
 
