@@ -93,10 +93,14 @@ can quickly and easily identify and analyze users (and non users) of a
 particular link.
 
 _Vijka_ outputs its results in the ETT format and, also, when applicable, in
-GeoJSON. GeoJSON is a subset of JSON (a popular text based object representation
-format) used for sharing geospacial information, that can be easily parsed,
-converted to other formats such as shapefiles (by using ogr2ogr) and viewed
-(using Quantum GIS, TileMill, or even GitHub).
+GeoJSON. [GeoJSON](http://www.geojson.org/) is a subset of
+[JSON](http://www.json.org/)
+(a popular text based object representation format) used for sharing geospacial
+information, that can be easily parsed, converted to other formats such as
+shapefiles (using [ogr2ogr](http://www.gdal.org/ogr2ogr.html)) and viewed (using
+[Quantum GIS](http://www.qgis.org/), [TileMill](http://www.mapbox.com/tilemill/),
+or even
+[GitHub itself](https://help.github.com/articles/mapping-geojson-files-on-github) ).
 
 Other features
 --------------------------------------------------------------------------------
@@ -153,3 +157,6 @@ a few major changes that may get implemented in the following months:
  - A self-contained network viewer and editor
 
 Other than this, most of the code will be unit tested and documented soon.
+
+Creating a generic traffic simulator was never a goal for _Vijka_, but it may
+end up being its natural evolution.
