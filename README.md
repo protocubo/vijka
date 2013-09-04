@@ -140,12 +140,12 @@ Dependencies
 --------------------------------------------------------------------------------
 
 Haxe libraries necessary for compilation:
- - [elebeta-format](https://github.com/Elebeta/haxe-format):1.0.0: for ETT and
+ - [elebeta-format](https://github.com/Elebeta/haxe-format) (1.0.0): for ETT and
    CSV readers and writers
- - [mcli](https://github.com/waneck/mcli):[dev]
-   (https://github.com/jonasmalacofilho/mcli/commit/60527d9cfd5cf23e1c55b23b63cc2f1ebead862a):
+ - [mcli](https://github.com/waneck/mcli) ([dev]
+   (https://github.com/jonasmalacofilho/mcli/commit/60527d9cfd5cf23e1c55b23b63cc2f1ebead862a)):
    for command processing
- - [hscript](https://github.com/HaxeFoundation/hscript):2.0.1: for the query
+ - [hscript](https://github.com/HaxeFoundation/hscript) (2.0.1): for the query
    engine
 
 Development history
