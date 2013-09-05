@@ -44,7 +44,7 @@ class Update {
 		case EConst(_): ast;
 		case EIdent(v): EField(EIdent("__record__"),v);
 		// case EVar(n,t,e): EVar(n,t,remap(e));
-		// case EParent(e): EParent(remap(e));
+		case EParent(e): EParent(remap(e));
 		// case EBlock(e): EBlock(e.map(remap));
 		// case EField(e,f): EField(remap(e),f);
 		case EBinop(op,e1,e2): switch ( op ) {

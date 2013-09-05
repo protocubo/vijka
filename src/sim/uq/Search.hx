@@ -146,6 +146,8 @@ class Search {
 		case EIdent(v):
 			EField(EIdent("__record__"),v);
 
+		case EParent(e): EParent(remap(e));
+
 		case EBinop(op,e1,e2):
 			remapBinop(ast);
 
