@@ -39,7 +39,7 @@ Links can also have custom (more detailed) shapes, other than the default start 
 
 The demand consists on a weighted list of origin/destination trip desires. Each of its elements is associated with a particular vehicle type and can have a different perception of costs: there are distance based costs and time based costs (the latter ones are then divided into social and operational).
 
-All input is done in text files, following the [Elebeta Text Table (ETT).md][ETT] format. This is a variation of Comma-Separated Values (CSV, [RFC 4180][]) that retains backwards compatibility but includes additional information:
+All input is done in text files, following the [Elebeta Text Table (ETT)][ETT] format. This is a variation of Comma-Separated Values (CSV, [RFC 4180][]) that retains backwards compatibility but includes additional information:
 
 * Separator: comma, tab, semicolon, pipe?
 * Encoding: local ISO/extended ASCII or UTF-8?
