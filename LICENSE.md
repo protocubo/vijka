@@ -1,8 +1,9 @@
 LICENSE & COPYING
-================================================================================
+=================
+
 
 Vijka
---------------------------------------------------------------------------------
+-----
 _A demand model/simulator for highway tolls on regional road networks_
 
 Copyright (c) 2013, Arthur Campora Szász and Jonas Malaco Filho,
@@ -38,8 +39,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 (http://opensource.org/licenses/BSD-3-Clause)
 
+
 jonas-haxe
---------------------------------------------------------------------------------
+----------
 _Open-source collection of data structures and algorithms in Haxe_
 
 Vijka includes code based on and adapted from the haxe3migration branch of the
