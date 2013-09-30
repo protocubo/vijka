@@ -64,3 +64,10 @@ dox:
 dox-clean:
 	rm -rf doc/html
 .PHONY: dox dox-clean
+
+
+# Auxiliary ------------------------------------------------------------------------------------------------------------
+
+all.hxml:
+	mk/all.hxml.sh
+.PHONY: all.hxml
