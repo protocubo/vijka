@@ -1,0 +1,26 @@
+--no-output
+-main sim.Simulator
+-cp src
+-lib elebeta-format
+-lib mcli
+-lib hscript
+
+--each
+
+-java doc/doc_java
+-xml doc/xml/java.xml
+-D xmldoc
+
+--next
+
+-neko doc/doc_neko.n
+-xml doc/xml/neko.xml
+
+--next
+
+-cpp doc/doc_cpp
+-xml doc/xml/cpp.xml
+-D xmldoc
+-D HXCPP_STACK_TRACE
+-D HXCPP_STACK_LINE
+-D HXCPP_CHECK_POINTER

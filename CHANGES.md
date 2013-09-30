@@ -8,6 +8,7 @@ Head
  - Added CHANGES.md
  - Crude and experimental macro system
  - Fixed the unified query system so that parenthesis are allowed
+ - Included haxe documentation generation via `dox`
 
 
 v1.1.1
