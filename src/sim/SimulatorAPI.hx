@@ -1631,12 +1631,19 @@ class SimulatorAPI extends mcli.CommandLine {
 	}
 
 	/**
-		Print usage
+		Prints usage information of the available commands; if a pattern is passed, only the commands matching it will
+		be listed
 	**/
-	public function help() {
+	public function help( ?pattern:String ) {
 		println( "Usage:" );
 		printHL( "-" );
-		print( mcli.Dispatch.showUsageOf( this.getArguments(), sim.screenSize ) );
+		var args = this.getArguments();
+		if ( pattern != null ) {
+			var r = new EReg( pattern, "i" );
+			var match = function ( arg:mcli.internal.Data.Argument ) return r.match( arg.name );
+			args = array( filter( args, match ) );
+		}
+		print( mcli.Dispatch.showUsageOf( args, sim.screenSize ) );
 	}
 
 	/**
