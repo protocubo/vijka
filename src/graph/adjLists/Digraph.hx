@@ -190,12 +190,12 @@ class Digraph {
 		}
 
 		var Q = new Queue( queueArity, queueReserve );
-		Q.put( s ); // starting point: s
+		Q.add( s ); // starting point: s
 
 		while ( Q.notEmpty() ) {
 
 			// next vertex => min cost
-			var v = Q.extract();
+			var v = Q.pop();
 
 			// exit early?
 			if ( v == t ) break;
@@ -228,7 +228,7 @@ class Digraph {
 					a.to.cost = tcost;
 					a.to.est = tcost + hf(v,t,ucost);
 					if ( a.to.parent == null )
-						Q.put( a.to );
+						Q.add( a.to );
 					else
 						Q.update( a.to );
 					a.to.parent = a;

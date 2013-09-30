@@ -1,9 +1,22 @@
+/**
+	D-ary heap base class
+**/
+
 package elebeta.ds.heap;
 
+/**
+	Underlying container
+**/
 private typedef Underlying<I> = Array<I>;
 
+/**
+	A generic base for building D-ary heaps
+
+	D-ary heaps are used for implementing priority queues. This is just a base class, predicate and element index
+	get/set methods should be implemented in a subclass.
+**/
 @:generic
-class DAryHeap<Item> {
+class DAryHeap<Item> implements elebeta.queue.Queue<Item> {
 	
 	public var arity(default,null):Int;
 	public var length(default,null):Int;
@@ -12,7 +25,7 @@ class DAryHeap<Item> {
 	private var h:Underlying<Item>; // [ 1, 11, 12, 13, 14, 111, 112, 113, 114, 121, 122, 123, 124, ... ]
 
 
-	// CONSTRUCTION -------------------------------------------------------------
+	// CONSTRUCTION ----------------------------------------------------------------------------------------------------
 
 	private function new( _arity, _reserve ) {
 		if ( _arity < 2 )
@@ -24,57 +37,90 @@ class DAryHeap<Item> {
 	}
 
 
-	// NOT IMPLEMENTED METHODS --------------------------------------------------
+	// NOT IMPLEMENTED METHODS -----------------------------------------------------------------------------------------
 
-	/* 
-	 * The predicate of a D-ary Heap dictates if it is a min or max heap, and
-	 * also how comparissons are made; the `checkPredicate` function should be
-	 * such that it returns `true` if `a` could appear before `b`.
-	 * This is equivalent of returning `true` if `a` <= `b` on a min heap and
-	 * `a` >= `b` on a max heap
-	 */
-	function checkPredicate( a:Item, b:Item ):Bool { throw "checkPredicate not implemented"; }
+	/**
+		[NOT IMPLEMENTED] Checks if the predicate holds for elements `a` and `b`, in that order
+
+		The predicate of a D-ary Heap dictates if it is a min or a max heap, and also how comparissons are made.
+		`checkPredicate` should return `true` if `a` could appear before `b`. This is equivalent of returning `true`
+		if `a` <= `b` on a min heap and `a` >= `b` on a max heap
+	**/
+	public function checkPredicate( a:Item, b:Item ):Bool { throw "checkPredicate not implemented"; }
 	
-	/* 
-	 * Method used by a DAryHeap for finding its position for this item
-	 */
-	function getIndex( e:Item ):Int { throw "getIndex not implemented"; }
+	/**
+		[NOT IMPLEMENTED] Returns the internal index of an `item`; used for quickly finding `item` in the heap
+	**/
+	public function getIndex( item:Item ):Int { throw "getIndex not implemented"; }
 
-	/* 
-	 * Method used by a DAryHeap for saving its position for this item
-	 */
-	function saveIndex( e:Item, i:Int ):Void { throw "saveIndex not implemented"; }
+	/**
+		[NOT IMPLEMENTED] Sets the internal index of an `item`; later, `getIndex` can be used to retrieve this
+		information and allow quick access for the `item`
+	**/
+	public function saveIndex( item:Item, pos:Int ):Void { throw "saveIndex not implemented"; }
+
+	public function clearIndex( item:Item ):Void { throw "clearIndex not implemented"; }
+
+	public function contains( item:Item ):Bool { throw "contains not implemented"; }
 
 
-	// QUEUING API --------------------------------------------------------------
+	// QUEUING API -----------------------------------------------------------------------------------------------------
 
+	/**
+		Checks if the heap is empty
+	**/
 	public inline function isEmpty():Bool return length == 0;
 
+	/**
+		Checks if the heap is _not_ empty
+	**/
 	public inline function notEmpty():Bool return length > 0;
 
-	public inline function put( e:Item ):Void {
-		insert( length, e );
+	/**
+		Adds a new `item` to the heap
+	**/
+	public function add( item:Item ):Void {
+		if ( contains( item ) )
+			throw "Cannot add an item already in the heap";
+		insert( length, item );
 		fix_up( length++ );
 	}
 
-	public inline function extract():Null<Item> {
+	/**
+		Peeks at the next element to be extracted from the heap
+	**/
+	public inline function first():Null<Item> {
+		return notEmpty() ? hget( 0 ) : null;
+	}
+
+	/**
+		Extracts and returns the next element from the heap
+	**/
+	public function pop():Null<Item> {
 		if ( notEmpty() ) {
 			exchange( 0, --length );
 			fix_down( 0 );
-			return hext( length );
+			clearIndex( hget(length) );
+			return hext(length);
 		}
 		else
 			return null;
 	}
 
-	public inline function peek():Null<Item> {
-		return notEmpty() ? hget( 0 ) : null;
-	}
-
-	public inline function update( e:Item ):Void {
-		var i = getIndex( e );
+	/**
+		Updates the position of `item` in the heap/queue
+	**/
+	public function update( item:Item ):Void {
+		var i = getIndex( item );
 		fix_up( i );
 		fix_down( i );
+	}
+
+	/**
+		Clears the heap
+	**/
+	public function clear():Void {
+		length = 0;
 	}
 
 

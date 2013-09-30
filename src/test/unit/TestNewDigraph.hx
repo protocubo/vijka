@@ -5,15 +5,15 @@ import graph.adjLists.*;
 
 class TestNewDigraph extends TestCase {
 
-	public function testQueueHas() {
+	public function testQueueContains() {
 		var node = new def.Node( 1, 1, 1 );
 		var vertex = new Vertex( node );
 		var Q = new Queue( 2, 32 );
-		assertFalse( Q.has( vertex ) );
-		Q.put( vertex );
-		assertTrue( Q.has( vertex ) );
-		Q.extract();
-		assertFalse( Q.has( vertex ) );
+		assertFalse( Q.contains( vertex ) );
+		Q.add( vertex );
+		assertTrue( Q.contains( vertex ) );
+		Q.pop();
+		assertFalse( Q.contains( vertex ) );
 	}
 
 }
