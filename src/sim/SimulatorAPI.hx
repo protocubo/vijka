@@ -1631,7 +1631,7 @@ class SimulatorAPI extends mcli.CommandLine {
 	}
 
 	/**
-		Prints usage information of the available commands; if a pattern is passed, only the commands matching it will
+		Prints usage information of the available commands; if `pattern` is passed, only commands matching it will
 		be listed
 	**/
 	public function help( ?pattern:String ) {
