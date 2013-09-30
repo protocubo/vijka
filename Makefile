@@ -68,6 +68,7 @@ dox-clean:
 
 # Auxiliary ------------------------------------------------------------------------------------------------------------
 
+# Regenerates `/all.hxml` for Sublime Text 2/3
 all.hxml:
 	mk/all.hxml.sh
 .PHONY: all.hxml
