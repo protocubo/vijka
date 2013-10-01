@@ -100,8 +100,9 @@ class DAryHeap<Item> implements elebeta.queue.Queue<Item> {
 		if ( notEmpty() ) {
 			exchange( 0, --length );
 			fix_down( 0 );
-			clearIndex( hget(length) );
-			return hext(length);
+			var r = hext( length );
+			clearIndex( r );
+			return r;
 		}
 		else
 			return null;

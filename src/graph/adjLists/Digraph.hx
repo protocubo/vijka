@@ -192,15 +192,20 @@ class Digraph {
 		var Q = new Queue( queueArity, queueReserve );
 		Q.add( s ); // starting point: s
 
+		// var noV = 1;
+		// var noA = 0;
+
 		while ( Q.notEmpty() ) {
 
 			// next vertex => min cost
 			var v = Q.pop();
+			// noV++;
 
 			// exit early?
 			if ( v == t ) break;
 			
 			for ( a in v.adjs ) {
+				// noA++;
 				// arcs weighting is lazy; weight this arc
 				a.weight( vclass, ucost );
 
@@ -227,15 +232,17 @@ class Digraph {
 					a.to.toll = ttoll;
 					a.to.cost = tcost;
 					a.to.est = tcost + hf(v,t,ucost);
-					if ( a.to.parent == null )
-						Q.add( a.to );
-					else
+					if ( Q.contains( a.to ) )
 						Q.update( a.to );
+					else
+						Q.add( a.to );
 					a.to.parent = a;
 				}
 			}
 
 		}
+
+		// trace( [ noV, noA ] );
 
 	}
 

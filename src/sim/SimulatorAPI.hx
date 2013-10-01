@@ -757,10 +757,9 @@ class SimulatorAPI extends mcli.CommandLine {
 		if ( algo != sim.state.algorithm ) {
 			var old = algoName( sim.state.algorithm );
 			var newName = algoName( algo );
-			println( "Changing algorithm from "+old+" to "+newName );
 			sim.state.algorithm = algo;
 			sim.state.invalidate();
-			printHL( "-" );
+			println( "Algorithm changed from "+old+" to "+newName );
 		}
 	}
 
