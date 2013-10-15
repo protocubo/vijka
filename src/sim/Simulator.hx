@@ -29,10 +29,12 @@ class Simulator {
 		if ( state != null )
 			state.invalidate();
 		state = state != null ? new SimulatorState( this, state.newline
+		                                          , sim.state.timing
 		                                          , ADijkstra
 		                                          , sim.state.heapArity
 		                                          , sim.state.heapReserve )
                             : new SimulatorState( this, baseNewline
+		                                          , false // timing off by default
 		                                          , ADijkstra
 		                                          , 3 // optimal b*log(N,b)
 		                                          , 16 ); // reasonable considering
@@ -60,10 +62,14 @@ class Simulator {
 
 	public static inline var SHORTNAME = "Vijka";
 	public static inline var FULLNAME = "Vijka - Demand model for highway tolls on regional road networks";
-	public static inline var COPYRIGHT = "Copyright 2013, Jonas Malaco Filho and Arthur Campora Szász, Elebeta Consultoria";
+	public static inline var COPYRIGHT = "Copyright 2013, Jonas Malaco Filho and Arthur Campora Szász, Elebeta";
 	public static inline var LICENSE = "Licensed under the BSD 3-clause license: http://opensource.org/licenses/BSD-3-Clause";
-	public static inline var VERSION = "1.1.1";
+	public static inline var VERSION = "v1.1.1";
 	public static inline var COMMIT_HASH = utils.GitVersion.describe(20);
+	public static inline var BUILD_TIME = utils.BuildMacros.now();
+	public static inline var BUILD_USERNAME = utils.BuildMacros.username();
+	public static inline var BUILD_HOSTNAME = utils.BuildMacros.hostname();
+	public static inline var BUILD_SYSNAME = utils.BuildMacros.systemName();
 	public static inline var PLATFORM = #if neko
 		                                  	"Neko";
 		                                 #elseif cpp
@@ -158,7 +164,7 @@ class Simulator {
 		}
 
 		printHL( "=" );
-		new SimulatorAPI( sim, true ).fullInfo();
+		new SimulatorAPI( sim, true ).welcomeInfo();
 		printHL( "-" );
 		println( "Type the desired options (and their arguments) bellow, or --help for usage information..." );
 		printHL( "=" );
@@ -169,7 +175,7 @@ class Simulator {
 			try {
 				print( "> " );
 				var r = sim.getArgs( stdin, baseNewline );
-				sim.run( r, false, true, true );
+				sim.run( r, false, sim.state.timing, true );
 			}
 			catch ( e:haxe.io.Eof ) {
 				sim.stopProfiling();

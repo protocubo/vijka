@@ -7,7 +7,7 @@ Vijka
 _A demand model/simulator for highway tolls on regional road networks_
 
 Copyright (c) 2013, Arthur Campora Szász and Jonas Malaco Filho,
-Elebeta Consultoria.
+Elebeta.
 All rights reserved.
 
 Licensed under the BSD 3-clause license:
@@ -22,7 +22,7 @@ are permitted provided that the following conditions are met:
    this list of conditions and the following disclaimer in the documentation
    and/or other materials provided with the distribution.
    
- - Neither the name of the Elebeta Consultoria nor the names of its
+ - Neither the name of the Elebeta nor the names of its
    contributors may be used to endorse or promote products derived from this
    software without specific prior written permission.
 

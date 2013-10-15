@@ -1592,27 +1592,24 @@ class SimulatorAPI extends mcli.CommandLine {
 		Show simulator version
 	**/
 	public function version() {
-		println( Simulator.SHORTNAME+" version "+Simulator.VERSION+", build "+Simulator.COMMIT_HASH );
+		println( "Version "+Simulator.COMMIT_HASH );
 	}
 
 	/**
 		Show simulator version and platform information
 	**/
 	public function fullVersion() {
-		println( Simulator.FULLNAME );
-		println( "Version "+Simulator.VERSION+", build "+Simulator.COMMIT_HASH+" ("+Simulator.PLATFORM
-		+" on "+Sys.systemName()+")" );
+		println( "Version "+Simulator.VERSION );
+		println( "Git commit "+Simulator.COMMIT_HASH );
+		println( 'Built by ${Simulator.BUILD_USERNAME}@${Simulator.BUILD_HOSTNAME} (${Simulator.BUILD_SYSNAME})' );
+		println( "Built at "+Date.fromTime(Simulator.BUILD_TIME) );
 	}
 
 	/**
-		Show more information about the software
+		Show coding information
 	**/
-	public function fullInfo() {
-		println( Simulator.FULLNAME );
-		println( Simulator.COPYRIGHT );
-		println( Simulator.LICENSE );
-		println( "Version "+Simulator.VERSION+", build "+Simulator.COMMIT_HASH+" ("+Simulator.PLATFORM
-		+" on "+Sys.systemName()+")" );
+	public function platform() {
+		println( "Platform "+Simulator.PLATFORM+"/"+Sys.systemName() );
 	}
 
 	/**
@@ -1627,6 +1624,37 @@ class SimulatorAPI extends mcli.CommandLine {
 	**/
 	public function license() {
 		println( Simulator.LICENSE );
+	}
+
+	/**
+		Powered by ...
+	**/
+	public function banner() {
+		println( "Powered by Haxe and other open-source technologies" );
+	}
+
+	/**
+		Show information about the software
+	**/
+	public function welcomeInfo() {
+		println( Simulator.FULLNAME );
+		copyright();
+		license();
+		version();
+		platform();
+		banner();
+	}
+
+	/**
+		Show more information about the software
+	**/
+	public function fullInfo() {
+		println( Simulator.FULLNAME );
+		copyright();
+		license();
+		fullVersion();
+		platform();
+		banner();
 	}
 
 	/**

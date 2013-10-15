@@ -14,7 +14,7 @@ class GitVersion {
 		var code = p.exitCode();
 		if ( code != 0 )
 			throw "git returned "+code;
-		var hash = p.stdout.readLine().toString();
+		var hash = p.stdout.readLine();
 		p.close();
 
 		Sys.setCwd( cwd );
@@ -31,7 +31,7 @@ class GitVersion {
 		var code = p.exitCode();
 		if ( code != 0 )
 			throw "git returned "+code;
-		var hash = p.stdout.readLine().toString();
+		var hash = p.stdout.readLine();
 		p.close();
 
 		Sys.setCwd( cwd );
