@@ -1,12 +1,14 @@
 package sim;
 
 import elebeta.ds.tree.Rj1Tree;
-
 import sim.Simulator;
 
 import sim.Simulator.print;
 import sim.Simulator.printHL;
 import sim.Simulator.println;
+import sim.Simulator.printr;
+import sim.Simulator.printrln;
+import sim.Simulator.tabs;
 
 class OnlineNetwork {
 
@@ -53,7 +55,7 @@ class OnlineNetwork {
 	}
 
 	private function genNodes( info ) {
-		if ( info ) print( "\tNodes..." );
+		if ( info ) print( "Nodes..." );
 		nodes = new Map();
 		nodeSpace = new Rj1Tree<def.Node>( 16, true );
 		var flatNodes = sim.state.nodes; // just a shortcut
@@ -63,11 +65,11 @@ class OnlineNetwork {
 			nodes.set( n.id, n );
 			nodeSpace.insertPoint( n.x, n.y, n );
 		}
-		if ( info ) println( "\r\t"+Lambda.count( nodes )+" nodes..." );
+		if ( info ) printrln( Lambda.count( nodes )+" nodes..." );
 	}
 
 	private function genVehicles( info ) {
-		if ( info ) print( "\tVehicles..." );
+		if ( info ) print( "Vehicles..." );
 		vehicles = new Map();
 		var flatVehicles = sim.state.vehicles; // just a shortcut
 		if ( flatVehicles == null ) throw "No vehicles";
@@ -75,11 +77,11 @@ class OnlineNetwork {
 			var n = new def.VehicleClass( flat.id, flat.noAxis, flat.tollMulti, flat.eqNo, flat.name );
 			vehicles.set( n.id, n );
 		}
-		if ( info ) println( "\r\t"+Lambda.count( vehicles )+" vehicles..." );
+		if ( info ) printrln( Lambda.count( vehicles )+" vehicles..." );
 	}
 
 	private function genSpeeds( info ) {
-		if ( info ) print( "\tSpeeds..." );
+		if ( info ) print( "Speeds..." );
 		speeds = new Map();
 		var flatSpeeds = sim.state.speeds; // just a shortcut
 		if ( flatSpeeds == null ) throw "No speeds";
@@ -88,11 +90,11 @@ class OnlineNetwork {
 			if ( n == null ) speeds.set( flat.typeId, n = new def.Speed() );
 			n.set( vehicles.get(flat.vehicleId), flat.speed );
 		}
-		if ( info ) println( "\r\t"+Lambda.count( speeds )+" speeds levels (vehicle,type combinations)..." );
+		if ( info ) printrln( Lambda.count( speeds )+" speeds levels (vehicle,type combinations)..." );
 	}
 
 	private function genLinks( info ) {
-		if ( info ) print( "\tLinks..." );
+		if ( info ) print( "Links..." );
 		links = new Map();
 		var flatLinks = sim.state.links; // just a shortcut
 		if ( flatLinks == null ) throw "No links";
@@ -103,7 +105,7 @@ class OnlineNetwork {
 			var n = new def.Link( flat.id, start, finish, flat.extension, speed, flat.toll );
 			links.set( n.id, n );
 		}
-		if ( info ) println( "\r\t"+Lambda.count( links )+" links..." );
+		if ( info ) printrln( Lambda.count( links )+" links..." );
 	}
 
 }

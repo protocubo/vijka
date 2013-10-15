@@ -7,6 +7,10 @@ import format.ett.Reader;
 import format.ett.Writer;
 import haxe.io.Eof;
 import haxe.io.StringInput;
+import sim.Algorithm;
+import sim.col.LinkTypeSpeedMap;
+import sim.uq.Search;
+import sim.uq.Update;
 import sys.io.FileInput;
 import sys.io.FileOutput;
 
@@ -16,19 +20,14 @@ import Lambda.count;
 import Lambda.filter;
 import Lambda.has;
 import Lambda.list;
-import Std.parseFloat;
-import Std.parseInt;
-import Std.string;
-
-import sim.Algorithm;
-import sim.col.LinkTypeSpeedMap;
-import sim.uq.Search;
-import sim.uq.Update;
-
 import sim.Simulator.baseNewline;
 import sim.Simulator.print;
 import sim.Simulator.printHL;
 import sim.Simulator.println;
+import sim.Simulator.tabs;
+import Std.parseFloat;
+import Std.parseInt;
+import Std.string;
 
 class SimulatorAPI extends mcli.CommandLine {
 
@@ -675,7 +674,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		if ( sim.state.activeOdFilter == null )
 			println( "No O/D filter at the moment... All available data selected" );
 		else
-			println( "Selected O/D records where "+sim.state.activeOdFilter.join("\n    && ") );
+			println( "Selected O/D records with "+sim.state.activeOdFilter.join( " && " ) );
 	}
 
 	/**
@@ -897,7 +896,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		keys.sort( Reflect.compare );
 		for ( k in keys ) {
 			var box = st.get( k );
-			println( "  * Box labeled \""+k+"\": "+box.countResults()
+			println( tabs(1)+"Box labeled \""+k+"\": "+box.countResults()
 			+" results and "+box.countVolumes()+" volumes" );
 		}
 	}
@@ -1175,10 +1174,10 @@ class SimulatorAPI extends mcli.CommandLine {
 			}
 
 			if ( azOds )
-				println( "  * "+users.length+" O/D records using links ["
+				println( tabs(1)+users.length+" O/D records using links ["
 				+linkIds.join(", ")+"]: "+users.join(", ") );
 			if ( resCnt == 0 )
-				println( "    WARNING: no OD results with path information;"
+				println( tabs(1)+"WARNING: no OD results with path information;"
 				+" maybe this was lost during lossy cold storage (--store-results) or this was never saved in --run" );
 		}
 
@@ -1188,35 +1187,35 @@ class SimulatorAPI extends mcli.CommandLine {
 				throw "No volumes";
 			for ( link in links ) {
 				var v = vols.exists( link.id ) ? vols.get( link.id ) : LinkVolume.make( 0, 0, 0, 0, 0 );
-				println( "  * link volumes for link '"+link.id+"':");
-				println( "        "+_left(_strnum(v.vehicles,2,0),9)+"  vehicles" );
-				println( "        "+_left(_strnum(v.equivalentVehicles,2,0),9)+"  equivalent vehicles" );
-				println( "        "+_left(_strnum(v.axis,2,0),9)+"  axis" );
-				println( "        "+_left(_strnum(v.tolls,2,0),9)+"  toll multipliers" );
+				println( tabs(1)+"link volumes for link '"+link.id+"':");
+				println( tabs(2)+_left(_strnum(v.vehicles,2,0),9)+"  vehicles" );
+				println( tabs(2)+_left(_strnum(v.equivalentVehicles,2,0),9)+"  equivalent vehicles" );
+				println( tabs(2)+_left(_strnum(v.axis,2,0),9)+"  axis" );
+				println( tabs(2)+_left(_strnum(v.tolls,2,0),9)+"  toll multipliers" );
 			}
 		}
 
 		if ( azUsg && resCnt > 0 ) { // output usage (prob) and error
-			println( "  * result analysis:" );
+			println( tabs(1)+"result analysis:" );
 			var n = resCnt;
-			println( "    "+_left(n,5)+"  allocated O/D pairs" );
+			println( tabs(1)+_left(n,5)+"  allocated O/D pairs" );
 			var p = users.length/resCnt;
-			println( "    "+_left(users.length,5)+"  pairs using ("+_strnum(p*100,1,1)+"%)" );
+			println( tabs(1)+_left(users.length,5)+"  pairs using ("+_strnum(p*100,1,1)+"%)" );
 			if ( p > 0 ) {
 				var s = Math.sqrt( n*p*( 1. - p ) );
-				println( "    "+_left(_strnum(s,2,0),5)+"  standard deviation ("+_strnum(s/n*100,1,1)+"%)" );
-				println( "    error(+/-):        NPQ    Wald   Agresti-Coull" );
+				println( tabs(1)+_left(_strnum(s,2,0),5)+"  standard deviation ("+_strnum(s/n*100,1,1)+"%)" );
+				println( tabs(1)+"error(+/-):        NPQ    Wald   Agresti-Coull" );
 				printError( resCnt, p, .7 );
 				printError( resCnt, p, .9 );
 				printError( resCnt, p, .95 );
 			}
-			println( "    "+_left(_strnum(totalWeight,1,0),5)+"  potential toll fares" );
+			println( tabs(1)+_left(_strnum(totalWeight,1,0),5)+"  potential toll fares" );
 			var P = userWeight/totalWeight;
-			println( "    "+_left(_strnum(userWeight,1,0),5)+"  actual toll fares ("+_strnum(P*100,1,1)+"%)" );
+			println( tabs(1)+_left(_strnum(userWeight,1,0),5)+"  actual toll fares ("+_strnum(P*100,1,1)+"%)" );
 			if ( P > 0 ) {
 				var S = Math.sqrt( totalWeight*P*(1.-P) );
-				println( "    "+_left(_strnum(S,2,0),5)+"  standard deviation ("+_strnum(S/totalWeight*100,1,1)+"%)" );
-				println( "    error(+/-):        NPQ    Wald   Agresti-Coull" );
+				println( tabs(1)+_left(_strnum(S,2,0),5)+"  standard deviation ("+_strnum(S/totalWeight*100,1,1)+"%)" );
+				println( tabs(1)+"error(+/-):        NPQ    Wald   Agresti-Coull" );
 				printError( totalWeight, P, .7 );
 				printError( totalWeight, P, .9 );
 				printError( totalWeight, P, .95 );
@@ -1274,13 +1273,8 @@ class SimulatorAPI extends mcli.CommandLine {
 		Execute from a command log in `path`
 	**/
 	public function restore( path:String ) {
-		if ( !reading ) {
-			printHL( "-" );
-			printHL( "-" );
-		}
 		println( "Reading commands in \""+path+"\"" );
-		if ( !reading )
-			println( "" );
+		sim.state.identation++;
 
 		var finp = _readFile( path, true );
 		var eof = false;
@@ -1288,7 +1282,7 @@ class SimulatorAPI extends mcli.CommandLine {
 			try {
 				var r = sim.getArgs( finp, sim.state.newline );
 				if ( r.length != 0 ) {
-					print( ":: "+sim.strArgs(r)+baseNewline );
+					print( "> "+sim.strArgs(r)+baseNewline );
 					sim.run( r, true, true, false );
 				}
 			}
@@ -1297,14 +1291,9 @@ class SimulatorAPI extends mcli.CommandLine {
 			}
 		}
 		finp.close();
-		
-		if ( !reading )
-			println( "" );
+
+		sim.state.identation--;
 		println( "Reading commands in \""+path+"\"... Done" );
-		if ( !reading ) {
-			printHL( "-" );
-			printHL( "-" );
-		}
 	}
 
 	/**
@@ -1389,13 +1378,8 @@ class SimulatorAPI extends mcli.CommandLine {
 		can only be expanded on subsequent file executions)
 	**/
 	public function executeFile( path:String ) {
-		if ( !reading ) {
-			printHL( "-" );
-			printHL( "-" );
-		}
 		println( "Expanding macros and reading commands in \""+path+"\"" );
-		if ( !reading )
-			println( "" );
+		sim.state.identation++;
 
 		var inp = new StringInput( _expandFile(path) );
 		var eof = false;
@@ -1412,14 +1396,9 @@ class SimulatorAPI extends mcli.CommandLine {
 			}
 		}
 		inp.close();
-		
-		if ( !reading )
-			println( "" );
+
+		sim.state.identation--;
 		println( "Expanding macros and reading commands in \""+path+"\"... Done" );
-		if ( !reading ) {
-			printHL( "-" );
-			printHL( "-" );
-		}
 	}
 
 
@@ -1531,6 +1510,20 @@ class SimulatorAPI extends mcli.CommandLine {
 		sim.profiling = null;
 	}
 	#end
+
+	/**
+		[ADVANCED] Enable command execution timing
+	**/
+	public function enableTiming() {
+		sim.state.timing = true;
+	}
+
+	/**
+		[ADVANCED] Disable command execution timing
+	**/
+	public function disableTiming() {
+		sim.state.timing = false;
+	}
 
 	/**
 		[ADVANCED] Dump any table in its corresponding ETT; only works if the
@@ -1662,6 +1655,8 @@ class SimulatorAPI extends mcli.CommandLine {
 		be listed
 	**/
 	public function help( ?pattern:String ) {
+		var preIdent = sim.state.identation;
+		sim.state.identation = 0;
 		println( "Usage:" );
 		printHL( "-" );
 		var args = this.getArguments();
@@ -1670,7 +1665,8 @@ class SimulatorAPI extends mcli.CommandLine {
 			var match = function ( arg:mcli.internal.Data.Argument ) return r.match( arg.name );
 			args = array( filter( args, match ) );
 		}
-		print( mcli.Dispatch.showUsageOf( args, sim.screenSize ) );
+		Simulator.rawPrint( mcli.Dispatch.showUsageOf( args, sim.screenSize ) );
+		sim.state.identation = preIdent;
 	}
 
 	/**

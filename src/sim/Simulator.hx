@@ -3,8 +3,9 @@ package sim;
 import haxe.io.Input;
 import haxe.io.Output;
 import haxe.io.StringInput;
-
 import sim.Algorithm;
+
+import Lambda.list;
 
 class Simulator {
 
@@ -30,11 +31,13 @@ class Simulator {
 			state.invalidate();
 		state = state != null ? new SimulatorState( this, state.newline
 		                                          , sim.state.timing
+		                                          , sim.state.identation
 		                                          , ADijkstra
 		                                          , sim.state.heapArity
 		                                          , sim.state.heapReserve )
                             : new SimulatorState( this, baseNewline
 		                                          , false // timing off by default
+		                                          , 0 // no identation
 		                                          , ADijkstra
 		                                          , 3 // optimal b*log(N,b)
 		                                          , 16 ); // reasonable considering
@@ -84,18 +87,77 @@ class Simulator {
 		                                 	"Unknown";
 		                                 #end
 
-	public static function print( s:String, ?err=false ) {
+	private static inline var TABSIZE = 3;
+
+	public static function tabs( n:Int ) {
+		return StringTools.rpad( "", " ", TABSIZE*n );
+	}
+
+	public static function rawPrint( s:String, ?err=false ) {
 		var stream = err ? stderr : stdout;
 		stream.writeString( s );
+		stream.flush();
+	}
+
+	public static function print( s:String, ?err=false ) {
+		var stream = err ? stderr : stdout;
+		if ( sim.state.identation < 0 )
+			sim.state.identation = 0;
+		var ident = sim.state.identation;
+
+		var data = list( s.split( " " ) );
+
+		var buf = new StringBuf();
+		buf.add( tabs( ident ) );
+
+		var dump = false;
+		while ( data.length > 0 ) {
+			if ( dump || buf.length >= sim.screenSize ) {
+				stream.writeString( buf.toString()+baseNewline );
+				buf = new StringBuf();
+				buf.add( tabs( ident ) );
+				dump = false;
+			}
+			var rem = sim.screenSize - buf.length;
+			var d = data.pop();
+			if ( d.length < rem ) {
+				buf.add( d );
+				if ( data.length > 0 && buf.length < sim.screenSize )
+					buf.add( " " );
+			}
+			else if ( d.length < sim.screenSize - TABSIZE*ident ) {
+				data.push( d );
+				dump = true;
+			}
+			else {
+				buf.add( d.substr( 0, rem ) );
+				data.push( d.substr( rem+1 ) );
+				dump = true;
+			}
+		}
+
+		if ( buf.length > 0 )
+			stream.writeString( buf.toString() );
+		stream.flush();
+	}
+
+	public static function printr( s:String, ?err=false ) {
+		var stream = err ? stderr : stdout;
+		stream.writeString( "\r" );
+		print( s, err );
 		stream.flush();
 	}
 	
 	public static function println( s:String, ?err=false ) {
 		print( s+baseNewline, err );
 	}
+
+	public static function printrln( s:String, ?err=false ) {
+		printr( s+baseNewline, err );
+	}
 	
 	public static function printHL( s:String, ?err=false ) {
-		println( StringTools.rpad( "", s, sim != null ? sim.screenSize : 80 ) );
+		println( StringTools.rpad( "", s, sim.screenSize - 2*TABSIZE*sim.state.identation ), err );
 	}
 
 	public function getArgs( inp:Input, newline:String ):Array<String> {
@@ -120,32 +182,18 @@ class Simulator {
 	
 	private static var stderr = Sys.stderr();
 
-	public function run( args:Array<String>, reading:Bool, time:Bool, hl:Bool ):Void {
-		try {
-			while ( args.remove( "" ) ) {}
-			if ( args.length != 0 ) {
-				var d = new mcli.Dispatch( args );
-				var a = new SimulatorAPI( sim, reading );
-				sim.startProfiling();
-				var t0 = haxe.Timer.stamp();
-				d.dispatch( a, false );
-				var dt = haxe.Timer.stamp() - t0;
-				sim.stopProfiling();
-				sim.log.push( strArgs( args ) );
-				if ( time ) println( "Done in "+dt+" seconds" );
-				if ( hl ) printHL( "-" );
-			}
-		}
-		catch ( e:mcli.DispatchError ) {
+	public function run( args:Array<String>, reading:Bool, time:Bool, hl:Bool ) {
+		while ( args.remove( "" ) ) {}
+		if ( args.length != 0 ) {
+			var d = new mcli.Dispatch( args );
+			var a = new SimulatorAPI( sim, reading );
+			sim.startProfiling();
+			var t0 = haxe.Timer.stamp();
+			d.dispatch( a, false );
+			var dt = haxe.Timer.stamp() - t0;
 			sim.stopProfiling();
-			println( "Interface error: "+e );
-			if ( hl ) printHL( "-" );
-		}
-		catch ( e:Dynamic ) {
-			sim.stopProfiling();
-			sim.log.push( args.join( " " ) );
-			print( "ERROR: "+e );
-			println( haxe.CallStack.toString( haxe.CallStack.exceptionStack() ) );
+			sim.log.push( strArgs( args ) );
+			if ( time ) println( "Done in "+dt+" seconds" );
 			if ( hl ) printHL( "-" );
 		}
 	}
@@ -181,6 +229,17 @@ class Simulator {
 				sim.stopProfiling();
 				println( "" );
 				Sys.exit( 0 );
+			}
+			catch ( e:mcli.DispatchError ) {
+				sim.stopProfiling();
+				sim.state.identation = 0;
+				println( "Interface error: "+e );
+			}
+			catch ( e:Dynamic ) {
+				sim.stopProfiling();
+				sim.state.identation = 0;
+				print( "ERROR: "+e );
+				println( haxe.CallStack.toString( haxe.CallStack.exceptionStack() ) );
 			}
 		}
 	}

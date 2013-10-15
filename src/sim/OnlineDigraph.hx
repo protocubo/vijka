@@ -3,17 +3,17 @@ package sim;
 import elebeta.ett.vijka.*;
 import graph.adjLists.Arc;
 import graph.adjLists.Digraph;
+import sim.Simulator;
+import sim.SimulatorState;
 
 import Lambda.array;
-
 import Lambda.count;
-
-import sim.Simulator;
-
 import sim.Simulator.print;
 import sim.Simulator.printHL;
 import sim.Simulator.println;
-import sim.SimulatorState;
+import sim.Simulator.printr;
+import sim.Simulator.printrln;
+import sim.Simulator.tabs;
 
 private typedef Thread = #if ( neko )                             neko.vm.Thread;
                          #elseif ( cpp && HXCPP_MULTI_THREADED )   cpp.vm.Thread;
@@ -72,9 +72,9 @@ class OnlineDigraph {
 			var lt = haxe.Timer.stamp();
 			var i = 0;
 			if ( info ) {
-				println( "\tD-ary heap arity = "+heapArity );
-				println( "\tD-ary heap initial reserve = "+heapReserve );
-				print( "\rRunning "+i+"/"+odCnt );
+				println( "D-ary heap arity = "+heapArity );
+				println( "D-ary heap initial reserve = "+heapReserve );
+				printr( "Running "+i+"/"+odCnt );
 			}
 			for ( od in ods ) {
 				var w = od.sampleWeight;
@@ -84,10 +84,10 @@ class OnlineDigraph {
 				i++;
 				if ( info && haxe.Timer.stamp() - lt > .2 ) {
 					lt = haxe.Timer.stamp();
-					print( "\rRunning "+i+"/"+odCnt+" paths" );
+					printr( "Running "+i+"/"+odCnt+" paths" );
 				}
 			}
-			if ( info ) println( "\rRunning "+i+"/"+odCnt+" paths... Done" );
+			if ( info ) printrln( "Running "+i+"/"+odCnt+" paths... Done" );
 		}
 		else {
 			var ods = array( ods );
@@ -101,10 +101,10 @@ class OnlineDigraph {
 			var store = new haxe.ds.GenericStack<SimulatorState>();
 			var i = 0;
 			if ( info ) {
-				println( "\tD-ary heap arity = "+heapArity );
-				println( "\tD-ary heap initial reserve = "+heapReserve );
-				println( "\tMultithreaded mode: "+workers+" workers with part size = "+partSize );
-				print( "\rRunning "+i+"/"+ods.length );
+				println( "D-ary heap arity = "+heapArity );
+				println( "D-ary heap initial reserve = "+heapReserve );
+				println( "Multithreaded mode: "+workers+" workers with part size = "+partSize );
+				printr( "Running "+i+"/"+ods.length );
 			}
 			while ( i < ods.length ) {
 				var nextEnd = i + partSize;
@@ -114,7 +114,7 @@ class OnlineDigraph {
 				if ( msg == null )
 					if ( !store.isEmpty() ) {
 						saved += incorporatePseudoState( sim.state, store.pop() );
-						if ( info ) print( "\rRunning "+saved+"/"+ods.length+" paths" );
+						if ( info ) printr( "Running "+saved+"/"+ods.length+" paths" );
 						continue;
 					}
 					else {
@@ -137,21 +137,21 @@ class OnlineDigraph {
 			}
 			while ( !store.isEmpty() ) {
 				saved += incorporatePseudoState( sim.state, store.pop() );
-				if ( info ) print( "\rRunning "+saved+"/"+ods.length+" paths" );
+				if ( info ) printr( "Running "+saved+"/"+ods.length+" paths" );
 			}
 			while ( saved < sent ) {
 				switch ( readMsg( true ).data ) {
 				case MDone( ps, cnt ):
 					recv += cnt;
 					saved += incorporatePseudoState( output, ps );
-					if ( info ) print( "\rRunning "+saved+"/"+ods.length+" paths" );
+					if ( info ) printr( "Running "+saved+"/"+ods.length+" paths" );
 				case all:
 					throw all;
 				}
 			}
 			if ( recv != sent || saved != recv )
 				throw 'Error: sent,recv,saved = $sent,$recv,$saved';
-			if ( info ) println( "\rRunning "+saved+"/"+ods.length+" paths... Done" );
+			if ( info ) printrln( "Running "+saved+"/"+ods.length+" paths... Done" );
 
 		}
 	}
@@ -317,7 +317,7 @@ class OnlineDigraph {
 		for ( node in sim.state.network.nodes )
 			dg.addVertex( node );
 		if ( info )
-			println( "\r\t"+countIterator( dg.vertices() )+" vertices..." );
+			printrln( "\t"+countIterator( dg.vertices() )+" vertices..." );
 	}
 
 	private function genArcs( info ) {
@@ -326,7 +326,7 @@ class OnlineDigraph {
 		for ( link in sim.state.network.links )
 			dg.addArc( link );
 		if ( info )
-			println( "\r\t"+countIterator( dg.arcs() )+" arcs..." );
+			printrln( "\t"+countIterator( dg.arcs() )+" arcs..." );
 	}
 
 	private static function countIterator<T>( it:Iterator<T> ):Int {

@@ -14,7 +14,8 @@ class SimulatorState {
 	public var sim:Simulator;
 
 	public var newline:String;
-	public var timing:Bool;
+	public var timing:Bool; // time commands?
+	public var identation:Int; // identationation level for print, println and printHL
 
 	public var nodes:Null<Map<Int,Node>>;
 	public var linkTypes:Null<Map<Int,LinkType>>;
@@ -52,10 +53,11 @@ class SimulatorState {
 
 	public var macros:Map<String,String>;
 
-	public function new( _sim:Simulator, _newline, _timing, _algorithm, _heapArity, _heapReserve ) {
+	public function new( _sim:Simulator, _newline, _timing, _identation, _algorithm, _heapArity, _heapReserve ) {
 		sim = _sim;
 		newline = _newline;
 		timing = _timing;
+		identation = _identation;
 		algorithm = _algorithm;
 		heapArity = _heapArity;
 		heapReserve = _heapReserve;
@@ -72,13 +74,17 @@ class SimulatorState {
 		if ( sim.state.network == null || force ) {
 			println( "Assembling the network" );
 			digraph = null;
+			identation++;
 			var nk = network = new OnlineNetwork( sim, info );
+			identation--;
 		}
 		if ( sim.state.digraph == null || force ) {
 			println( "Assembling the (directed) graph" );
+			identation++;
 			if ( sim.state.digraph != null )
 				digraph.prepareForInvalidation();
 			var dg = digraph = new OnlineDigraph( sim, workers, workerPartSize, info );
+			identation--;
 		}
 	}
 
