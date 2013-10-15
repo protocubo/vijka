@@ -34,6 +34,8 @@ class SimulatorAPI extends mcli.CommandLine {
 	private var reading:Bool;
 	private var sim:Simulator;
 
+	private var _stop:Bool;
+
 	public function new( _sim:Simulator, _reading:Bool ) {
 		sim = _sim;
 		reading = _reading;
@@ -1278,7 +1280,8 @@ class SimulatorAPI extends mcli.CommandLine {
 
 		var finp = _readFile( path, true );
 		var eof = false;
-		while ( !eof ) {
+		_stop = false;
+		while ( !eof && !_stop ) {
 			try {
 				var r = sim.getArgs( finp, sim.state.newline );
 				if ( r.length != 0 ) {
@@ -1383,7 +1386,8 @@ class SimulatorAPI extends mcli.CommandLine {
 
 		var inp = new StringInput( _expandFile(path) );
 		var eof = false;
-		while ( !eof ) {
+		_stop = false;
+		while ( !eof && !_stop ) {
 			try {
 				var r = sim.getArgs( inp, sim.state.newline );
 				if ( r.length != 0 ) {
@@ -1399,6 +1403,18 @@ class SimulatorAPI extends mcli.CommandLine {
 
 		sim.state.identation--;
 		println( "Expanding macros and reading commands in \""+path+"\"... Done" );
+	}
+
+
+
+	// ADDITIONAL COMMAND LOG/MACRO CONTROLS ------------------------------------
+
+	/**
+		Breaks the current `--restore` or `--execute-file` execution
+	**/
+	public function stop() {
+		println( "Breaking..." );
+		_stop = true;
 	}
 
 

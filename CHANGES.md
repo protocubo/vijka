@@ -8,16 +8,18 @@ Head
 Work in progress... Possible version v1.2.0.
 
  - Added this changelog (`CHANGES.md`)
+ - Allow breaking in `--restore` and `--execute-file` (via `--stop`)
  - Allow parenthesis on the unified query system
+ - Better output (added identation and removed unnecessary information)
  - Crude and experimental macro system
  - Include more information about the build (commit, author, date)
  - Included haxe documentation generation via `dox`
- - Better output (added identation and removed unnecessary information)
  - Stop everything (`--restore`, `--execute-file`) on fatal errors
  - Changed/added commands:
     * Macros: `--define <name><expansion>`, `--undefine <name>`, `--expand-file <path>` and `--show-macros`
     * Timing: `--enable-timing` and `--disable-timing`
     * Help: `--help [pattern]`
+    * Other: `--stop`
 
 
 v1.1.1
