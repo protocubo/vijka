@@ -15,8 +15,10 @@ Work in progress... Possible version v1.2.0.
  - Include more information about the build (commit, author, date)
  - Included haxe documentation generation via `dox`
  - Stop everything (`--restore`, `--execute-file`) on fatal errors
+ - Network compression (`--compress-network`)
  - Changed/added commands:
     * Macros: `--define <name><expansion>`, `--undefine <name>`, `--expand-file <path>` and `--show-macros`
+    * Network manipulation: `--compress-network`
     * Timing: `--enable-timing` and `--disable-timing`
     * Help: `--help [pattern]`
     * Other: `--stop`
