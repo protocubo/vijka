@@ -29,6 +29,8 @@ import Std.parseFloat;
 import Std.parseInt;
 import Std.string;
 
+import tools.NetworkCompressor;
+
 class SimulatorAPI extends mcli.CommandLine {
 
 	private var reading:Bool;
@@ -1245,6 +1247,31 @@ class SimulatorAPI extends mcli.CommandLine {
 		+"% "+_strnum(pConf_AgrestiCoull(sampleSize,prob,(1-conf))*100,2,14)+"%" );
 	}
 
+
+
+	// NETWORK MANIPULATION -----------------------------------------------------
+
+	/**
+		Compress the current network, eliminating nodes and links that are no longer necessary
+	**/
+	public function compressNetwork() {
+		trace( count( sim.state.nodes ) );
+		trace( count( sim.state.links ) );
+		trace( sim.state.shapes != null ? count( sim.state.shapes ) : 0 );
+		trace( sim.state.aliases != null ? count( sim.state.aliases ) : 0 );
+
+		var compressor = NetworkCompressor.compress( sim.state );
+
+		sim.state.nodes = compressor.nodes;
+		sim.state.links = compressor.links;
+		sim.state.shapes = compressor.shapes;
+		sim.state.aliases = compressor.aliases;
+
+		trace( count( sim.state.nodes ) );
+		trace( count( sim.state.links ) );
+		trace( sim.state.shapes != null ? count( sim.state.shapes ) : 0 );
+		trace( sim.state.aliases != null ? count( sim.state.aliases ) : 0 );
+	}
 
 
 	// COMMAND HISTORY ----------------------------------------------------------
