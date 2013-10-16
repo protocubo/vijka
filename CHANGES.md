@@ -7,21 +7,23 @@ Head
 
 Work in progress... Possible version v1.2.0.
 
+ - Added some commands to manage the execution flow: `--stop` and `--sleep <seconds>`
  - Added this changelog (`CHANGES.md`)
- - Allow breaking in `--restore` and `--execute-file` (via `--stop`)
  - Allow parenthesis on the unified query system
  - Better output (added identation and removed unnecessary information)
  - Crude and experimental macro system
+ - ESRI Shapefile output (`--shp-*`)
  - Include more information about the build (commit, author, date)
  - Included haxe documentation generation via `dox`
- - Stop everything (`--restore`, `--execute-file`) on fatal errors
  - Network compression (`--compress-network`)
+ - Stop everything (`--restore`, `--execute-file`) on fatal errors
+ - Verify and fix link shapes (`--fix-shapes`)
  - Changed/added commands:
-    * Macros: `--define <name><expansion>`, `--undefine <name>`, `--expand-file <path>` and `--show-macros`
-    * Network manipulation: `--compress-network`
-    * Timing: `--enable-timing` and `--disable-timing`
     * Help: `--help [pattern]`
-    * Other: `--stop`
+    * Macros: `--define <name><expansion>`, `--undefine <name>`, `--expand-file <path>` and `--show-macros`
+    * Network manipulation: `--compress-network`, `--fix-shapes <coordinate tolerance>`
+    * Timing: `--enable-timing` and `--disable-timing`
+    * Other: `--stop`, `--sleep`
 
 
 v1.1.1
