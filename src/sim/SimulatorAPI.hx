@@ -13,6 +13,7 @@ import sim.uq.Search;
 import sim.uq.Update;
 import sys.io.FileInput;
 import sys.io.FileOutput;
+import tools.NetworkCompressor;
 
 import jonas.NumberPrinter.printDecimal;
 import Lambda.array;
@@ -24,12 +25,12 @@ import sim.Simulator.baseNewline;
 import sim.Simulator.print;
 import sim.Simulator.printHL;
 import sim.Simulator.println;
+import sim.Simulator.printr;
+import sim.Simulator.printrln;
 import sim.Simulator.tabs;
 import Std.parseFloat;
 import Std.parseInt;
 import Std.string;
-
-import tools.NetworkCompressor;
 
 class SimulatorAPI extends mcli.CommandLine {
 
@@ -1511,14 +1512,23 @@ class SimulatorAPI extends mcli.CommandLine {
 
 
 
-	// ADDITIONAL COMMAND LOG/MACRO CONTROLS ------------------------------------
+	// EXECUTION FLOW CONTROL ---------------------------------------------------
 
 	/**
-		Breaks the current `--restore` or `--execute-file` execution
+		Stop any loop
 	**/
 	public function stop() {
 		println( "Breaking..." );
 		_stop = true;
+	}
+
+	/**
+		Sleep for `s` seconds
+	**/
+	public function sleep( s:Float ) {
+		println( "Sleeping for "+s+" seconds..." );
+		Sys.sleep( s );
+		println( "Awake" );
 	}
 
 
