@@ -12,22 +12,24 @@ class NetworkCompressor {
 	}
 	
 	public
-	var nodes:Map<Int,Node>;
+	var nodes:Map<Int,Node>; // nodeId -> node
 
 	public
-	var links:Map<Int,Link>;
+	var links:Map<Int,Link>; // linkId -> link
 
 	public
-	var shapes:Map<Int,LinkShape>;
+	var shapes:Map<Int,LinkShape>; // linkId -> shape
 
 	public
-	var aliases:Map<String,Array<Int>>;
+	var aliases:Map<String,Array<Int>>; // alias -> [ linkId ]
 
 	var lastLinkId:Int;
 
-	var linksFrom:Map<Int,Array<Link>>;
+	var linksFrom:Map<Int,Array<Link>>; // nodeId -> [ link ]
 
-	var linksTo:Map<Int,Array<Link>>;
+	var linksTo:Map<Int,Array<Link>>; // nodeId -> [ link ]
+
+	var revAliases:Map<Int,Array<String>>; // linkId -> [ alias ]
 
 	function new( state:SimulatorState ) {
 		cloneState( state );
@@ -76,7 +78,10 @@ class NetworkCompressor {
 	}
 
 	function indexAliases() {
-
+		revAliases = new Map();
+		for ( alias in aliases.keys() )
+			for ( linkId in aliases.get( alias ) )
+				mmpush( revAliases, linkId, alias );
 	}
 
 	function run() {
@@ -100,7 +105,10 @@ class NetworkCompressor {
 	}
 
 	function rebuildAliases() {
-
+		aliases = new Map();
+		for ( linkId in revAliases.keys() )
+			for ( alias in revAliases.get( linkId ) )
+				mmpush( aliases, alias, linkId );
 	}
 
 	function verify() {
@@ -219,7 +227,7 @@ class NetworkCompressor {
 		if ( a.typeId != b.typeId || a.toll > 0 || b.toll > 0 )
 			return;
 
-		// `b` must start on the node that `a` ended, if this is not the case, they must be swaped
+		// `b` must start on the node that `a` ended, if this is not the case, !they must be swaped
 		if ( b.startNodeId != a.finishNodeId ) {
 			var _b = a;
 			a = b;
@@ -239,10 +247,29 @@ class NetworkCompressor {
 		var shp2 = getShape( b ).shape.array();
 		var shape = LinkShape.make( nlink.id, new LineString( shp1.concat( shp2.slice( 1 ) ) ) );
 		shapes.set( shape.linkId, shape );
+
+		// merge its aliases
+		var aliases1 = mmget( revAliases, a.id );
+		var aliases2 = mmget( revAliases, b.id );
+		revAliases.set( nlink.id, mergeAliases( aliases1, aliases2 ) );
 		
 		// remove their parents
 		removeLink( a );
 		removeLink( b );
+	}
+
+	function mergeAliases( a:Array<String>, b:Array<String> ) {
+		// optimization reordering
+		if ( b.length > a.length ) {
+			var _b = a;
+			a = b;
+			b = _b;
+		}
+		var ret = a.copy();
+		for ( alias in b )
+			if ( !Lambda.has( a, alias ) )
+				ret.push( alias );
+		return ret;
 	}
 
 
