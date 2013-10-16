@@ -331,8 +331,7 @@ class SimulatorAPI extends mcli.CommandLine {
 	}
 
 	/**
-		Compress link shapes; removes all shapes redundant with the default ones
-		(that are based on start and finish nodes)
+		Compress link shapes; removes all shapes that are redundant with the cannonical shapes from their links
 	**/
 	public function compressShapes() {
 		var oldShapes = sim.state.shapes; // just a shortcut
@@ -371,6 +370,84 @@ class SimulatorAPI extends mcli.CommandLine {
 		return _genericEtt( path, shapes, LinkShape, "Writing link shapes", "No link shapes" );
 	}
 
+	/**
+		Fix invalid shapes
+	**/
+	public function fixShapes( precision:Float ) {
+		if ( sim.state.shapes == null ) {
+			println( "No shapes" );
+			return;
+		}
+
+		var feq = function ( a:Float, b:Float ) return Math.abs( a - b ) < precision;
+
+		println( "Checking and fixing link shapes" );
+
+		var errcnt = 0;
+		var warcnt = 0;
+
+		sim.state.identation++;
+
+		var nshapes = new Map();
+		for ( shp in sim.state.shapes ) {
+			var pts = shp.shape.array();
+
+			// internal constraints
+			var npts = [];
+			var pre:format.ett.Geometry.Point = null; // `pre` in the last point **kept**
+			for ( pi in 0...pts.length ) {
+				var pt = pts[pi];
+				if ( pi > 0 ) {
+					if ( feq( pt.x, pre.x ) && feq( pt.y, pre.y ) ) {
+						if ( npts.length == 1 ) {
+							println( "WARNING at link `"+shp.linkId+"`: link shape smaller than precision" );
+							warcnt++;
+						}
+						else {
+							println( "Fixed error at link `"+shp.linkId+"`: skipping duplicate point "+(pi+1) );
+							errcnt++;
+							if ( pi == pts.length - 1 )
+								npts[npts.length-1] = pt;
+						}
+					}
+					else {
+						npts.push( pre = pt );
+					}
+				}
+				else {
+					npts.push( pre = pt );
+				}
+			}
+			pts = null; // pts should no longer be used beyond here
+
+			// external constraints
+			var link = sim.state.links.get( shp.linkId );
+			var snpt = sim.state.nodes.get( link.startNodeId ).point;
+			var tnpt = sim.state.nodes.get( link.finishNodeId ).point;
+			if ( npts.length < 2 ) {
+				println( "Fixed error at link `"+shp.linkId+"`: invalid number of points in shape" );
+				errcnt++;
+				continue;
+			}
+			else if ( !feq( npts[0].x, snpt.x ) || !feq( npts[0].y, snpt.y ) ) {
+				println( "WARNING at link `"+shp.linkId+"`: first point doesn't match its corresponding node coordinates" );
+				warcnt++;
+			}
+			else if ( !feq( npts[npts.length-1].x, tnpt.x ) || !feq( npts[npts.length-1].y, tnpt.y ) ) {
+				println( "WARNING at link `"+shp.linkId+"`: last point doesn't match its corresponding node coordinates" );
+				warcnt++;
+			}
+			else {
+				nshapes.set( shp.linkId, LinkShape.make( shp.linkId, new format.ett.Geometry.LineString( npts ) ) );
+			}
+
+		}
+
+		sim.state.identation--;
+
+		sim.state.shapes = nshapes;
+		println( "Fixed "+errcnt+" errors and issued another "+warcnt+" warnings" );
+	}
 
 
 	// LINK ALIASES -------------------------------------------------------------

@@ -152,6 +152,7 @@ class NetworkCompressor {
 		deIndexLink( link );
 		links.remove( link.id );
 		shapes.remove( link.id );
+		revAliases.remove( link.id );
 	}
 
 
