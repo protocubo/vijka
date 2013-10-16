@@ -1313,7 +1313,7 @@ class SimulatorAPI extends mcli.CommandLine {
 				var r = sim.getArgs( finp, sim.state.newline );
 				if ( r.length != 0 ) {
 					print( "> "+sim.strArgs(r)+baseNewline );
-					sim.run( r, true, true, false );
+					sim.run( r, true, sim.state.timing, false );
 				}
 			}
 			catch ( e:haxe.io.Eof ) {
