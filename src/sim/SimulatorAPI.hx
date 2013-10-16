@@ -13,6 +13,7 @@ import sim.uq.Search;
 import sim.uq.Update;
 import sys.io.FileInput;
 import sys.io.FileOutput;
+import sys.FileSystem;
 import tools.NetworkCompressor;
 
 import jonas.NumberPrinter.printDecimal;
@@ -31,6 +32,7 @@ import sim.Simulator.tabs;
 import Std.parseFloat;
 import Std.parseInt;
 import Std.string;
+import tools.Ogr2Ogr;
 
 class SimulatorAPI extends mcli.CommandLine {
 
@@ -121,6 +123,13 @@ class SimulatorAPI extends mcli.CommandLine {
 		}
 		fout.writeString( sim.state.newline+"] }"+sim.state.newline );
 		fout.close();
+	}
+
+	/**
+		Write nodes to Shapefile set preffixed by `path`, using optional `filter`
+	**/
+	public function shpNodes( path:String, ?filter:String ) {
+		_shp( geojsonNodes, path, filter );
 	}
 
 
@@ -263,6 +272,14 @@ class SimulatorAPI extends mcli.CommandLine {
 	}
 
 	/**
+		Write links to Shapefile set preffixed by `path` using available link shape data; accepts
+		(optionnally) a unified `filter` query; will overwrite existing files
+	**/
+	public function shpLinks( path:String, ?filter:String ) {
+		_shp( geojsonLinks, path, filter );
+	}
+
+	/**
 		Write links to GeoJSON in `path` using available link shape data and
 		including speed information; accepts (optionnally) a unified `filter`
 		query; will overwrite existing files
@@ -290,6 +307,15 @@ class SimulatorAPI extends mcli.CommandLine {
 		}
 		fout.writeString( sim.state.newline+"] }"+sim.state.newline );
 		fout.close();
+	}
+
+	/**
+		Write links to Shapefile set preffixed by `path` using available link shape data and
+		including speed information; accepts (optionnally) a unified `filter`
+		query; will overwrite existing files
+	**/
+	public function shpLinkSpeeds( path:String, ?filter:String ) {
+		_shp( geojsonLinkSpeeds, path, filter );
 	}
 
 
@@ -449,6 +475,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		sim.state.shapes = nshapes;
 		println( "Fixed "+errcnt+" errors and issued another "+warcnt+" warnings" );
 	}
+
 
 
 	// LINK ALIASES -------------------------------------------------------------
@@ -631,6 +658,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		sim.state.invalidate();
 		u.execute( set );
 	}
+
 
 
 	// O/D I/O ------------------------------------------------------------------
@@ -1019,6 +1047,13 @@ class SimulatorAPI extends mcli.CommandLine {
 	}
 
 	/**
+		Write aggregated Shapefile set (preffixed by `path`) for all volumes in cold storage
+	**/
+	public function shpStorage( path:String ) {
+		_shp( function (p,f) geojsonStorage(p), path, null );
+	}
+
+	/**
 		Discart all results in cold storage
 	**/
 	public function clearStorage() {
@@ -1064,6 +1099,14 @@ class SimulatorAPI extends mcli.CommandLine {
 		}
 		fout.writeString( sim.state.newline+"] }"+sim.state.newline );
 		fout.close();
+	}
+
+	/**
+		Write volumes to Shapefile set preffixed by `path` using available link shape data; will
+		overwrite existing files
+	**/
+	public function shpVolumes( path:String ) {
+		_shp( function (p,f) geojsonVolumes(p), path, null );
 	}
 
 	/**
@@ -1115,6 +1158,15 @@ class SimulatorAPI extends mcli.CommandLine {
 		}
 		fout.writeString( sim.state.newline+"] }"+sim.state.newline );
 		fout.close();
+	}
+
+	/**
+		Generate a comparission between current and reference volumes and write
+		it to Shapefile set preffixed by `path`, using available link shape data; will overwrite
+		existing files
+	**/
+	public function shpVolumeDiff( path:String ) {
+		_shp( function (p,f) geojsonVolumeDiff(p), path, null );
 	}
 
 	
@@ -1350,6 +1402,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		trace( sim.state.shapes != null ? count( sim.state.shapes ) : 0 );
 		trace( sim.state.aliases != null ? count( sim.state.aliases ) : 0 );
 	}
+
 
 
 	// COMMAND HISTORY ----------------------------------------------------------
@@ -1709,6 +1762,7 @@ class SimulatorAPI extends mcli.CommandLine {
 	}
 
 
+
 	// OTHERS -------------------------------------------------------------------
 
 	/**
@@ -1919,6 +1973,31 @@ class SimulatorAPI extends mcli.CommandLine {
 			return '{"id":${link.id},"type":"Feature","geometry":${geom},"properties":{$linkProp,$linkVolume,$moreProperties}}';
 		else
 			return '{"id":${link.id},"type":"Feature","geometry":${geom},"properties":{$linkProp,$linkVolume}}';
+	}
+
+	private function _shp( geojson:String->Null<String>->Void, path:String, filter:Null<String> ) {
+		var spath = path+".shp";
+		var tpath = path+".json";
+		geojson( tpath, filter );
+		println( "Converting temporary GeoJSON to ESRI Shapefile" );
+		for ( p in [ ".shp", ".dbf", ".prj", ".shx" ].map( function (x) return path+x ) )
+			if ( sys.FileSystem.exists( p ) )
+				if ( sys.FileSystem.isDirectory( p ) )
+					throw "Cannot overwrite a folder with a file: \""+p+"\"";
+				else {
+				 	println( "File \""+p+"\" overwritten" );
+				 	FileSystem.deleteFile( p );
+				 }
+		sim.state.identation++;
+		var conv = false;
+		try {
+			conv = Ogr2Ogr.json2shp( spath, tpath, false );
+		} catch ( e:Dynamic ) {
+			println( "ERROR: "+e );
+		}
+		sim.state.identation--;
+		if ( conv )
+			FileSystem.deleteFile( tpath );
 	}
 
 	private function _getShape( link:Link):LinkShape {
