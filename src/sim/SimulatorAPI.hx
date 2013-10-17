@@ -1954,6 +1954,7 @@ class SimulatorAPI extends mcli.CommandLine {
 	**/
 	public function quit() {
 		if ( sim.online ) {
+			state.identation = 0;
 			println( "Exiting gracefully" );
 			printHL( "=" );
 		}
