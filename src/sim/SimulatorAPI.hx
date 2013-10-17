@@ -35,10 +35,15 @@ import Std.parseFloat;
 import Std.parseInt;
 import Std.string;
 
+using sim.SimulatorStateTools;
+using sim.data.LinkTools;
+
 class SimulatorAPI extends mcli.CommandLine {
 
 	private var reading:Bool;
 	private var sim:Simulator;
+	private var state(get,never):SimulatorState;
+	private function get_state() return sim.state;
 
 	private var _stop:Bool;
 
@@ -130,6 +135,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		Write nodes to Shapefile set preffixed by `path`, using optional `filter`
 	**/
 	public function shpNodes( path:String, ?filter:String ) {
+		println( "Mapping nodes in ESRI Shapefile" );
 		_shp( geojsonNodes, path, filter );
 	}
 
@@ -277,6 +283,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		(optionnally) a unified `filter` query; will overwrite existing files
 	**/
 	public function shpLinks( path:String, ?filter:String ) {
+		println( "Mapping links in ESRI Shapefile" );
 		_shp( geojsonLinks, path, filter );
 	}
 
@@ -316,6 +323,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		query; will overwrite existing files
 	**/
 	public function shpLinkSpeeds( path:String, ?filter:String ) {
+		println( "Mapping links in ESRI Shapefile" );
 		_shp( geojsonLinkSpeeds, path, filter );
 	}
 
@@ -1066,6 +1074,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		Write aggregated Shapefile set (preffixed by `path`) for all volumes in cold storage
 	**/
 	public function shpStorage( path:String ) {
+		println( "Mapping cold stored volumes in ESRI Shapefile" );
 		_shp( function (p,f) geojsonStorage(p), path, null );
 	}
 
@@ -1122,6 +1131,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		overwrite existing files
 	**/
 	public function shpVolumes( path:String ) {
+		println( "Mapping volumes in ESRI Shapefile" );
 		_shp( function (p,f) geojsonVolumes(p), path, null );
 	}
 
@@ -1182,6 +1192,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		existing files
 	**/
 	public function shpVolumeDiff( path:String ) {
+		println( "Mapping volumes in ESRI Shapefile" );
 		_shp( function (p,f) geojsonVolumeDiff(p), path, null );
 	}
 
@@ -1397,14 +1408,14 @@ class SimulatorAPI extends mcli.CommandLine {
 
 	// NETWORK MANIPULATION -----------------------------------------------------
 
-	public function addNode( x:Float, y:Float, id:Int ) {
+	public function addNode( x:String, y:String, id:Int ) {
 		if ( sim.state.nodes == null )
 			sim.state.nodes = new Map();
 		if ( sim.state.nodes.exists( id ) )
 			throw "Node `"+id+"` already exists";
 
 		sim.state.invalidate();
-		var node = Node.make( id, new format.ett.Geometry.Point( x, y ) );
+		var node = Node.make( id, new format.ett.Geometry.Point( _readFloat(x), _readFloat(y) ) );
 		sim.state.nodes.set( node.id, node );
 	}
 
@@ -1429,7 +1440,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		sim.state.links.set( link.id, link );
 	}
 
-	public function reverseLink( src:Int, dst:Int, ?cloneAliases:Null<Bool> ) {
+	public function reverseLink( src:Int, dst:Int, ?cloneAliases:String ) {
 		if ( sim.state.links == null )
 			sim.state.links = new Map();
 		if ( !sim.state.links.exists( src ) )
@@ -1448,7 +1459,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		var rshp = LinkShape.make( rev.id, new format.ett.Geometry.LineString( revShape ) );
 		sim.state.shapes.set( rshp.linkId, rshp );
 		
-		if ( sim.state.aliases != null && cloneAliases )
+		if ( sim.state.aliases != null && _readBool( cloneAliases ) )
 			_cloneLinkAliases( link.id, rev.id );
 	}
 
@@ -1459,8 +1470,10 @@ class SimulatorAPI extends mcli.CommandLine {
 		}
 	}
 
-	public function splitLink( linkId:Int, nodeId:Int, dst1:Int, dst2:Int, ?snap:Null<Bool> ) {
-		// var spliter = Splitter.split( link, node, id1, id2, snap );
+	public function splitLink( linkId:Int, nodeId:Int, dst1:Int, dst2:Int, ?cloneAliases:String ) {
+		var ret = Splitter.split( state, linkId, nodeId, dst1, dst2, _readBool( cloneAliases ) == true );
+		// trace( ret.link1 );
+		// trace( ret.link2 );
 	}
 
 	/**
@@ -2061,6 +2074,7 @@ class SimulatorAPI extends mcli.CommandLine {
 	private function _shp( geojson:String->Null<String>->Void, path:String, filter:Null<String> ) {
 		var spath = path+".shp";
 		var tpath = path+".json";
+		state.identation++;
 		geojson( tpath, filter );
 		println( "Converting temporary GeoJSON to ESRI Shapefile" );
 		for ( p in [ ".shp", ".dbf", ".prj", ".shx" ].map( function (x) return path+x ) )
@@ -2071,16 +2085,18 @@ class SimulatorAPI extends mcli.CommandLine {
 				 	println( "File \""+p+"\" overwritten" );
 				 	FileSystem.deleteFile( p );
 				 }
-		sim.state.identation++;
-		var conv = false;
 		try {
-			conv = Ogr2Ogr.json2shp( spath, tpath, false );
+			var res = Ogr2Ogr.json2shp( spath, tpath, false );
+			if ( res == 0 ) {
+				println( "Removing temporary GeoJSON" );
+				FileSystem.deleteFile( tpath );
+			}
+			else
+				throw "ogr2ogr exited with non zero status `"+res+"`";
 		} catch ( e:Dynamic ) {
 			println( "ERROR: "+e );
 		}
 		sim.state.identation--;
-		if ( conv )
-			FileSystem.deleteFile( tpath );
 	}
 
 	private function _getShape( link:Link):LinkShape {
@@ -2149,6 +2165,21 @@ class SimulatorAPI extends mcli.CommandLine {
 		case "", "_", "*", "a", "all": if ( nullable ) null; else throw "Invalid Int "+s;
 		case all: parseInt( s );
 		};
+	}
+
+	private function _readFloat( s:String, ?nullable=true ):Null<Float> {
+		if ( s.length > 1 && s.substr( 0, 1 ) == "d" )
+			return parseFloat( s.substr(1) );
+		else
+			switch ( s.toLowerCase() ) {
+			case "", "_", "*", "a", "all":
+				if ( nullable )
+					return null;
+				else
+					throw "Invalid Float "+s;
+			case all:
+				return parseFloat( s );
+			}
 	}
 
 	private function _readBool( s:Null<String>, ?nullable=true ):Null<Bool> {

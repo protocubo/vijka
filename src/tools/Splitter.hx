@@ -11,30 +11,53 @@ using sim.SimulatorStateTools;
 class Splitter {
 
 	public static
-	function split( state:SimulatorState, link:Link, node:Node, id1:Int, id2:Int, cloneAliases:Bool ) {
-
+	function split( state:SimulatorState, linkId:Int, nodeId:Int, dst1:Int, dst2:Int, cloneAliases:Bool ) {
+		var node = state.getNode( nodeId );
+		var link = state.getLink( linkId );
+		if ( state.hasLink( dst1 ) )
+			throw "Link `"+dst1+"` already exists";
+		if ( state.hasLink( dst2 ) )
+			throw "Link `"+dst2+"` already exists";
+		return new Splitter( state, link, node, dst1, dst2, cloneAliases );
 	}
+
+	public
+	var link1:Link;
+
+	public
+	var link2:Link;
 
 	var state:SimulatorState;
 
-	function new( state:SimulatorState, link:Link, node:Node, id1:Int, id2:Int ) {
+	function new( state:SimulatorState, link:Link, node:Node, id1:Int, id2:Int, cloneAliases:Bool ) {
 		this.state = state;
 
-		var shp = state.getShape( link ).shape.array();
-		var splitPos = findSplitPos( shp, node.point );
+		var lstr = state.getShape( link ).shape.array();
+		var splitPos = findSplitPos( lstr, node.point );
+		// trace( splitPos );
 
-		var shp1 = shp.slice( 0, splitPos );
-		var shp2 = shp.slice( splitPos );
+		var lstr1 = lstr.slice( 0, splitPos ).concat( [ node.point ] );
+		var lstr2 = [ node.point ].concat( lstr.slice( splitPos ) );
 		
-		var shp1e = 0; var shp2e = 0;
+		var lstr1len = lslen( lstr1 );
+		var lstr2len = lslen( lstr2 );
+		// trace( [ lslen( lstr ), lstr1len, lstr2len ] );
 
-		var ext1 = link.extension*shp1e/( shp1e+shp2e );
+		var ext1 = link.extension*lstr1len/( lstr1len+lstr2len );
 		var ext2 = link.extension - ext1;
+		// trace( [ link.extension, ext1, ext2 ] );
 
-		var link1 = Link.make( id1, link.startNodeId, link.finishNodeId, ext1, link.typeId, link.toll*ext1/link.extension );
-		addLink( link1, shp1, link );
-		var link2 = Link.make( id2, link.startNodeId, link.finishNodeId, ext2, link.typeId, link.toll*ext2/link.extension );
-		addLink( link2, shp2, link );
+		link1 = Link.make( id1, link.startNodeId, node.id, ext1, link.typeId, link.toll*ext1/link.extension );
+		addLink( link1, lstr1, link );
+		link2 = Link.make( id2, node.id, link.finishNodeId, ext2, link.typeId, link.toll*ext2/link.extension );
+		addLink( link2, lstr2, link );
+
+		if ( cloneAliases ) {
+			cloneLinkAliases( link.id, link1.id );
+			cloneLinkAliases( link.id, link2.id );
+		}
+
+		removeLink( link );
 	}
 
 	function cloneLinkAliases( src:Int, dst:Int ) {
@@ -50,9 +73,9 @@ class Splitter {
 		}
 	}
 
-	function addLink( link:Link, shp:Array<Point>, cloneAliases:Null<Link> ) {
+	function addLink( link:Link, lstr:Array<Point>, cloneAliases:Null<Link> ) {
 		state.links.set( link.id, link );
-		state.shapes.set( link.id, LinkShape.make( link.id, new LineString( shp ) ) );
+		state.shapes.set( link.id, LinkShape.make( link.id, new LineString( lstr ) ) );
 		if ( cloneAliases != null )
 			cloneLinkAliases( cloneAliases.id, link.id );
 	}
@@ -69,17 +92,25 @@ class Splitter {
 		Best position to insert `pt` in a shape; as of now, it chooses the spot just after the closest point on the shape
 	**/
 	static
-	function findSplitPos( shp:Array<Point>, pt:Point ):Int {
-		var min = Math.NEGATIVE_INFINITY;
+	function findSplitPos( lstr:Array<Point>, pt:Point ):Int {
+		var min = Math.POSITIVE_INFINITY;
 		var best = -1;
-		for ( i in 0...shp.length ) {
-			var tdist = pdist( shp[i], pt );
+		for ( i in 0...(lstr.length-1) ) {
+			var tdist = pdist( lstr[i], pt );
 			if ( tdist < min ) {
 				min = tdist;
 				best = i;
 			}
 		}
 		return best + 1;
+	}
+
+	static
+	function lslen( lstr:Array<Point> ):Float {
+		var len = 0.;
+		for ( i in 1...lstr.length )
+			len += pdist( lstr[i-1], lstr[i] );
+		return len;
 	}
 
 	static

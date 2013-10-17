@@ -189,7 +189,9 @@ class Simulator {
 			var a = new SimulatorAPI( sim, reading );
 			sim.startProfiling();
 			var t0 = haxe.Timer.stamp();
+			sim.state.identation++;
 			d.dispatch( a, false );
+			sim.state.identation--;
 			var dt = haxe.Timer.stamp() - t0;
 			sim.stopProfiling();
 			sim.log.push( strArgs( args ) );

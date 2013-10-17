@@ -13,4 +13,9 @@ class LinkTools {
 		return LinkShape.make( link.id, new LineString( [ state.getNode(link.startNodeId).point, state.getNode(link.finishNodeId).point ] ) );
 	}
 
+	public static
+	function belongs( link:Link, state:SimulatorState ) {
+		return state.hasLink( link.id ) && state.getLink( link.id ) == link;
+	}
+
 }

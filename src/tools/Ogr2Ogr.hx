@@ -7,7 +7,7 @@ import sim.Simulator.println;
 class Ogr2Ogr {
 
 	public static
-	function json2shp( destPath:String, srcPath:String, ?overwrite=false ):Bool {
+	function json2shp( destPath:String, srcPath:String, ?overwrite=false ):Int {
 		var args = overwrite ? [ "-overwrite" ] : [];
 		args = args.concat( [ "-f", "ESRI Shapefile", destPath, srcPath ] );
 		var p = spawn( args );
@@ -17,8 +17,7 @@ class Ogr2Ogr {
 		} catch ( e:haxe.io.Eof ) { }
 		var exitCode = p.exitCode();
 		p.close();
-		println( "`ogr2ogr` exited with status "+exitCode+" ("+(exitCode==0?"success":"error")+")" );
-		return exitCode == 0;
+		return exitCode;
 	}
 
 	static
