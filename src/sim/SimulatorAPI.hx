@@ -33,6 +33,7 @@ import Std.parseFloat;
 import Std.parseInt;
 import Std.string;
 import tools.Ogr2Ogr;
+// import tools.Spliter;
 
 class SimulatorAPI extends mcli.CommandLine {
 
@@ -531,6 +532,21 @@ class SimulatorAPI extends mcli.CommandLine {
 			var cnt = count( aliases.get( name ) );
 			println( "  \""+name+"\": "+cnt+" links" );
 		}
+	}
+
+	/**
+		Write link aliases to LinkAlias ETT in `path`
+	**/
+	public function ettAliases( path:String ) {
+		var aliases = null;
+		if ( sim.state.aliases != null ) {
+			aliases = [];
+			var as = sim.state.aliases;
+			for ( alias in as.keys() )
+				for ( linkId in as.get( alias ) )
+					aliases.push( LinkAlias.make( alias, linkId ) );
+		}
+		return _genericEtt( path, aliases, LinkAlias, "Writing link aliases", "No link aliases" );
 	}
 
 
@@ -1381,26 +1397,99 @@ class SimulatorAPI extends mcli.CommandLine {
 
 	// NETWORK MANIPULATION -----------------------------------------------------
 
+	public function addNode( x:Float, y:Float, id:Int ) {
+		if ( sim.state.nodes == null )
+			sim.state.nodes = new Map();
+		if ( sim.state.nodes.exists( id ) )
+			throw "Node `"+id+"` already exists";
+
+		sim.state.invalidate();
+		var node = Node.make( id, new format.ett.Geometry.Point( x, y ) );
+		sim.state.nodes.set( node.id, node );
+	}
+
+	public function addLink( startId:Int, finishId:Int, extension:Float, typeId:Int, toll:Float, id:Int ) {
+		if ( sim.state.nodes == null )
+			throw "No nodes";
+		if ( !sim.state.nodes.exists( startId ) )
+			throw "Origin node `"+startId+"` does not exist";
+		if ( !sim.state.nodes.exists( finishId ) )
+			throw "Destination node `"+finishId+"` does not exist";
+		if ( sim.state.linkTypes == null )
+			throw "No link types";
+		if ( !sim.state.linkTypes.exists( typeId ) )
+			throw "Link type `"+typeId+"` does not exists";
+		if ( sim.state.links == null )
+			sim.state.links = new Map();
+		if ( sim.state.links.exists( id ) )
+			throw "Link `"+id+"` already exists";
+
+		sim.state.invalidate();
+		var link = Link.make( id, startId, finishId, extension, typeId, toll );
+		sim.state.links.set( link.id, link );
+	}
+
+	public function reverseLink( src:Int, dst:Int, ?cloneAliases:Null<Bool> ) {
+		if ( sim.state.links == null )
+			sim.state.links = new Map();
+		if ( !sim.state.links.exists( src ) )
+			throw "Link `"+src+"` does not exist";
+		if ( sim.state.links.exists( dst ) )
+			throw "Link `"+dst+"` already exists";
+
+		sim.state.invalidate();
+		var link = sim.state.links.get( src );
+		var shape = _getShape( link ).shape.array();
+
+		var rev = Link.make( dst, link.finishNodeId, link.startNodeId, link.extension, link.typeId, link.toll );
+		sim.state.links.set( rev.id, rev );
+		var revShape = shape.copy();
+		revShape.reverse();
+		var rshp = LinkShape.make( rev.id, new format.ett.Geometry.LineString( revShape ) );
+		sim.state.shapes.set( rshp.linkId, rshp );
+		
+		if ( sim.state.aliases != null && cloneAliases )
+			_cloneLinkAliases( link.id, rev.id );
+	}
+
+	private function _cloneLinkAliases( src:Int, dst:Int ) {
+		for ( alias in sim.state.aliases.keys() ) {
+			var found = false;
+			for ( linkId in sim.state.aliases.get( alias ) )
+				if ( src == linkId ) {
+					found = true;
+					break;
+				}
+			if ( found )
+				sim.state.aliases.get( alias ).push( dst );
+		}
+	}
+
+	public function splitLink( linkId:Int, nodeId:Int, dst1:Int, dst2:Int, ?snap:Null<Bool> ) {
+		// var spliter = Spliter.split( link, node, id1, id2, snap );
+	}
+
 	/**
 		Compress the current network, eliminating nodes and links that are no longer necessary
 	**/
 	public function compressNetwork() {
-		trace( count( sim.state.nodes ) );
-		trace( count( sim.state.links ) );
-		trace( sim.state.shapes != null ? count( sim.state.shapes ) : 0 );
-		trace( sim.state.aliases != null ? count( sim.state.aliases ) : 0 );
+		// trace( count( sim.state.nodes ) );
+		// trace( count( sim.state.links ) );
+		// trace( sim.state.shapes != null ? count( sim.state.shapes ) : 0 );
+		// trace( sim.state.aliases != null ? count( sim.state.aliases ) : 0 );
 
 		var compressor = NetworkCompressor.compress( sim.state );
-
+		
+		sim.state.invalidate();
 		sim.state.nodes = compressor.nodes;
 		sim.state.links = compressor.links;
 		sim.state.shapes = compressor.shapes;
 		sim.state.aliases = compressor.aliases;
 
-		trace( count( sim.state.nodes ) );
-		trace( count( sim.state.links ) );
-		trace( sim.state.shapes != null ? count( sim.state.shapes ) : 0 );
-		trace( sim.state.aliases != null ? count( sim.state.aliases ) : 0 );
+		// trace( count( sim.state.nodes ) );
+		// trace( count( sim.state.links ) );
+		// trace( sim.state.shapes != null ? count( sim.state.shapes ) : 0 );
+		// trace( sim.state.aliases != null ? count( sim.state.aliases ) : 0 );
 	}
 
 
