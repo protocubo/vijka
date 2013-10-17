@@ -11,10 +11,12 @@ import sim.Algorithm;
 import sim.col.LinkTypeSpeedMap;
 import sim.uq.Search;
 import sim.uq.Update;
+import sys.FileSystem;
 import sys.io.FileInput;
 import sys.io.FileOutput;
-import sys.FileSystem;
 import tools.NetworkCompressor;
+import tools.Ogr2Ogr;
+import tools.Splitter;
 
 import jonas.NumberPrinter.printDecimal;
 import Lambda.array;
@@ -32,8 +34,6 @@ import sim.Simulator.tabs;
 import Std.parseFloat;
 import Std.parseInt;
 import Std.string;
-import tools.Ogr2Ogr;
-// import tools.Spliter;
 
 class SimulatorAPI extends mcli.CommandLine {
 
@@ -1460,7 +1460,7 @@ class SimulatorAPI extends mcli.CommandLine {
 	}
 
 	public function splitLink( linkId:Int, nodeId:Int, dst1:Int, dst2:Int, ?snap:Null<Bool> ) {
-		// var spliter = Spliter.split( link, node, id1, id2, snap );
+		// var spliter = Splitter.split( link, node, id1, id2, snap );
 	}
 
 	/**
