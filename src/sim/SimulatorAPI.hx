@@ -1454,13 +1454,7 @@ class SimulatorAPI extends mcli.CommandLine {
 
 	private function _cloneLinkAliases( src:Int, dst:Int ) {
 		for ( alias in sim.state.aliases.keys() ) {
-			var found = false;
-			for ( linkId in sim.state.aliases.get( alias ) )
-				if ( src == linkId ) {
-					found = true;
-					break;
-				}
-			if ( found )
+			if ( Lambda.has( sim.state.aliases.get( alias ), src ) )
 				sim.state.aliases.get( alias ).push( dst );
 		}
 	}
