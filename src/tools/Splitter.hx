@@ -2,8 +2,11 @@ package tools;
 
 import elebeta.ett.vijka.*;
 import format.ett.Geometry;
+import jonas.Vector;
 import sim.SimulatorState;
 
+import Math.acos;
+import Math.PI;
 import Math.sqrt;
 
 using sim.SimulatorStateTools;
@@ -89,20 +92,39 @@ class Splitter {
 	// static helpers ---
 
 	/**
-		Best position to insert `pt` in a shape; as of now, it chooses the spot just after the closest point on the shape
+		Best position to insert `pt` in a shape
 	**/
 	static
 	function findSplitPos( lstr:Array<Point>, pt:Point ):Int {
+		// tries to find the place where inserting the point creates the smallest bend angle
+		var vp = pt2vec( pt );
 		var min = Math.POSITIVE_INFINITY;
 		var best = -1;
 		for ( i in 0...(lstr.length-1) ) {
-			var tdist = pdist( lstr[i], pt );
+			var v = vp.sub( pt2vec( lstr[i] ) );
+			var w = pt2vec( lstr[i+1] ).sub( vp );
+			var tdist = vecAngle( v, w );
 			if ( tdist < min ) {
 				min = tdist;
 				best = i;
 			}
 		}
 		return best + 1;
+	}
+
+	static
+	function pt2vec( pt:Point ) {
+		return new Vector( pt.x, pt.y );
+	}
+
+	static
+	function vec2pt( v:Vector ) {
+		return new Point( v.x, v.y );
+	}
+
+	static
+	function vecAngle( a:Vector, b:Vector ) {
+		return acos( a.dotProduct( b )/a.mod()/b.mod() );
 	}
 
 	static
