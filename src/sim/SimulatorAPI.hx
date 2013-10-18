@@ -1460,20 +1460,29 @@ class SimulatorAPI extends mcli.CommandLine {
 		sim.state.shapes.set( rshp.linkId, rshp );
 		
 		if ( sim.state.aliases != null && _readBool( cloneAliases ) )
-			_cloneLinkAliases( link.id, rev.id );
-	}
-
-	private function _cloneLinkAliases( src:Int, dst:Int ) {
-		for ( alias in sim.state.aliases.keys() ) {
-			if ( Lambda.has( sim.state.aliases.get( alias ), src ) )
-				sim.state.aliases.get( alias ).push( dst );
-		}
+			state.cloneLinkAliases( link, rev );
 	}
 
 	public function splitLink( linkId:Int, nodeId:Int, dst1:Int, dst2:Int, ?cloneAliases:String ) {
 		var ret = Splitter.split( state, linkId, nodeId, dst1, dst2, _readBool( cloneAliases ) == true );
 		// trace( ret.link1 );
 		// trace( ret.link2 );
+	}
+
+	public function setAlias( alias:String, linkIds:String ) {
+		var links = _readSet( linkIds, false ).map( function (s) return state.getLink( parseInt(s) ) );
+		state.setAlias( alias, links );
+	}
+
+	public function unsetAlias( alias:String, ?linkIds:String ) {
+		var lids = _readSet( linkIds );
+		if ( lids == null ) {
+			state.unsetAlias( alias );
+		}
+		else {
+			var links = lids.map( function (s) return state.getLink( parseInt(s) ) );
+			state.setAlias( alias, links );
+		}
 	}
 
 	/**

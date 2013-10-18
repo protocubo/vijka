@@ -56,37 +56,24 @@ class Splitter {
 		addLink( link2, lstr2, link );
 
 		if ( cloneAliases ) {
-			cloneLinkAliases( link.id, link1.id );
-			cloneLinkAliases( link.id, link2.id );
+			state.cloneLinkAliases( link, link1 );
+			state.cloneLinkAliases( link, link2 );
 		}
 
 		removeLink( link );
-	}
-
-	function cloneLinkAliases( src:Int, dst:Int ) {
-		for ( alias in state.aliases.keys() ) {
-			if ( Lambda.has( state.aliases.get( alias ), src ) )
-				state.aliases.get( alias ).push( dst );
-		}
-	}
-
-	function removeAliases( id:Int ) {
-		for ( alias in state.aliases.keys() ) {
-			state.aliases.get( alias ).remove( id );
-		}
 	}
 
 	function addLink( link:Link, lstr:Array<Point>, cloneAliases:Null<Link> ) {
 		state.links.set( link.id, link );
 		state.shapes.set( link.id, LinkShape.make( link.id, new LineString( lstr ) ) );
 		if ( cloneAliases != null )
-			cloneLinkAliases( cloneAliases.id, link.id );
+			state.cloneLinkAliases( cloneAliases, link );
 	}
 
 	function removeLink( link:Link ) {
 		state.links.remove( link.id );
 		state.shapes.remove( link.id );
-		removeAliases( link.id );
+		state.unsetLinkAliases( link );
 	}
 
 	// static helpers ---
