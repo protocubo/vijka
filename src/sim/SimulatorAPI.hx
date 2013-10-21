@@ -263,7 +263,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		if ( filter == null ) {
 			for ( k in links ) {
 				if ( first ) first = false; else fout.writeString( ","+sim.state.newline+"\t" );
-				fout.writeString( _geojsonLink( k, false ) );
+				fout.writeString( _geojsonLink( k, false, false ) );
 			}
 		}
 		else {
@@ -271,7 +271,7 @@ class SimulatorAPI extends mcli.CommandLine {
 			var q = Search.prepare( filter, "id" );
 			for ( k in q.execute( sim, links, aliases ) ) {
 				if ( first ) first = false; else fout.writeString( ","+sim.state.newline+"\t" );
-				fout.writeString( _geojsonLink( k, false ) );
+				fout.writeString( _geojsonLink( k, false, false ) );
 			}
 		}
 		fout.writeString( sim.state.newline+"] }"+sim.state.newline );
@@ -302,7 +302,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		if ( filter == null ) {
 			for ( k in links ) {
 				if ( first ) first = false; else fout.writeString( ","+sim.state.newline+"\t" );
-				fout.writeString( _geojsonLink( k, true ) );
+				fout.writeString( _geojsonLink( k, true, false ) );
 			}
 		}
 		else {
@@ -310,7 +310,7 @@ class SimulatorAPI extends mcli.CommandLine {
 			var q = Search.prepare( filter, "id" );
 			for ( k in q.execute( sim, links, aliases ) ) {
 				if ( first ) first = false; else fout.writeString( ","+sim.state.newline+"\t" );
-				fout.writeString( _geojsonLink( k, true ) );
+				fout.writeString( _geojsonLink( k, true, false ) );
 			}
 		}
 		fout.writeString( sim.state.newline+"] }"+sim.state.newline );
@@ -325,6 +325,46 @@ class SimulatorAPI extends mcli.CommandLine {
 	public function shpLinkSpeeds( path:String, ?filter:String ) {
 		println( "Mapping links in ESRI Shapefile" );
 		_shp( geojsonLinkSpeeds, path, filter );
+	}
+
+	/**
+		Write links to GeoJSON in `path` using available link shape data and
+		including travel time information; accepts (optionnally) a unified `filter`
+		query; will overwrite existing files
+	**/
+	public function geojsonLinkTimes( path:String, ?filter:String ) {
+		println( "Mapping links in GeoJSON" );
+		var links = sim.state.links; // just a shortcut
+		if ( links == null ) throw "No links";
+		var fout = _writeFile( path, false );
+		fout.writeString( '{"type":"FeatureCollection","features":['+sim.state.newline );
+		var first = true;
+		if ( filter == null ) {
+			for ( k in links ) {
+				if ( first ) first = false; else fout.writeString( ","+sim.state.newline+"\t" );
+				fout.writeString( _geojsonLink( k, false, true ) );
+			}
+		}
+		else {
+			var aliases = sim.state.aliases;
+			var q = Search.prepare( filter, "id" );
+			for ( k in q.execute( sim, links, aliases ) ) {
+				if ( first ) first = false; else fout.writeString( ","+sim.state.newline+"\t" );
+				fout.writeString( _geojsonLink( k, false, true ) );
+			}
+		}
+		fout.writeString( sim.state.newline+"] }"+sim.state.newline );
+		fout.close();
+	}
+
+	/**
+		Write links to Shapefile set preffixed by `path` using available link shape data and
+		including travel time information; accepts (optionnally) a unified `filter`
+		query; will overwrite existing files
+	**/
+	public function shpLinkTimes( path:String, ?filter:String ) {
+		println( "Mapping links in ESRI Shapefile" );
+		_shp( geojsonLinkTimes, path, filter );
 	}
 
 
@@ -2055,15 +2095,26 @@ class SimulatorAPI extends mcli.CommandLine {
 		return '{"id":${node.id},"type":"Feature","geometry":${geom},"properties":{$prop}}';
 	}
 
-	private function _geojsonLink( link:Link, speeds:Bool ):String {
+	private function _geojsonLink( link:Link, speeds:Bool, times:Bool ):String {
 		var linkProp = link.jsonBody();
 		var geom = _getShape( link ).geojsonGeometry();
-		if ( speeds ) {
+		if ( speeds || times ) {
 			var speedData = [];
+			var timeData = [];
 			for ( s in sim.state.speeds )
-				if ( s.typeId == link.typeId )
-					speedData.push( '"speed_${s.vehicleId}":${s.speed}' );
-			return '{"id":${link.id},"type":"Feature","geometry":${geom},"properties":{$linkProp,${speedData.join(",")}}}';
+				if ( s.typeId == link.typeId ) {
+					if ( speeds )
+						speedData.push( '"speed_${s.vehicleId}":${s.speed}' );
+					if ( times )
+						timeData.push( '"time_${s.vehicleId}":${link.extension/s.speed}' );
+				}
+			var ret = '{"id":${link.id},"type":"Feature","geometry":${geom},"properties":{$linkProp';
+			if ( speeds )
+				ret += ',${speedData.join(",")}';
+			if ( times )
+				ret += ',${timeData.join(",")}';
+			ret += "}}";
+			return ret;
 		}
 		else {
 			return '{"id":${link.id},"type":"Feature","geometry":${geom},"properties":{$linkProp}}';
