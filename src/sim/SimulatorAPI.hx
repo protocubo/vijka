@@ -1509,18 +1509,20 @@ class SimulatorAPI extends mcli.CommandLine {
 		// trace( ret.link2 );
 	}
 
-	public function setAlias( alias:String, linkIds:String ) {
-		var links = _readSet( linkIds, false ).map( function (s) return state.getLink( parseInt(s) ) );
+	public function setAlias( alias:String, query:String ) {
+		// var links = _readSet( query, false ).map( function (s) return state.getLink( parseInt(s) ) );
+		var links = Search.prepare( query, "id" ).execute( sim, state.links, state.aliases );
 		state.setAlias( alias, links );
 	}
 
-	public function unsetAlias( alias:String, ?linkIds:String ) {
-		var lids = _readSet( linkIds );
-		if ( lids == null ) {
+	public function unsetAlias( alias:String, ?query:String ) {
+		// var lids = _readSet( query );
+		if ( query == null ) {
 			state.unsetAlias( alias );
 		}
 		else {
-			var links = lids.map( function (s) return state.getLink( parseInt(s) ) );
+			// var links = lids.map( function (s) return state.getLink( parseInt(s) ) );
+			var links = Search.prepare( query, "id" ).execute( sim, state.links, state.aliases );
 			state.setAlias( alias, links );
 		}
 	}
