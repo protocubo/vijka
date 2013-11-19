@@ -1448,6 +1448,9 @@ class SimulatorAPI extends mcli.CommandLine {
 
 	// NETWORK MANIPULATION -----------------------------------------------------
 
+	/**
+		Add a new node with coordinates (`x` and `y`) and `id`
+	**/
 	public function addNode( x:String, y:String, id:Int ) {
 		if ( sim.state.nodes == null )
 			sim.state.nodes = new Map();
@@ -1459,6 +1462,9 @@ class SimulatorAPI extends mcli.CommandLine {
 		sim.state.nodes.set( node.id, node );
 	}
 
+	/**
+		Add a new link from node `startId` to node `finishId`, with `extension`, `typeId`, `toll` and `id`
+	**/
 	public function addLink( startId:Int, finishId:Int, extension:Float, typeId:Int, toll:Float, id:Int ) {
 		if ( sim.state.nodes == null )
 			throw "No nodes";
@@ -1480,6 +1486,10 @@ class SimulatorAPI extends mcli.CommandLine {
 		sim.state.links.set( link.id, link );
 	}
 
+	/**
+		Create the reverse link for `src`, with id `dst`; if `cloneAliases` is true, all aliases pointing to `src` will
+		also point to `dst`
+	**/
 	public function reverseLink( src:Int, dst:Int, ?cloneAliases:String ) {
 		if ( sim.state.links == null )
 			sim.state.links = new Map();
@@ -1503,7 +1513,10 @@ class SimulatorAPI extends mcli.CommandLine {
 			state.cloneLinkAliases( link, rev );
 	}
 
-
+	/**
+		Split link `linkId` on node `nodeId`, creating two new links (`dst1` and `dst2`); if `cloneAliases` is true, all
+		aliases pointing to `src` will also point to `dst`
+	**/
 	public function splitLink( linkId:Int, nodeId:Int, dst1:Int, dst2:Int, ?cloneAliases:String ) {
 		sim.state.invalidate();
 		var ret = Splitter.split( state, linkId, nodeId, dst1, dst2, _readBool( cloneAliases ) == true );
@@ -1511,12 +1524,18 @@ class SimulatorAPI extends mcli.CommandLine {
 		// trace( ret.link2 );
 	}
 
+	/**
+		Make alias `alias` point also to all links matching `query`
+	**/
 	public function setAlias( alias:String, query:String ) {
 		// var links = _readSet( query, false ).map( function (s) return state.getLink( parseInt(s) ) );
 		var links = Search.prepare( query, "id" ).execute( sim, state.links, state.aliases );
 		state.setAlias( alias, links );
 	}
 
+	/**
+		Remove links matching `query` from destinations for alias `alias`
+	**/
 	public function unsetAlias( alias:String, ?query:String ) {
 		// var lids = _readSet( query );
 		if ( query == null ) {
