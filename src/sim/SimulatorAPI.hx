@@ -1503,7 +1503,9 @@ class SimulatorAPI extends mcli.CommandLine {
 			state.cloneLinkAliases( link, rev );
 	}
 
+
 	public function splitLink( linkId:Int, nodeId:Int, dst1:Int, dst2:Int, ?cloneAliases:String ) {
+		sim.state.invalidate();
 		var ret = Splitter.split( state, linkId, nodeId, dst1, dst2, _readBool( cloneAliases ) == true );
 		// trace( ret.link1 );
 		// trace( ret.link2 );
