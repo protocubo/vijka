@@ -3,6 +3,7 @@ package sim;
 import haxe.io.Input;
 import haxe.io.Output;
 import haxe.io.StringInput;
+import log.Log;
 import sim.Algorithm;
 
 import Lambda.list;
@@ -183,6 +184,7 @@ class Simulator {
 	private static var stderr = Sys.stderr();
 
 	public function run( args:Array<String>, reading:Bool, time:Bool, hl:Bool ) {
+		Log.log( 'running $args (reading:$reading, time:$time, hl:$hl)' );
 		while ( args.remove( "" ) ) {}
 		if ( args.length != 0 ) {
 			var d = new mcli.Dispatch( args );
@@ -204,6 +206,8 @@ class Simulator {
 	public static var baseNewline:String;
 	
 	private static function main() {
+
+		Log.prepare( sys.io.File.write( "./.vijka.log", false ) );
 
 		baseNewline = ( PLATFORM == "Java" && Sys.systemName() == "Windows" ) ? "\r\n" : "\n";
 		sim = new Simulator( stdin, 80 );

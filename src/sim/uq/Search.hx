@@ -12,6 +12,8 @@ import sim.Simulator.print;
 import sim.Simulator.printHL;
 import sim.Simulator.println;
 
+import log.Log.log;
+
 class Search {
 
 	private var interp:Interp;
@@ -42,6 +44,7 @@ class Search {
 	}
 
 	private function sp( sim:Simulator, vehicleId:Int, nodeIds:Iterable<Int> ):Iterable<Link> {
+		log( "searching for path between "+Lambda.array( nodeIds ).toString() );
 		var path:Array<Link> = [];
 		var output:SimulatorState = Type.createEmptyInstance( SimulatorState );
 		output.results = new Map();
@@ -49,22 +52,30 @@ class Search {
 		var pre:Node = null;
 		for ( id in nodeIds ) {
 			var node = sim.state.nodes.get( id );
+			log( node.toString() );
 			if ( node == null ) throw "No node '"+id+"'";
 			if ( pre != null ) {
 				var fakeOd = OD.make(0,0,0,0,vehicleId,null,1,0,0,1,pre.point,node.point,null,null);
 				fakeOd.tollWeight = 0;
 				sim.state.digraph.run( [ fakeOd ], false, true, output, false );
 				var r = output.results.get(0);
-				if ( !r.ran || r.path == null || r.path.length == 0 ) // only !r.ran should be enough
+				if ( !r.ran || r.path == null || r.path.length == 0 ) { // only !r.ran should be enough
+					log( 'did not run... ran:${r.ran} path==null:${r.path==null} path.length:${r.path.length}' );
 					continue;
-				else if ( !r.reached )
+				}
+				else if ( !r.reached ) {
+					log( "did not reach" );
 					throw "Could not find a path between '"+pre.id+"' and '"+node.id+"'";
+				}
 				else {
+					log( 'path found from ${pre.id} to $id' );
 					var rpath = r.path.map( sim.state.links.get );
 					if ( path.length > 0
-					&& rpath[0].startNodeId != path[path.length - 1].finishNodeId )
+					&& rpath[0].startNodeId != path[path.length - 1].finishNodeId ) {
+						log( "cound not join with previous segment" );
 						throw "Could not join paths at '"+rpath[0].startNodeId
 						+"'-'"+path[path.length - 1].finishNodeId+"'";
+					}
 					else
 						path = path.concat( rpath );
 				}
@@ -74,6 +85,8 @@ class Search {
 		}
 		var ext = 0.;
 		for ( link in path ) ext += link.extension;
+		log( 'path.length:${path.length}' );
+		log( path.map( function ( link ) return link==null ? "null" : Std.string( link.id ) ).toString() );
 		println( "Got "+path.length+" links, resulting in a path extension of "+ext );
 		return path;
 	}
