@@ -2121,15 +2121,23 @@ class SimulatorAPI extends mcli.CommandLine {
 	private function _geojsonLink( link:Link, speeds:Bool, times:Bool ):String {
 		var linkProp = link.jsonBody();
 		var geom = _getShape( link ).geojsonGeometry();
+		var stateSpeeds = new Map<Int,Array<LinkTypeSpeed>>();
+		for ( speed in sim.state.speeds )
+			if ( stateSpeeds.exists( speed.typeId ) )
+				stateSpeeds.get( speed.typeId ).push( speed );
+			else
+				stateSpeeds.set( speed.typeId, [ speed ] );
+		for ( speedsForType in stateSpeeds )
+			speedsForType.sort( function (a,b) return Reflect.compare(a.vehicleId,b.vehicleId) );
 		if ( speeds || times ) {
 			var speedData = [];
 			var timeData = [];
-			for ( s in sim.state.speeds )
-				if ( s.typeId == link.typeId ) {
+			if ( stateSpeeds.exists( link.typeId ) )
+				for ( speed in stateSpeeds.get( link.typeId ) ) {
 					if ( speeds )
-						speedData.push( '"speed_${s.vehicleId}":${s.speed}' );
+						speedData.push( '"speed_${speed.vehicleId}":${speed.speed}' );
 					if ( times )
-						timeData.push( '"time_${s.vehicleId}":${link.extension/s.speed}' );
+						timeData.push( '"time_${speed.vehicleId}":${link.extension/speed.speed}' );
 				}
 			var ret = '{"id":${link.id},"type":"Feature","geometry":${geom},"properties":{$linkProp';
 			if ( speeds )
