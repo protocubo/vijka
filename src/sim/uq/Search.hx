@@ -150,75 +150,91 @@ class Search {
 	}
 
 	private function remap( ast:Null<Expr> ):Null<Expr> {
-		return switch ( ast ) {
-		case null: null;
-		case EConst(_): ast;
+		if ( ast == null )
+			return null;
+		var mk = mkExpr.bind( ast.pmin, ast.pmax );
+		var a = ast.e;
+		return switch ( a ) {
+		case EConst( _ ):
+			ast;
 
-		case EIdent("alias"):
+		case EIdent( "alias" ):
 			throw "`alias` can only be used once and with the '==' operator";
-		case EIdent(v):
-			EField(EIdent("__record__"),v);
+		case EIdent( v ):
+			mk(EField( mk(EIdent( "__record__" )), v) );
 
-		case EParent(e): EParent(remap(e));
+		case EParent( e ):
+			mk(EParent( remap(e) ));
 
-		case EBinop(op,e1,e2):
-			remapBinop(ast);
+		case EBinop( op, e1, e2 ):
+			remapBinop( ast );
 
-		case ECall(EIdent("found"),params):
-			ECall(EIdent("found"),params.map(remap));
-		case ECall(EIdent("sp"),[EConst(CInt(vid)),EArrayDecl(e)]):
+		case ECall( { pmin:p, pmax:q, e:EIdent("found") }, params ):
+			mk(ECall( mkExpr(p,q,EIdent("found")), params.map(remap) ));
+		case ECall( { pmin:p, pmax:q, e:EIdent("sp") }, [ { pmin:pv, pmax:qv, e:EConst(CInt(vid)) }, { pmin:pp, pmax:qp, e:EArrayDecl(e) } ] ):
 			if ( findPath != null )
 				throw "Can only search links in path once";
-			findPath = { vehicleId: vid, nodeIds: e.map( function ( _e ) return switch ( _e ) {
-				case EConst(CInt(nid)): nid;
+			findPath = { vehicleId: vid, nodeIds: e.map( function ( _e ) return switch ( _e.e ) {
+				case EConst( CInt(nid) ): nid;
 				case all: throw "Invalid node id '"+all+"'";
 				} )
 			};
-			EBinop("==",EIdent("true"),EIdent("true"));
+			mk(EBinop( "==", mk(EIdent("true")), mk(EIdent("true")) ));
 
-		// case EArray(e,index): EArray(remap(e),remap(index));
-		case EArrayDecl(e): EArrayDecl(e.map(remap));
+		// case EArray(e,index): // EArray(remap(e),remap(index));
+		case EArrayDecl(e):
+			mk(EArrayDecl( e.map(remap) ));
 
 		case all: throw "Bad expression: "+all;
 		};
 	}
 
+	function mkExpr( pmin:Int, pmax:Int, e:ExprDef ):Expr {
+		return { pmin:pmin, pmax:pmax, e:e };
+	}
+
 	private function remapBinop( binop:Expr ):Expr {
-		return switch ( binop ) {
-		case EBinop("==",EConst(ct), EIdent("alias")):
-			remapBinop( EBinop("==",EIdent("alias"),EConst(ct)) );
-		case EBinop("==",EIdent("alias"),EConst(ct)):
-			if ( exactAlias != null )
-				throw "`alias` can only be used (once) to match a constant";	
-			exactAlias = switch ( ct ) {
-			case CInt(v): Std.string( v );
-			case CFloat(v): Std.string( v );
-			case CString(v): v;
-			};
-			EBinop("==",EIdent("true"),EIdent("true"));
-
-		case EBinop("==",EConst(CInt(v)),EIdent(name)):
-			remapBinop( EBinop("==",EIdent(name),EConst(CInt(v))) );
-		case EBinop("==",EIdent(name),EConst(CInt(v))):
-			if ( name == idName ) {
-				if ( exactId != null )
-					exactId = v;
-				EBinop("==",remap(EIdent(name)),EConst(CInt(v)));
+		var mk = mkExpr.bind( binop.pmin, binop.pmax );
+		var mkBinop = function ( op, e1, e2 ) return mk(EBinop( op, mk(e1), mk(e2) ));
+		var b = binop.e;
+		return switch ( b ) {
+		case EBinop( op, e1, e2 ):
+			switch ([ op, e1.e, e2.e ]) {
+			case [ "==", EConst(ct), EIdent("alias") ]:
+				remapBinop( mkBinop( op, EIdent("alias"), EConst(ct) ) );
+			case [ "==", EIdent("alias"), EConst(ct) ]:
+				if ( exactAlias != null )
+					throw "`alias` can only be used (once) to match a constant";	
+				exactAlias = switch ( ct ) {
+				case CInt(v): Std.string( v );
+				case CFloat(v): Std.string( v );
+				case CString(v): v;
+				};
+				mkBinop( "==", EIdent("true"), EIdent("true") );
+			case [ "==", EConst(CInt(v)), EIdent(name) ]:
+				remapBinop( mkBinop( "==", EIdent(name), EConst(CInt(v)) ) );
+			case [ "==", EIdent(name), EConst(CInt(v)) ]:
+				if ( name == idName ) {
+					if ( exactId != null )
+						exactId = v;
+					mkBinop( "==", remap( mk(EIdent(name)) ).e, EConst(CInt(v)) );
+				}
+				else
+					mkBinop( "==", remap( mk(EIdent(name)) ).e, EConst(CInt(v)) );
+			case [ op, e1e, e2e ] if (has(["==","!="],op)):
+				mk(EBinop( op, remap(e1), remap(e2) ));
+				return null;
+			case [ op, e1e, e2e ] if (has([">","<",">=","<="],op)):
+				mk(EBinop( op, remap(e1), remap(e2) ));
+				return null;
+			case [ op, e1e, e2e ] if (has(["&&","||"],op)):
+				mk(EBinop( op, remap(e1), remap(e2) ));
+				return null;
+			case [ "=", _, _ ]:
+				throw "Assignment '=' operator not allowed; did you mean to use the equality operator '=='?";
+			case [ op, _, _ ]:
+				throw "Operator '"+op+"' not allowed";
 			}
-			else
-				EBinop("==",remap(EIdent(name)),EConst(CInt(v)));
-
-		case EBinop(op,e1,e2) if (has(["==","!="],op)):
-			EBinop(op,remap(e1),remap(e2));
-		case EBinop(op,e1,e2) if (has([">","<",">=","<="],op)):
-			EBinop(op,remap(e1),remap(e2));
-		case EBinop(op,e1,e2) if (has(["&&","||"],op)):
-			EBinop(op,remap(e1),remap(e2));
-
-		case EBinop("=",_,_):
-			throw "Assignment '=' operator not allowed; did you mean to use the equality operator '=='?";
-		case EBinop(op,_,_):
-			throw "Operator '"+op+"' not allowed";
 		case all:
 			throw "Expression processing error: "+all;
 		};

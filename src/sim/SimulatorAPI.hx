@@ -1929,6 +1929,16 @@ class SimulatorAPI extends mcli.CommandLine {
 		sim.state.newline = "\r\n";
 	}
 
+	var scriptingEngine:sim.ScriptingEngine;
+
+	/**
+		DEV
+	**/
+	public function script( path:String ) {
+		scriptingEngine = new sim.ScriptingEngine();
+		scriptingEngine.execute( _readFile( path, false ).readAll().toString() );
+	}
+
 
 
 	// OTHERS -------------------------------------------------------------------

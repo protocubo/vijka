@@ -4,6 +4,9 @@
 -lib elebeta-format
 -lib mcli
 -lib hscript
+
 # -D dump
+
+-D hscriptPos
 
 -cmd nekotools boot exp/vijka/neko/vijka.n
