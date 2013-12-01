@@ -52,7 +52,7 @@ class Search {
 		var pre:Node = null;
 		for ( id in nodeIds ) {
 			var node = sim.state.nodes.get( id );
-			log( node.toString() );
+			log( Std.string( node ) );
 			if ( node == null ) throw "No node '"+id+"'";
 			if ( pre != null ) {
 				var fakeOd = OD.make(0,0,0,0,vehicleId,null,1,0,0,1,pre.point,node.point,null,null);
