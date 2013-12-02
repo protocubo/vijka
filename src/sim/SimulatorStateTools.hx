@@ -85,7 +85,6 @@ class SimulatorStateTools {
 			if ( state.validateLink( link ) && !Lambda.has( x, link.id ) )
 				x.push( link.id );
 		state.aliases.set( alias, x );
-
 	}
 
 	public static
@@ -116,7 +115,7 @@ class SimulatorStateTools {
 	public static
 	function cloneLinkAliases( state:SimulatorState, src:Link, dst:Link ) {
 		for ( alias in state.aliases.keys() ) {
-			if ( Lambda.has( state.aliases.get( alias ), src.id ) )
+			if ( Lambda.has( state.aliases.get( alias ), src.id ) && !Lambda.has( state.aliases.get( alias ), dst.id ) )
 				state.aliases.get( alias ).push( dst.id );
 		}
 	}
