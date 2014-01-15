@@ -101,7 +101,7 @@ class Search {
 		return p.parseString( s );
 	}
 
-	public function execute( sim:Simulator, index:Map<Dynamic,Dynamic>
+	public function execute( sim:Simulator, index:Map.IMap<Dynamic,Dynamic>
 	, ?aliases:Map<String,Dynamic> ):Iterable<Dynamic> {
 		interp.variables.set( "__sim__", sim );
 		var res:Array<Dynamic> = []; // typing this result is important otherwise this method gets specialized for Java (cannot cast Node to Link errors)

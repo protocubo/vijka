@@ -11,7 +11,7 @@ class Speed {
 		values = [];
 	}
 
-	public function get( vclass:VehicleClass ):SpeedValue {
+	public function get( vclass:VehicleClass ):Null<SpeedValue> {
 		return values[vclass.id];
 	}
 

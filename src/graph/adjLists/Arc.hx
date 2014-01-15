@@ -47,7 +47,7 @@ class Arc {
 	}
 
 	private inline function ftoll( tollMulti:Float ):Toll {
-		return link.toll != null ? link.toll*tollMulti : 0.;
+		return link.toll*tollMulti;
 	}
 
 }

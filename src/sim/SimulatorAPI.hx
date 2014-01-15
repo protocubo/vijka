@@ -2037,7 +2037,7 @@ class SimulatorAPI extends mcli.CommandLine {
 
 	// HELPERS ------------------------------------------------------------------
 
-	private function _genericQuery( query:Search, table:Map<Dynamic,Dynamic>
+	private function _genericQuery( query:Search, table:Map.IMap<Dynamic,Dynamic>
 	, aliases:Null<Map<String,Dynamic>>, type:Null<String>
 	, status:Null<String>, notAvailable:Null<String> ) {
 		if ( table == null )

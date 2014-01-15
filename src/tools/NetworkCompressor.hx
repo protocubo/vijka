@@ -302,6 +302,7 @@ class NetworkCompressor {
 	/**
 		Copies map contents from `source`, to `destination`; returns `destination` with the elements from `source`.
 	**/
+	@:generic
 	function copyMap<K,V>( source:Map<K,V>, destination:Map<K,V> ):Map<K,V> {
 		for ( k in source.keys() ) {
 			var v = source.get( k );
@@ -313,7 +314,7 @@ class NetworkCompressor {
 	/**
 		Pushes `key`,`value` into multimap `mmap`
 	**/
-	function mmpush<K,V>( mmap:Map<K,Array<V>>, key:K, value:V ) {
+	function mmpush<K,V>( mmap:Map.IMap<K,Array<V>>, key:K, value:V ) {
 		if ( mmap.exists( key ) )
 			mmap.get( key ).push( value );
 		else
@@ -323,7 +324,7 @@ class NetworkCompressor {
 	/**
 		Gets values for `key` from multimap `map`; if the `key` does not exist, returns an empty array
 	**/
-	function mmget<K,V>( mmap:Map<K,Array<V>>, key:K ):Array<V> {
+	function mmget<K,V>( mmap:Map.IMap<K,Array<V>>, key:K ):Array<V> {
 		return mmap.exists( key ) ? mmap.get( key ) : [];
 	}
 
