@@ -2,15 +2,34 @@ LICENSE & COPYING
 =================
 
 
-Vijka
------
+[Vijka](https://github.com/Elebeta/vijka)
+-----------------------------------------
 _A demand model/simulator for highway tolls on regional road networks_
 
-Copyright (c) 2013, Arthur Campora Szász and Jonas Malaco Filho,
-Elebeta.
+Copyright (c) 2013-2014, Arthur Campora Szász and Jonas Malaco Filho.
 All rights reserved.
 
-Licensed under the BSD 3-clause license:
+Licensed under the BSD 3-clause license.
+
+
+[jonas-haxe](https://github.com/jonasmalacofilho/jonas-haxe/tree/haxe3migration)
+--------------------------------------------------------------------------------
+_Open-source collection of data structures and algorithms in Haxe_
+
+Vijka includes code based on and adapted from the haxe3migration branch of the
+jonas-haxe library:
+
+ - Data structures: R-trees and d-ary heaps
+ - Utilities: a pretty printer for floating point numbers
+
+Copyright (c) 2012-2014, Jonas Malaco Filho.
+All rights reserved.
+
+Licensed under the MIT license.
+
+
+[The BSD 3-clause license](http://opensource.org/licenses/BSD-3-Clause)
+-----------------------------------------------------------------------
 
 Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
@@ -37,26 +56,9 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-(http://opensource.org/licenses/BSD-3-Clause)
 
-
-jonas-haxe
-----------
-_Open-source collection of data structures and algorithms in Haxe_
-
-Vijka includes code based on and adapted from the haxe3migration branch of the
-jonas-haxe library:
-
- - Data structures: R-trees and d-ary heaps
- - Utilities: a pretty printer for floating point numbers
-
-(https://github.com/jonasmalacofilho/jonas-haxe/tree/haxe3migration)
-
-
-Copyright (c) 2012-2013, Jonas Malaco Filho.
-All rights reserved.
-
-Licensed under the MIT license:
+[The MIT license](http://www.opensource.org/licenses/mit)
+---------------------------------------------------------
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
@@ -74,5 +76,3 @@ FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
 COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-(http://www.opensource.org/licenses/mit)
