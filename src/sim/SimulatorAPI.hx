@@ -718,7 +718,7 @@ class SimulatorAPI extends mcli.CommandLine {
 		var aliases = sim.state.aliases;
 		var q = Search.prepare( filter, "id" );
 		var set = array( q.execute( sim, links, aliases ) );
-		var u = Update.prepare( update, ["extension", "typeId", "toll"] );
+		var u = Update.prepare( update, ["extension", "typeId", "toll"], sim.state );
 		sim.state.invalidate();
 		u.execute( set );
 	}
