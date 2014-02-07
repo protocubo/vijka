@@ -1934,6 +1934,24 @@ class SimulatorAPI extends mcli.CommandLine {
 	// OTHERS -------------------------------------------------------------------
 
 	/**
+		Pause for `s` seconds
+	**/
+	public function pause( s:Float ) {
+		println( 'Waiting for $s seconds' );
+		Sys.sleep( s );
+	}
+
+	/**
+		Execute external command
+	**/
+	public function cmd( exec:String, args:Array<String> ) {
+		println( 'Executing external command $exec' );
+		println( 'Args: ${args.join(" ")}' );
+		Sys.command( exec, args );
+	}
+
+
+	/**
 		Show simulator version
 	**/
 	public function version() {
