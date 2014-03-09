@@ -1941,14 +1941,14 @@ class SimulatorAPI extends mcli.CommandLine {
 		Sys.sleep( s );
 	}
 
-	/**
-		Execute external command
-	**/
-	public function cmd( exec:String, args:Array<String> ) {
-		println( 'Executing external command $exec' );
-		println( 'Args: ${args.join(" ")}' );
-		Sys.command( exec, args );
-	}
+	// /**
+	// 	Execute external command
+	// **/
+	// public function cmd( exec:String, args:Array<String> ) {
+	// 	println( 'Executing external command $exec' );
+	// 	println( 'Args: ${args.join(" ")}' );
+	// 	Sys.command( exec, args );
+	// }
 
 
 	/**
