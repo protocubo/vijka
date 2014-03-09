@@ -39,7 +39,7 @@ abstract VehicleClassId( Int ) from Int to Int {
 /* 
  * Vehicle axis count.
  */
-abstract AxisCount( Int ) from Int to Int {
+abstract AxisCount( Float ) from Float to Float {
 	@:op( A*B ) public static function scale( a:AxisCount, b:Float ):AxisCount;
 }
 
