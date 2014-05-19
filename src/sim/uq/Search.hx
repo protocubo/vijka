@@ -69,7 +69,8 @@ class Search {
 				}
 				else {
 					log( 'path found from ${pre.id} to $id' );
-					var rpath = r.path.map( sim.state.links.get );
+					function getLink( id ) return sim.state.links.get(id);
+					var rpath = r.path.map( getLink );
 					if ( path.length > 0
 					&& rpath[0].startNodeId != path[path.length - 1].finishNodeId ) {
 						log( "cound not join with previous segment" );

@@ -24,6 +24,7 @@ import Lambda.count;
 import Lambda.filter;
 import Lambda.has;
 import Lambda.list;
+import Lambda.map;
 import sim.Simulator.baseNewline;
 import sim.Simulator.print;
 import sim.Simulator.printHL;
@@ -438,11 +439,11 @@ class SimulatorAPI extends mcli.CommandLine {
 		will overwrite existing files
 	**/
 	public function ettShapes( path:String, ?filter:String ) {
-		var shapes:Iterable<LinkShape> = sim.state.shapes;
-		if ( filter != null ) {
-			var q = Search.prepare( filter, "linkId" );
-			shapes = q.execute( sim, sim.state.shapes, sim.state.aliases );
-		}
+		if ( filter == null )
+			return;
+		var q = Search.prepare( filter, "id" );
+		var links = q.execute( sim, sim.state.links, sim.state.aliases );
+		var shapes = map( links, _getShape );
 		return _genericEtt( path, shapes, LinkShape, "Writing link shapes", "No link shapes" );
 	}
 
@@ -1356,8 +1357,9 @@ class SimulatorAPI extends mcli.CommandLine {
 			users.sort( Reflect.compare );
 
 			if ( frOds ) {
+				function getOd( id ) return ods.get( id );
 				sim.state.activeOdFilter = [ "Passing through '"+query+"'" ];
-				sim.state.activeOds = _odMap( users.map( ods.get ) );
+				sim.state.activeOds = _odMap( users.map( getOd ) );
 				showOdFilter();
 			}
 
