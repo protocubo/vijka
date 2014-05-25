@@ -2,6 +2,19 @@ package test.unit;
 
 class TestHaxe extends TestCase {
 	
+	// should fail on static targets with:
+	//     On static platforms, null can't be used as basic type Int
+	public function testNullComparison() {
+		#if neko
+		assertFalse(null == 0);
+		assertFalse(null <= 0);
+		assertFalse(null < 0);
+		assertFalse(null >= 0);
+		assertFalse(null > 0);
+		assertTrue(null != 0);
+		#end
+	}
+
 	#if ( !java || debug ) // testBugHaxeJava0001
 	public function testNullableInt() {
 		var x = function ():Null<Int> {

@@ -24,7 +24,7 @@ class Queue extends elebeta.ds.heap.DAryHeap<Vertex> {
 	}
 
 	override inline public function contains( e:Vertex ):Bool {
-		var i = e.index;
+		var i:Null<Int> = e.index;
 		return i != null && i >= 0 && i < length && h[i] == e;
 	}
 
