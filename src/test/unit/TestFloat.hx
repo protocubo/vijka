@@ -35,7 +35,9 @@ class TestFloat extends TestCase {
 	public function testFloatIntegers() {
 		var i:Int = 65535;
 		var f:Float = 65535;
-		assertFalse( i*i > 0 );
+		#if !python
+		assertFalse( i*i > 0 );  // expects an overflow
+		#end
 		assertTrue( f*f > 0 );
 	}
 	#end

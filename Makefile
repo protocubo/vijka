@@ -44,6 +44,9 @@ UnitTests-cpp-run:
 UnitTests-neko-run:
 	haxe ${HXFLAGS} mk/UnitTests.neko.hxml
 	exp/UnitTests/neko/UnitTests
+UnitTests-python-run:
+	haxe ${HXFLAGS} mk/UnitTests.python.hxml
+	python3 exp/UnitTests/python/UnitTests.py
 .PHONY: UnitTests UnitTests-java-run UnitTests-cpp64-run UnitTests-cpp-run UnitTests-neko-run
 
 

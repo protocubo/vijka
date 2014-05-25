@@ -1,0 +1,6 @@
+-python exp/UnitTests/python/UnitTests.py
+-main test.unit.UnitTests
+-cp src
+-lib elebeta-format
+
+# -D dump
