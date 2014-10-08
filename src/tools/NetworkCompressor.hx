@@ -314,6 +314,7 @@ class NetworkCompressor {
 	/**
 		Pushes `key`,`value` into multimap `mmap`
 	**/
+    inline
 	function mmpush<K,V>( mmap:Map.IMap<K,Array<V>>, key:K, value:V ) {
 		if ( mmap.exists( key ) )
 			mmap.get( key ).push( value );
@@ -324,6 +325,7 @@ class NetworkCompressor {
 	/**
 		Gets values for `key` from multimap `map`; if the `key` does not exist, returns an empty array
 	**/
+    inline
 	function mmget<K,V>( mmap:Map.IMap<K,Array<V>>, key:K ):Array<V> {
 		return mmap.exists( key ) ? mmap.get( key ) : [];
 	}
