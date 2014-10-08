@@ -5,4 +5,3 @@
 
 # -D dump
 
--cmd cp exp/UnitTests/java/java.jar exp/UnitTests/java/UnitTests.jar

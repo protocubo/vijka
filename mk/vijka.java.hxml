@@ -7,6 +7,6 @@
 
 # -D dump
 
--cmd cp exp/vijka/java/java.jar exp/vijka/java/vijka.jar
--cmd cp exp/vijka/java/java.jar exp/vijka/java/vijka
+-cmd cp exp/vijka/java/Simulator.jar exp/vijka/java/vijka.jar
+-cmd cp exp/vijka/java/Simulator.jar exp/vijka/java/vijka
 -cmd chmod +x exp/vijka/java/vijka
