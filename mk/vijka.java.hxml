@@ -4,6 +4,7 @@
 -lib elebeta-format
 -lib mcli
 -lib hscript
+-dce full
 
 # -D dump
 

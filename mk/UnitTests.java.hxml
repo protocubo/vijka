@@ -2,6 +2,7 @@
 -main test.unit.UnitTests
 -cp src
 -lib elebeta-format
+-dce full
 
 # -D dump
 
