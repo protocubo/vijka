@@ -162,12 +162,13 @@ class Simulator {
 	}
 
 	public function getArgs( inp:Input, newline:String ):Array<String> {
-		var reader = new format.csv.Reader( inp, newline, " ", "'" );
-		var args = reader.readRecord();
-		if ( args.length>0 && args[0].length>0 && args[0].charCodeAt(0)=="#".code )
-			return [];
-		else
-			return args;
+		var r = new format.csv.Reader(" ", "'", [newline]);
+		r.reset(null, inp);
+
+		var args = r.hasNext() ? r.next() : null;
+		if (args == null || (args.length > 0 && StringTools.startsWith(args[0], "#")))
+			args = [];
+		return args;
 	}
 
 	public function strArgs( args:Array<String> ):String {

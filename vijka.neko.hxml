@@ -1,0 +1,9 @@
+-neko exp/vijka/neko/vijka.n
+-main sim.Simulator
+-cp src
+-lib elebeta-format
+-lib csv
+-lib mcli
+-lib hscript
+-D dump
+
