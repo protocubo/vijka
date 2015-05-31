@@ -30,20 +30,7 @@ class Simulator {
 	public function reset() {
 		if ( state != null )
 			state.invalidate();
-		state = state != null ? new SimulatorState( this, state.newline
-		                                          , sim.state.timing
-		                                          , sim.state.identation
-		                                          , ADijkstra
-		                                          , sim.state.heapArity
-		                                          , sim.state.heapReserve )
-                            : new SimulatorState( this, baseNewline
-		                                          , false // timing off by default
-		                                          , 0 // no identation
-		                                          , ADijkstra
-		                                          , 3 // optimal b*log(N,b)
-		                                          , 16 ); // reasonable considering
-                                                       // Array doublying with push 
-
+		state = new SimulatorState(this, state != null ? state : baseParams);
 		log = [];
 	}
 
@@ -205,12 +192,21 @@ class Simulator {
 
 	public static var sim:Simulator;
 	public static var baseNewline:String;
+	public static var baseParams:SimulatorState.SimStateParams;
 	
 	private static function main() {
 
 		Log.prepare( sys.io.File.write( "./.vijka.log", false ) );
 
 		baseNewline = ( PLATFORM == "Java" && Sys.systemName() == "Windows" ) ? "\r\n" : "\n";
+		baseParams = {
+			newline : baseNewline,
+			timing : false,
+			identation : 0,
+			algorithm : ADijkstra,
+			heapArity : 3,
+			heapReserve : 16
+		};
 		sim = new Simulator( stdin, 80 );
 
 		if ( Sys.args().length > 0 ) {

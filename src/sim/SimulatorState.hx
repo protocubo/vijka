@@ -9,6 +9,15 @@ import sim.Simulator.print;
 import sim.Simulator.printHL;
 import sim.Simulator.println;
 
+typedef SimStateParams = {
+	timing : Bool,
+	newline : String,
+	identation : Int,
+	algorithm : Algorithm,
+	heapArity : Int,
+	heapReserve : Int
+}
+
 class SimulatorState {
 
 	public var sim:Simulator;
@@ -53,14 +62,14 @@ class SimulatorState {
 
 	public var macros:Map<String,String>;
 
-	public function new( _sim:Simulator, _newline, _timing, _identation, _algorithm, _heapArity, _heapReserve ) {
+	public function new(_sim:Simulator, params:SimStateParams) {
 		sim = _sim;
-		newline = _newline;
-		timing = _timing;
-		identation = _identation;
-		algorithm = _algorithm;
-		heapArity = _heapArity;
-		heapReserve = _heapReserve;
+		newline = params.newline;
+		timing = params.timing;
+		identation = params.identation;
+		algorithm = params.algorithm;
+		heapArity = params.heapArity;
+		heapReserve = params.heapReserve;
 		workers = 1;
 		workerPartSize = 0;
 		macros = new Map();
