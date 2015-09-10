@@ -6,13 +6,13 @@ LICENSE & COPYING
 -----------------------------------------
 _A demand model/simulator for highway tolls on regional road networks_
 
-Copyright (c) 2013-2014, Arthur Campora Szász and Jonas Malaco Filho.
+Copyright (c) 2013-2015, Arthur Campora Szász and Jonas Malaco Filho.
 All rights reserved.
 
 Licensed under the BSD 3-clause license.
 
 
-[jonas-haxe](https://github.com/jonasmalacofilho/jonas-haxe/tree/haxe3migration)
+[jonas-haxe](https://github.com/jonasmalacofilho/jonas-haxe)
 --------------------------------------------------------------------------------
 _Open-source collection of data structures and algorithms in Haxe_
 
@@ -22,7 +22,7 @@ jonas-haxe library:
  - Data structures: R-trees and d-ary heaps
  - Utilities: a pretty printer for floating point numbers
 
-Copyright (c) 2012-2014, Jonas Malaco Filho.
+Copyright (c) 2012-2015, Jonas Malaco Filho.
 All rights reserved.
 
 Licensed under the MIT license.
